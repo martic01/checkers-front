@@ -1,0 +1,121 @@
+.stats-screen {
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px 60px;
+}
+
+.stats-panel {
+  width: 100%;
+  max-width: 560px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px;
+  box-shadow: var(--panel-shadow);
+}
+
+.stats-title {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+
+.stats-subtitle {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--cream-dim);
+  margin: 22px 0 10px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.stat-card--accent {
+  border-color: var(--gold);
+}
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--gold-bright);
+}
+.stat-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cream-dim);
+}
+
+.stats-chart {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 8px 4px 0;
+}
+
+.trophy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.trophy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+.trophy--earned {
+  border-color: var(--gold);
+  background: rgba(201, 162, 39, 0.08);
+}
+.trophy--locked {
+  opacity: 0.45;
+}
+.trophy-icon {
+  font-size: 1.2rem;
+}
+.trophy-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.trophy-desc {
+  font-size: 0.65rem;
+  color: var(--cream-dim);
+}
+
+.stats-back {
+  width: 100%;
+  margin-top: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-border);
+  color: var(--cream);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

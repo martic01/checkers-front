@@ -1,0 +1,108 @@
+.home {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.home-hero {
+  text-align: center;
+}
+
+.home-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.home-title {
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  margin: 8px 0 6px;
+  background: linear-gradient(135deg, var(--cream), var(--maple-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.home-tagline {
+  color: var(--cream-dim);
+  font-size: 0.95rem;
+}
+
+.mode-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.mode-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  color: var(--cream);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.mode-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+}
+
+.mode-icon {
+  font-size: 1.6rem;
+}
+.mode-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+.mode-desc {
+  font-size: 0.78rem;
+  color: var(--cream-dim);
+  line-height: 1.4;
+}
+
+.home-menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.home-menu-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  color: var(--cream);
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+.home-menu-item:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+.home-menu-item--primary {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, var(--gold), #a97f1f);
+  color: var(--ink);
+  border: none;
+}
+
+@media (max-width: 640px) {
+  .mode-cards {
+    grid-template-columns: 1fr;
+  }
+  .home-menu {
+    grid-template-columns: 1fr;
+  }
+}

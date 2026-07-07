@@ -1,0 +1,98 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap");
+
+:root {
+  /* Core palette */
+  --ink: #140f0c;
+  --walnut-dark: #241510;
+  --walnut: #4a2e1e;
+  --maple: #e8c9a0;
+  --maple-deep: #d9b382;
+  --gold: #c9a227;
+  --gold-bright: #e8c25c;
+  --cream: #f5efe6;
+  --cream-dim: rgba(245, 239, 230, 0.6);
+
+  --panel-bg: rgba(18, 12, 9, 0.86);
+  --panel-border: rgba(201, 162, 39, 0.25);
+  --panel-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+
+  --success: #6fae6f;
+  --danger: #c85c4f;
+
+  /* Type */
+  --font-display: "Cinzel", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+}
+
+/* ---------- Board themes ---------- */
+/* Each theme defines light/dark square colors + grain tint + border wood. */
+
+[data-board-theme="classic-maple"] {
+  --sq-light-a: #eccfa0;
+  --sq-light-b: #dfb787;
+  --sq-dark-a: #5b3722;
+  --sq-dark-b: #43271a;
+  --board-border: #2c1810;
+  --grain-opacity: 0.16;
+}
+
+[data-board-theme="ebony-ivory"] {
+  --sq-light-a: #f2ece0;
+  --sq-light-b: #e2d8c4;
+  --sq-dark-a: #241f1c;
+  --sq-dark-b: #151210;
+  --board-border: #0d0b0a;
+  --grain-opacity: 0.12;
+}
+
+[data-board-theme="rosewood-birch"] {
+  --sq-light-a: #f1e3c8;
+  --sq-light-b: #e3cfa3;
+  --sq-dark-a: #6e2a2a;
+  --sq-dark-b: #521d1d;
+  --board-border: #3a1414;
+  --grain-opacity: 0.18;
+}
+
+[data-board-theme="slate-cherry"] {
+  --sq-light-a: #d8c9b0;
+  --sq-light-b: #c7b494;
+  --sq-dark-a: #3a2f4a;
+  --sq-dark-b: #281f36;
+  --board-border: #1c1626;
+  --grain-opacity: 0.14;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background: radial-gradient(circle at 50% 0%, #2a1c14 0%, var(--ink) 65%);
+  color: var(--cream);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}

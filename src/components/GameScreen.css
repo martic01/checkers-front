@@ -1,0 +1,63 @@
+.game-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 60px;
+  position: relative;
+  min-height: 100vh;
+}
+
+.game-over-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 6, 4, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.game-over-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: var(--panel-shadow);
+  max-width: 320px;
+}
+
+.game-over-card h3 {
+  color: var(--gold-bright);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.game-over-card p {
+  color: var(--cream-dim);
+  margin-bottom: 20px;
+}
+
+.game-over-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.game-over-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cream);
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+
+.game-over-actions button:first-child {
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+}
