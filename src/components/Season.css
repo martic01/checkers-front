@@ -1,0 +1,192 @@
+.season-oven {
+  width: 100%;
+  max-width: 720px;
+  border-radius: var(--radius-lg);
+  padding: 28px 20px 32px;
+  position: relative;
+  overflow: hidden;
+  /* "World Cup Oven": sharp, hot gradient — a nod to stadium-floodlight gold
+     bleeding into a fiery oven-orange/red base. */
+  background:
+    radial-gradient(circle at 15% 0%, rgba(255, 214, 102, 0.35), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(255, 87, 34, 0.35), transparent 60%),
+    linear-gradient(150deg, #3a0f0a 0%, #7a1f0f 32%, #c1531b 60%, #e8961f 85%, #ffcf5c 100%);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 210, 130, 0.25);
+}
+
+.season-panel--loading {
+  max-width: 480px;
+}
+.season-loading {
+  text-align: center;
+  color: var(--cream-dim);
+  padding: 30px 0;
+}
+
+.back-link--light {
+  color: rgba(255, 245, 230, 0.85);
+}
+.back-link--light:hover {
+  color: #fff;
+}
+
+.season-hero {
+  text-align: center;
+  margin: 6px 0 22px;
+}
+.season-hero__kicker {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 235, 200, 0.85);
+}
+.season-hero__title {
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
+  margin: 6px 0;
+  color: #fff8ec;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+.season-hero__sub {
+  color: rgba(255, 240, 220, 0.85);
+  font-size: 0.82rem;
+  margin: 0 0 10px;
+}
+.season-hero__meta {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: #fff;
+}
+.season-hero__meta span {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- Horizontal reward carousel ---------- */
+.season-carousel {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 6px 6px 14px;
+  scroll-snap-type: x proximity;
+}
+
+.season-slide {
+  scroll-snap-align: center;
+  flex: 0 0 140px;
+  background: rgba(10, 6, 4, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.55;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.season-slide--unlocked {
+  opacity: 1;
+  border-color: rgba(255, 214, 102, 0.7);
+  transform: translateY(-4px);
+}
+
+.season-slide--claimed {
+  border-color: var(--success);
+}
+
+.season-slide__badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffd666;
+  color: #3a0f0a;
+  font-weight: 800;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.season-slide__icon {
+  font-size: 2rem;
+  margin: 4px 0;
+}
+
+.season-slide__label {
+  font-size: 0.72rem;
+  color: #fff8ec;
+  text-align: center;
+  line-height: 1.25;
+  min-height: 34px;
+}
+
+.season-slide__req {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: rgba(255, 240, 220, 0.75);
+}
+
+.season-slide__bar {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.season-slide__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd666, #ff8a3d);
+  transition: width 0.4s ease;
+}
+
+.season-slide__claim {
+  margin-top: 6px;
+  background: #ffd666;
+  color: #3a0f0a;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.season-slide__done {
+  margin-top: 6px;
+  font-size: 0.68rem;
+  color: #a6f0b0;
+  font-weight: 700;
+}
+
+/* ---------- Overall season progress ---------- */
+.season-overall {
+  margin-top: 18px;
+}
+.season-overall__bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.season-overall__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff5722, #ffd666);
+  transition: width 0.5s ease;
+}
+.season-overall__label {
+  text-align: center;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #fff8ec;
+}

@@ -96,3 +96,25 @@ h3 {
   font-family: var(--font-display);
   letter-spacing: 0.02em;
 }
+
+/* ---------- Themed scrollbars (blend with the wood UI, stay slim) ---------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 162, 39, 0.45) rgba(255, 255, 255, 0.03);
+}
+
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+*::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(201, 162, 39, 0.4);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 162, 39, 0.65);
+}

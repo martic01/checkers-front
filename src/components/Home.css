@@ -70,39 +70,100 @@
   line-height: 1.4;
 }
 
-.home-menu {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.icon-nav {
+  display: flex;
+  justify-content: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.home-menu-item {
+.icon-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--panel-border);
+  color: var(--cream-dim);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  min-width: 72px;
+  transition: transform 0.16s ease, border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+.icon-nav-item:hover {
+  transform: translateY(-3px);
+  border-color: var(--gold);
   color: var(--cream);
-  padding: 14px;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  letter-spacing: 0.03em;
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.icon-nav-item__icon {
+  font-size: 1.3rem;
+}
+.icon-nav-item__label {
+  font-size: 0.62rem;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
   font-weight: 600;
-  transition: background 0.15s ease;
-}
-.home-menu-item:hover {
-  background: rgba(255, 255, 255, 0.09);
-}
-.home-menu-item--primary {
-  grid-column: 1 / -1;
-  background: linear-gradient(135deg, var(--gold), #a97f1f);
-  color: var(--ink);
-  border: none;
 }
 
 @media (max-width: 640px) {
   .mode-cards {
     grid-template-columns: 1fr;
   }
-  .home-menu {
-    grid-template-columns: 1fr;
+  .icon-nav {
+    gap: 8px;
   }
+  .icon-nav-item {
+    min-width: 60px;
+    padding: 10px 10px;
+  }
+}
+
+.home-topbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.home-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--cream);
+}
+.home-player__name {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.home-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-inbox-btn {
+  position: relative;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+
+.home-inbox-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #c85c4f;
+  color: white;
+  font-size: 0.6rem;
+  border-radius: 999px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
 }

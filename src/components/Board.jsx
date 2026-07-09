@@ -6,9 +6,11 @@ const COLS = "ABCDEFGHIJ".split("");
 
 export default function Board({
   board,
+  pieces = [],
   turn,
   legalMoves,
   onMove,
+  onInvalid,
   view = "HORIZ",
   playerColor = "white",
   helper = true,
@@ -55,10 +57,11 @@ export default function Board({
       if (piece && piece.color === turn && selectableSquares.has(key)) {
         setSelected({ row, col });
       } else {
+        if (piece || selected) onInvalid?.();
         setSelected(null);
       }
     },
-    [board, disabled, destinationsForSelected, onMove, selected, selectableSquares, turn]
+    [board, disabled, destinationsForSelected, onMove, onInvalid, selected, selectableSquares, turn]
   );
 
   const rotated = view === "VERT" && playerColor === "black";
@@ -67,6 +70,11 @@ export default function Board({
   const cols = [...Array(BOARD_SIZE).keys()];
   const rowOrder = rotated ? [...rows].reverse() : rows;
   const colOrder = rotated ? [...cols].reverse() : cols;
+
+  const displayPos = (row, col) => ({
+    dRow: rotated ? BOARD_SIZE - 1 - row : row,
+    dCol: rotated ? BOARD_SIZE - 1 - col : col,
+  });
 
   return (
     <div className={`board-wrap ${view === "VERT" ? "board-wrap--vert" : "board-wrap--horiz"}`}>
@@ -82,7 +90,7 @@ export default function Board({
           ))}
         </div>
 
-        <div className="board-grid">
+        <div className="board-stage">
           <svg className="grain-defs" width="0" height="0">
             <filter id="wood-grain">
               <feTurbulence type="fractalNoise" baseFrequency="0.012 0.9" numOctaves="3" seed="7" result="noise" />
@@ -90,44 +98,64 @@ export default function Board({
             </filter>
           </svg>
 
-          {rowOrder.map((row) =>
-            colOrder.map((col) => {
-              const dark = isDark(row, col);
-              const piece = board[row][col];
-              const key = `${row}-${col}`;
-              const isSelected = selected && selected.row === row && selected.col === col;
-              const isDestination = destinationsForSelected.some((m) => m.to.row === row && m.to.col === col);
-              const isSelectable = helper && selectableSquares.has(key) && piece?.color === turn;
-              const isLastMove =
-                lastMove &&
-                ((lastMove.from.row === row && lastMove.from.col === col) ||
-                  (lastMove.to.row === row && lastMove.to.col === col));
+          <div className="board-grid">
+            {rowOrder.map((row) =>
+              colOrder.map((col) => {
+                const dark = isDark(row, col);
+                const key = `${row}-${col}`;
+                const isSelected = selected && selected.row === row && selected.col === col;
+                const isDestination = destinationsForSelected.some((m) => m.to.row === row && m.to.col === col);
+                const isSelectable = helper && selectableSquares.has(key) && board[row][col]?.color === turn;
+                const isLastMove =
+                  lastMove &&
+                  ((lastMove.from.row === row && lastMove.from.col === col) ||
+                    (lastMove.to.row === row && lastMove.to.col === col));
 
+                return (
+                  <div
+                    key={key}
+                    className={[
+                      "square",
+                      dark ? "square--dark" : "square--light",
+                      isSelected ? "square--selected" : "",
+                      isDestination ? "square--destination" : "",
+                      isSelectable ? "square--hint" : "",
+                      isLastMove ? "square--last-move" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() => dark && handleSquareClick(row, col)}
+                  >
+                    {isDestination && <span className="dot" />}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="pieces-layer">
+            {pieces.map((p) => {
+              const { dRow, dCol } = displayPos(p.row, p.col);
+              const isSelected = selected && selected.row === p.row && selected.col === p.col && !p.capturing;
               return (
                 <div
-                  key={key}
+                  key={p.id}
                   className={[
-                    "square",
-                    dark ? "square--dark" : "square--light",
-                    isSelected ? "square--selected" : "",
-                    isDestination ? "square--destination" : "",
-                    isSelectable ? "square--hint" : "",
-                    isLastMove ? "square--last-move" : "",
+                    "piece-token",
+                    `piece-token--${p.color}`,
+                    p.king ? "piece-token--king" : "",
+                    p.capturing ? "piece-token--capturing" : "",
+                    isSelected ? "piece-token--selected" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
-                  onClick={() => dark && handleSquareClick(row, col)}
+                  style={{ left: `${dCol * 10}%`, top: `${dRow * 10}%` }}
                 >
-                  {isDestination && <span className="dot" />}
-                  {piece && (
-                    <div className={`piece piece--${piece.color} ${piece.king ? "piece--king" : ""}`}>
-                      {piece.king && <span className="piece-crown">♛</span>}
-                    </div>
-                  )}
+                  <div className="piece-token__body">{p.king && <span className="piece-crown">♛</span>}</div>
                 </div>
               );
-            })
-          )}
+            })}
+          </div>
         </div>
 
         <div className="board-coords board-coords--right">

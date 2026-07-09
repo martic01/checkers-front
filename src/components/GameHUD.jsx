@@ -1,9 +1,12 @@
 import "./GameHUD.css";
+import { openProfile } from "../store/uiStore.js";
 
 export default function GameHUD({
   playerName,
   opponentName,
   playerColor,
+  playerId,
+  opponentId,
   turn,
   connectionStatus,
   onUndo,
@@ -12,52 +15,73 @@ export default function GameHUD({
   onLeave,
   canUndo,
   mode,
+  children,
 }) {
+  const opponentColor = playerColor === "white" ? "black" : "white";
+
   return (
-    <div className="hud">
-      <div className="hud-row">
-        <div className="hud-side">
-          <div className={`avatar avatar--${playerColor}`} />
-          <div className="hud-info">
-            <span className="hud-name">{playerName}</span>
-            {mode === "online" && <ConnStatus status={connectionStatus?.player} />}
-          </div>
+    <div className="game-layout">
+      <PlayerPanel
+        name={playerName}
+        color={playerColor}
+        active={turn === playerColor}
+        status={mode === "online" ? connectionStatus?.player : null}
+        badge="YOU"
+        onClick={playerId ? () => openProfile(playerId) : undefined}
+      />
+
+      <div className="board-column">
+        <div className={`turn-banner ${turn === playerColor ? "turn-banner--you" : "turn-banner--them"}`}>
+          {turn === playerColor ? "Your turn" : `${turn === "white" ? "White" : "Black"} to move`}
         </div>
 
-        <div className={`turn-pill ${turn === playerColor ? "turn-pill--active" : ""}`}>
-          {turn === playerColor ? "YOUR TURN" : `${turn === "white" ? "WHITE" : "BLACK"} TO MOVE`}
-        </div>
+        {children}
 
-        <div className="hud-side hud-side--right">
-          <div className="hud-info hud-info--right">
-            <span className="hud-name">{opponentName}</span>
-            {mode === "online" && <ConnStatus status={connectionStatus?.opponent} />}
-          </div>
-          <div className={`avatar avatar--${playerColor === "white" ? "black" : "white"}`} />
+        <div className="hud-actions">
+          {onUndo && (
+            <button className="hud-btn" onClick={onUndo} disabled={!canUndo}>
+              ↺ Undo
+            </button>
+          )}
+          {onHint && (
+            <button className="hud-btn" onClick={onHint}>
+              💡 Hint
+            </button>
+          )}
+          {onRestart && (
+            <button className="hud-btn" onClick={onRestart}>
+              ⟳ Restart
+            </button>
+          )}
+          <button className="hud-btn hud-btn--leave" onClick={onLeave}>
+            ✕ Leave
+          </button>
         </div>
       </div>
 
-      <div className="hud-actions">
-        {onUndo && (
-          <button className="hud-btn" onClick={onUndo} disabled={!canUndo}>
-            ↺ Undo
-          </button>
-        )}
-        {onHint && (
-          <button className="hud-btn" onClick={onHint}>
-            💡 Hint
-          </button>
-        )}
-        {onRestart && (
-          <button className="hud-btn" onClick={onRestart}>
-            ⟳ Restart
-          </button>
-        )}
-        <button className="hud-btn hud-btn--leave" onClick={onLeave}>
-          ✕ Leave
-        </button>
-      </div>
+      <PlayerPanel
+        name={opponentName}
+        color={opponentColor}
+        active={turn === opponentColor}
+        status={mode === "online" ? connectionStatus?.opponent : null}
+        badge={mode === "ai" ? "AI" : "OPPONENT"}
+        onClick={opponentId ? () => openProfile(opponentId) : undefined}
+      />
     </div>
+  );
+}
+
+function PlayerPanel({ name, color, active, status, badge, onClick }) {
+  const Tag = onClick ? "button" : "div";
+  return (
+    <Tag className={`player-panel ${active ? "player-panel--active" : ""} ${onClick ? "player-panel--clickable" : ""}`} onClick={onClick}>
+      <div className={`avatar avatar--${color}`} />
+      <div className="player-panel__info">
+        <span className="player-panel__badge">{badge}</span>
+        <span className="player-panel__name">{name}</span>
+        {status && <ConnStatus status={status} />}
+      </div>
+    </Tag>
   );
 }
 

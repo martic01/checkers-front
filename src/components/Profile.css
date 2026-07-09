@@ -1,0 +1,110 @@
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 6, 4, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 70;
+  padding: 16px;
+}
+
+.profile-card {
+  max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.profile-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--panel-border);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  color: var(--cream);
+  font-size: 0.8rem;
+}
+
+.profile-loading,
+.profile-error {
+  text-align: center;
+  color: var(--cream-dim);
+  padding: 30px 0;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.profile-header__info h2 {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.profile-stat {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+}
+
+.profile-stat__value {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  color: var(--gold-bright);
+  font-weight: 700;
+}
+
+.profile-stat__label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cream-dim);
+  margin-top: 2px;
+}
+
+.profile-section-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin: 0 0 10px;
+}
+
+.profile-trophies {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.profile-trophy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+  opacity: 0.45;
+  font-size: 0.75rem;
+}
+
+.profile-trophy--earned {
+  opacity: 1;
+  border-color: rgba(201, 162, 39, 0.4);
+}

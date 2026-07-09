@@ -1,0 +1,15 @@
+.admin-panel {
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.admin-success {
+  color: var(--success);
+  margin-top: 10px;
+}

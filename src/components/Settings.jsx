@@ -71,6 +71,20 @@ export default function Settings({ settings, onChange, onBack, onContactUs, onRa
           />
         </Section>
 
+        <Section title="Music">
+          <OptionRow
+            options={[{ value: "ON", label: "On" }, { value: "OFF", label: "Off" }]}
+            value={settings.music}
+            onChange={set("music")}
+          />
+          <input
+            className="settings-music-input"
+            placeholder="Paste a background music URL (mp3)…"
+            defaultValue={settings.musicUrl}
+            onBlur={(e) => set("musicUrl")(e.target.value)}
+          />
+        </Section>
+
         <Section title="First Move">
           <OptionRow
             options={[{ value: "WHITE", label: "White" }, { value: "BLACK", label: "Black" }]}

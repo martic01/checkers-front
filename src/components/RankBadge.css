@@ -1,0 +1,48 @@
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--rank-color) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rank-color) 55%, transparent);
+  color: var(--rank-color);
+  white-space: nowrap;
+}
+
+.rank-badge--sm {
+  font-size: 0.62rem;
+  padding: 2px 8px;
+}
+.rank-badge--md {
+  font-size: 0.75rem;
+}
+.rank-badge--lg {
+  font-size: 0.95rem;
+  padding: 6px 14px;
+}
+
+.rank-badge__label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.rank-badge__num {
+  opacity: 0.75;
+}
+
+.coin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(201, 162, 39, 0.14);
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  color: var(--gold-bright);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}

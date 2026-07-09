@@ -1,0 +1,96 @@
+.toast-stack {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.toast-item {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: toast-in 0.28s ease-out;
+  cursor: pointer;
+  max-width: 90vw;
+}
+
+.toast-item--info {
+  background: rgba(30, 22, 16, 0.95);
+  color: var(--cream);
+  border: 1px solid var(--panel-border);
+}
+.toast-item--success {
+  background: var(--gold);
+  color: var(--ink);
+}
+.toast-item--error {
+  background: #c85c4f;
+  color: white;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 6, 4, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 95;
+  padding: 16px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--panel-shadow);
+  padding: 24px;
+  text-align: center;
+}
+
+.modal-card--danger {
+  border-color: rgba(200, 92, 79, 0.5);
+}
+
+.modal-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+.modal-card p {
+  color: var(--cream-dim);
+  font-size: 0.85rem;
+  margin: 0 0 16px;
+}
+.modal-card .auth-input {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.modal-actions .btn {
+  flex: 1;
+}

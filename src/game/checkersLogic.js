@@ -204,6 +204,23 @@ export function applyMove(board, move) {
   return newBoard;
 }
 
+// Converts a board grid into a flat list of pieces with stable ids.
+// Stable ids let the UI animate a piece sliding from square to square
+// instead of the piece appearing to teleport/re-render in place.
+let pieceIdCounter = 0;
+export function boardToPieces(board) {
+  const pieces = [];
+  for (let row = 0; row < BOARD_SIZE; row++) {
+    for (let col = 0; col < BOARD_SIZE; col++) {
+      const cell = board[row][col];
+      if (!cell) continue;
+      pieceIdCounter += 1;
+      pieces.push({ id: `p${pieceIdCounter}`, row, col, color: cell.color, king: cell.king });
+    }
+  }
+  return pieces;
+}
+
 export function opponent(color) {
   return color === WHITE ? BLACK : WHITE;
 }

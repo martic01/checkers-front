@@ -1,0 +1,129 @@
+.chat-widget {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 10px;
+}
+
+.chat-toolbar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.chat-toolbar button {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--panel-border);
+  color: var(--cream);
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+}
+
+.chat-mic.live {
+  border-color: var(--success);
+  color: var(--success);
+}
+.chat-mic.connecting {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.chat-mute--active {
+  border-color: #c85c4f;
+  color: #e2a89e;
+}
+
+.chat-panel {
+  margin-top: 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.chat-messages {
+  max-height: 140px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.chat-empty {
+  font-size: 0.72rem;
+  color: var(--cream-dim);
+  text-align: center;
+}
+
+.chat-msg {
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 6px 10px;
+  align-self: flex-start;
+  max-width: 85%;
+}
+.chat-msg--me {
+  align-self: flex-end;
+  background: rgba(201, 162, 39, 0.15);
+}
+.chat-msg__from {
+  font-size: 0.62rem;
+  color: var(--gold);
+  display: block;
+  text-transform: uppercase;
+}
+
+.chat-emoji-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.chat-emoji-row button {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 6px;
+}
+.chat-input-row input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--cream);
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+.chat-input-row button {
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.chat-emoji-float {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  animation: emoji-float-up 1.2s ease-out forwards;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes emoji-float-up {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.6); }
+  30% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -60px) scale(1); }
+}
