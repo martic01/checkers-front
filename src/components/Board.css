@@ -61,8 +61,8 @@
    viewport, on short/landscape screens as well as narrow ones. */
 .board-stage {
   position: relative;
-  width: min(640px, 84vw, 68vh);
-  height: min(640px, 84vw, 68vh);
+  width: min(720px, 88vw, 60vh);
+  height: min(720px, 88vw, 60vh);
   border-radius: var(--radius-sm);
   overflow: hidden;
   box-shadow:
@@ -242,8 +242,17 @@
 
 @media (max-width: 640px) {
   .board-stage {
-    width: min(560px, 90vw, 52vh);
-    height: min(560px, 90vw, 52vh);
+    width: min(600px, 92vw, 54vh);
+    height: min(600px, 92vw, 54vh);
+  }
+}
+
+/* Matches GameHUD's landscape "rail" layout: the HUD becomes a slim side
+   column, so the board can safely reclaim almost the full viewport height. */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 560px) {
+  .board-stage {
+    width: min(90vh, calc(100vw - 190px), 620px);
+    height: min(90vh, calc(100vw - 190px), 620px);
   }
 }
 
@@ -265,8 +274,8 @@
     padding: 3px 0;
   }
   .board-stage {
-    width: min(480px, 91vw, 46vh);
-    height: min(480px, 91vw, 46vh);
+    width: min(500px, 93vw, 48vh);
+    height: min(500px, 93vw, 48vh);
   }
 }
 

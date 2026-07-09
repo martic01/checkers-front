@@ -112,8 +112,21 @@ export const usePlayerStore = create((set, get) => ({
     }
   },
 
+  clerkSync: async (token) => {
+    try {
+      const profile = await api.clerkSync(token);
+      localStorage.setItem(STORAGE_KEY, profile.id);
+      set({ player: profile, offline: false, needsAuth: false });
+      return true;
+    } catch {
+      toastError("Could not finish signing you in — please try again.");
+      return false;
+    }
+  },
+
   logout: () => {
     localStorage.removeItem(STORAGE_KEY);
+    window.Clerk?.signOut?.();
     set({ player: null, needsAuth: true });
   },
 

@@ -127,3 +127,20 @@
   30% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
   100% { opacity: 0; transform: translate(-50%, -60px) scale(1); }
 }
+
+.chat-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+.chat-panel__close {
+  background: none;
+  border: none;
+  color: var(--cream-dim);
+  font-size: 0.8rem;
+}

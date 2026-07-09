@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useUIStore } from "../store/uiStore.js";
+import { usePlayerStore } from "../store/playerStore.js";
 import Profile from "./Profile.jsx";
 import "./UIOverlay.css";
 
@@ -12,6 +13,8 @@ export default function UIOverlay() {
   const resolvePrompt = useUIStore((s) => s.resolvePrompt);
   const profileTarget = useUIStore((s) => s.profileTarget);
   const closeProfile = useUIStore((s) => s.closeProfile);
+  const viewerId = usePlayerStore((s) => s.player?.id);
+  const updateAvatar = usePlayerStore((s) => s.updateAvatar);
 
   return (
     <>
@@ -43,7 +46,9 @@ export default function UIOverlay() {
 
       {promptState && <PromptModal state={promptState} onResolve={resolvePrompt} />}
 
-      {profileTarget && <Profile target={profileTarget} onClose={closeProfile} />}
+      {profileTarget && (
+        <Profile target={profileTarget} viewerId={viewerId} onAvatarChange={updateAvatar} onClose={closeProfile} />
+      )}
     </>
   );
 }

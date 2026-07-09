@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
-import { DEFAULT_AVATARS } from "../game/avatars.js";
+import { useState } from "react";
 import { playSound } from "../utils/sound.js";
 import GoogleSignInButton from "./GoogleSignInButton.jsx";
+import AvatarCarousel from "./AvatarCarousel.jsx";
 import "./Auth.css";
 
 export default function Auth({ onRegister, onLogin, onGoogle, onGuest, error }) {
@@ -11,15 +11,6 @@ export default function Auth({ onRegister, onLogin, onGoogle, onGuest, error }) 
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState({ type: "default", value: "avatar-1" });
   const [busy, setBusy] = useState(false);
-  const fileRef = useRef(null);
-
-  const handlePhoto = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setAvatar({ type: "custom", value: reader.result });
-    reader.readAsDataURL(file);
-  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -65,23 +56,7 @@ export default function Auth({ onRegister, onLogin, onGoogle, onGuest, error }) 
               />
 
               <label className="auth-label">Choose an avatar</label>
-              <div className="avatar-grid">
-                {DEFAULT_AVATARS.map((a) => (
-                  <button
-                    type="button"
-                    key={a.id}
-                    className={`avatar-choice ${avatar.type === "default" && avatar.value === a.id ? "avatar-choice--selected" : ""}`}
-                    style={{ background: a.bg }}
-                    onClick={() => setAvatar({ type: "default", value: a.id })}
-                  >
-                    {a.emoji}
-                  </button>
-                ))}
-                <button type="button" className="avatar-choice avatar-choice--upload" onClick={() => fileRef.current?.click()}>
-                  {avatar.type === "custom" ? <img src={avatar.value} alt="" /> : "📷"}
-                </button>
-                <input type="file" accept="image/*" ref={fileRef} hidden onChange={handlePhoto} />
-              </div>
+              <AvatarCarousel avatar={avatar} onChange={setAvatar} />
             </>
           )}
 

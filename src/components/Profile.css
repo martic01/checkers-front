@@ -14,6 +14,12 @@
   max-height: 85vh;
   overflow-y: auto;
   position: relative;
+  background: var(--panel-bg, rgba(18, 12, 9, 0.95));
+  border: 1px solid var(--panel-border, rgba(201, 162, 39, 0.25));
+  border-radius: var(--radius-lg, 22px);
+  box-shadow: var(--panel-shadow, 0 20px 60px rgba(0, 0, 0, 0.55));
+  padding: 32px;
+  backdrop-filter: blur(6px);
 }
 
 .profile-close {
@@ -107,4 +113,45 @@
 .profile-trophy--earned {
   opacity: 1;
   border-color: rgba(201, 162, 39, 0.4);
+}
+
+.profile-avatar-btn {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+}
+.profile-avatar-btn--editable {
+  cursor: pointer;
+}
+.profile-avatar-btn__edit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.profile-avatar-btn--editable:hover .profile-avatar-btn__edit {
+  opacity: 1;
+}
+
+.profile-avatar-done {
+  display: block;
+  margin: 8px auto 18px;
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
 }

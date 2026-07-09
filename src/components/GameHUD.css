@@ -1,170 +1,226 @@
-/* Left player / board / right opponent, arranged side by side. Wraps to a
-   stacked layout only when the viewport is too narrow to fit all three. */
-.game-layout {
+.game-shell {
   width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.board-column {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
-  order: 2;
-  min-width: 0;
+  min-height: 0;
 }
 
-.player-panel {
-  width: 180px;
-  flex-shrink: 0;
+/* ---------- Top bar: player chips (left) + controls (right) ---------- */
+.game-topbar {
+  width: 100%;
+  max-width: 900px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
   backdrop-filter: blur(10px);
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-.player-panel:first-child {
-  order: 1;
-}
-.player-panel:last-child {
-  order: 3;
-}
-
-.player-panel--active {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.35), 0 8px 24px rgba(201, 162, 39, 0.18);
-}
-
-.avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  border: 2px solid var(--gold);
-}
-.avatar--white {
-  background: radial-gradient(circle at 35% 30%, #fffaf1, #b89c6c 100%);
-}
-.avatar--black {
-  background: radial-gradient(circle at 35% 30%, #4a4238, #0d0a08 100%);
-}
-
-.player-panel__info {
+.game-topbar__players {
   display: flex;
-  flex-direction: column;
-  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.player-panel__badge {
+.game-topbar__vs {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  color: var(--gold);
+  font-size: 0.65rem;
+  color: var(--cream-dim);
   text-transform: uppercase;
 }
 
-.player-panel__name {
-  font-size: 0.9rem;
+.game-topbar__controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.player-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font: inherit;
+  text-align: left;
+  position: relative;
+}
+.player-chip--clickable {
+  cursor: pointer;
+}
+.player-chip--active {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.3);
+}
+
+.player-chip .avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  flex-shrink: 0;
+}
+.avatar--white { background: radial-gradient(circle at 35% 30%, #fffaf1, #b89c6c 100%); }
+.avatar--black { background: radial-gradient(circle at 35% 30%, #4a4238, #0d0a08 100%); }
+
+.player-chip__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+.player-chip__badge {
+  font-size: 0.56rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
+.player-chip__name {
+  font-size: 0.78rem;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 110px;
 }
 
-.conn {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.conn-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
-.conn--connected {
-  color: var(--success);
-}
-.conn--connecting,
-.conn--reconnecting {
-  color: var(--gold);
-}
-
-.turn-banner {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 6px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--cream-dim);
-}
-.turn-banner--you {
-  background: var(--gold);
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.hud-actions {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+.conn-dot--connected { background: var(--success); }
+.conn-dot--connecting,
+.conn-dot--reconnecting { background: var(--gold); }
 
 .hud-btn {
-  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--panel-border);
   color: var(--cream);
-  padding: 7px 14px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
-  font-size: 0.78rem;
-  transition: background 0.15s ease;
+  font-size: 0.9rem;
+  line-height: 1;
+  min-width: 46px;
+}
+.hud-btn span {
+  font-size: 0.52rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cream-dim);
 }
 .hud-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.12);
 }
 .hud-btn:disabled {
   opacity: 0.35;
-  cursor: default;
+}
+.hud-btn--active {
+  border-color: var(--gold);
+  background: rgba(201, 162, 39, 0.14);
 }
 .hud-btn--leave {
   border-color: rgba(200, 92, 79, 0.4);
   color: #e2a89e;
 }
 
-/* Below this width there is no room for two 180px side panels plus a board
-   that stays legible, so stack everything to guarantee no overflow. */
-@media (max-width: 780px) {
-  .game-layout {
+/* ---------- Board area: takes all remaining space, centers the board ---------- */
+.game-board-area {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* ---------- Mobile landscape: form an "angle" — players/controls hug the
+   top edge, then wrap so remaining controls sit along the right edge,
+   leaving the board the full square in the middle. ---------- */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 560px) {
+  .game-shell {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+    height: 100%;
+  }
+
+  .game-topbar {
     flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    max-width: 150px;
+    width: 150px;
+    flex-shrink: 0;
+    height: 100%;
+    overflow-y: auto;
   }
-  .player-panel {
+
+  .game-topbar__players {
+    flex-direction: column;
+    align-items: flex-start;
     width: 100%;
-    max-width: 420px;
   }
-  .player-panel:first-child {
-    order: 0;
+
+  .game-topbar__vs {
+    display: none;
   }
-  .board-column {
-    order: 1;
+
+  .game-topbar__controls {
+    flex-direction: column;
+    width: 100%;
+    margin-top: auto;
   }
-  .player-panel:last-child {
-    order: 2;
+
+  .hud-btn {
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .player-chip__name {
+    max-width: 80px;
   }
 }
 
-.player-panel--clickable {
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-  width: 180px;
+@media (max-width: 640px) {
+  .player-chip__name {
+    max-width: 84px;
+  }
+  .hud-btn span {
+    display: none;
+  }
+  .hud-btn {
+    min-width: 36px;
+    padding: 8px;
+  }
 }
-.player-panel--clickable:hover {
-  border-color: var(--gold);
+
+.game-pot-pill {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--gold-bright);
+  background: rgba(201, 162, 39, 0.12);
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  padding: 6px 16px;
+  border-radius: 999px;
+}
+.game-pot-pill strong {
+  color: #fff;
 }

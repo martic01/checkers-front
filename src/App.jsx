@@ -8,6 +8,7 @@ import { connectSocket, disconnectSocket, getSocket } from "./api/socket.js";
 import { playSound, isSoundEnabled } from "./utils/sound.js";
 
 import Auth from "./components/Auth.jsx";
+import ClerkAuthScreen from "./components/ClerkAuthScreen.jsx";
 import Home from "./components/Home.jsx";
 import Settings from "./components/Settings.jsx";
 import Levels from "./components/Levels.jsx";
@@ -23,6 +24,7 @@ import MusicPlayer from "./components/MusicPlayer.jsx";
 import UIOverlay from "./components/UIOverlay.jsx";
 
 const IDLE_ONLINE_STATE = { phase: "idle", betAmount: 0, roomCode: null, opponent: null, playerColor: "white" };
+const CLERK_ENABLED = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 export default function App() {
   const player = usePlayerStore((s) => s.player);
@@ -193,6 +195,7 @@ function AppRouter() {
 
   if (loading || !player) {
     if (needsAuth) {
+      if (CLERK_ENABLED) return <ClerkAuthScreen />;
       return <Auth onRegister={register} onLogin={login} onGoogle={googleSignIn} onGuest={continueAsGuest} error={authError} />;
     }
     return <div className="app-loading">Loading the board…</div>;
@@ -241,7 +244,7 @@ function AppRouter() {
       case "season":
         return <Season playerId={player.id} onBack={() => navigate("home")} />;
       case "admin":
-        return <Admin onBack={() => navigate("home")} />;
+        return <Admin player={player} onBack={() => navigate("home")} />;
       case "online-lobby":
         return (
           <OnlineLobby
@@ -264,6 +267,7 @@ function AppRouter() {
             level={aiLevel}
             settings={settings}
             playerName={player.name}
+            playerAvatar={player.avatar}
             opponentName={`AI (${aiDifficulty})`}
             playerColor={settings.playAs === "BLACK" ? "black" : "white"}
             onExit={handleGameExit}
@@ -275,7 +279,9 @@ function AppRouter() {
             mode="online"
             settings={settings}
             playerName={player.name}
+            playerAvatar={player.avatar}
             opponentName={online.opponent?.name || "Opponent"}
+            opponentAvatar={online.opponent?.avatar}
             playerColor={online.playerColor}
             playerId={player.id}
             opponentId={online.opponent?.id}

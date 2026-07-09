@@ -167,3 +167,8 @@
   padding: 1px 5px;
   font-family: var(--font-mono);
 }
+
+.icon-nav-item--admin {
+  border-color: rgba(201, 162, 39, 0.5);
+  color: var(--gold-bright);
+}

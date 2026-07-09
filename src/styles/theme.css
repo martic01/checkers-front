@@ -90,6 +90,30 @@ button {
   cursor: pointer;
 }
 
+select {
+  font-family: inherit;
+  appearance: none;
+  background-color: rgba(0, 0, 0, 0.3);
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%), linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 13px) calc(50% - 3px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  color: var(--cream);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 34px 10px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+select option {
+  background: #1c130d;
+  color: var(--cream);
+}
+
 h1,
 h2,
 h3 {

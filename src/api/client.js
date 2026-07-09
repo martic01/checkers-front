@@ -36,11 +36,19 @@ export const api = {
   claimSeasonReward: (id, letter) => request(`/api/players/${id}/season/claim/${letter}`, { method: "POST" }),
   getTiers: (id) => request(`/api/players/${id}/tiers`),
 
-  adminGrant: (adminKey, payload) =>
-    request("/api/admin/grant", { method: "POST", headers: { "x-admin-key": adminKey }, body: JSON.stringify(payload) }),
-  adminMessage: (adminKey, payload) =>
-    request("/api/admin/message", { method: "POST", headers: { "x-admin-key": adminKey }, body: JSON.stringify(payload) }),
-  adminPlayers: (adminKey) => request("/api/admin/players", { headers: { "x-admin-key": adminKey } }),
+  adminGrant: (auth, payload) => request("/api/admin/grant", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
+  adminMessage: (auth, payload) =>
+    request("/api/admin/message", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
+  adminPlayers: (auth) => request("/api/admin/players", { headers: adminHeaders(auth) }),
+  authConfig: () => request("/api/auth/config"),
+  clerkSync: (token) => request("/api/auth/clerk-sync", { method: "POST", headers: { Authorization: `Bearer ${token}` } }),
 };
+
+// `auth` is either { playerId } for isAdmin-flagged accounts, or { adminKey }
+// for the shared-secret fallback.
+function adminHeaders(auth = {}) {
+  if (auth.playerId) return { "x-player-id": auth.playerId };
+  return { "x-admin-key": auth.adminKey };
+}
 
 export const API_BASE_URL = BASE_URL;

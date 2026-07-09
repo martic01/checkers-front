@@ -1,4 +1,6 @@
 import "./Settings.css";
+import { usePlayerStore } from "../store/playerStore.js";
+import { toastInfo, confirmDialog } from "../store/uiStore.js";
 
 const THEMES = [
   { key: "classic-maple", label: "Maple & Walnut" },
@@ -27,6 +29,7 @@ function OptionRow({ label, options, value, onChange }) {
 }
 
 export default function Settings({ settings, onChange, onBack, onContactUs, onRate }) {
+  const logout = usePlayerStore((s) => s.logout);
   const set = (key) => (value) => onChange({ [key]: value });
 
   return (
@@ -122,12 +125,31 @@ export default function Settings({ settings, onChange, onBack, onContactUs, onRa
         </Section>
 
         <Section title="Premium">
-          <button className="settings-linklike">Remove Ads</button>
+          <button className="settings-linklike" onClick={() => toastInfo("Premium isn't available in this build yet.")}>
+            Remove Ads
+          </button>
         </Section>
 
         <Section title="Support">
           <button className="settings-linklike" onClick={onContactUs}>
             Contact Us
+          </button>
+        </Section>
+
+        <Section title="Account">
+          <button
+            className="settings-linklike settings-linklike--danger"
+            onClick={async () => {
+              const ok = await confirmDialog({
+                title: "Log out?",
+                message: "You can always sign back in with the same account.",
+                confirmLabel: "Log Out",
+                tone: "danger",
+              });
+              if (ok) logout();
+            }}
+          >
+            Log Out
           </button>
         </Section>
 

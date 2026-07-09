@@ -32,7 +32,6 @@ const ICON_NAV = [
   { key: "stats", icon: "📊", label: "Stats" },
   { key: "about", icon: "ℹ️", label: "About" },
 ];
-
 export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, onOpenAdmin }) {
   const tapCount = useRef(0);
   const tapTimer = useRef(null);
@@ -88,6 +87,12 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
             <span className="icon-nav-item__label">{item.label}</span>
           </button>
         ))}
+        {player.isAdmin && (
+          <button className="icon-nav-item icon-nav-item--admin" onClick={() => onNavigate("admin")}>
+            <span className="icon-nav-item__icon">🛡️</span>
+            <span className="icon-nav-item__label">Admin</span>
+          </button>
+        )}
       </nav>
     </div>
   );

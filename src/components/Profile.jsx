@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client.js";
 import Avatar from "./Avatar.jsx";
+import AvatarCarousel from "./AvatarCarousel.jsx";
 import { RankBadge } from "./RankBadge.jsx";
 import { formatCoins } from "../game/rank.js";
 import { TROPHY_CATALOG } from "../game/trophyCatalog.js";
 import "./Profile.css";
 
-export default function Profile({ target, onClose }) {
+export default function Profile({ target, viewerId, onAvatarChange, onClose }) {
   const [data, setData] = useState(typeof target === "object" ? target : null);
   const [error, setError] = useState(null);
+  const [editingAvatar, setEditingAvatar] = useState(false);
+
+  const targetId = typeof target === "object" ? target.id : target;
+  const isOwnProfile = !!viewerId && viewerId === targetId;
 
   useEffect(() => {
     if (typeof target === "object") {
@@ -23,24 +28,45 @@ export default function Profile({ target, onClose }) {
 
   return (
     <div className="profile-overlay" onClick={onClose}>
-      <div className="panel profile-card" onClick={(e) => e.stopPropagation()}>
+      <div className="profile-card" onClick={(e) => e.stopPropagation()}>
         <button className="profile-close" onClick={onClose} aria-label="Close">
           ✕
         </button>
 
         {error && <p className="profile-error">{error}</p>}
-
         {!data && !error && <p className="profile-loading">Loading profile…</p>}
 
         {data && (
           <>
             <div className="profile-header">
-              <Avatar avatar={data.avatar} size={72} />
+              {editingAvatar ? (
+                <AvatarCarousel
+                  avatar={data.avatar}
+                  onChange={(avatar) => {
+                    setData((d) => ({ ...d, avatar }));
+                    onAvatarChange?.(avatar);
+                  }}
+                />
+              ) : (
+                <button
+                  className={`profile-avatar-btn ${isOwnProfile ? "profile-avatar-btn--editable" : ""}`}
+                  onClick={() => isOwnProfile && setEditingAvatar(true)}
+                >
+                  <Avatar avatar={data.avatar} size={72} />
+                  {isOwnProfile && <span className="profile-avatar-btn__edit">Edit</span>}
+                </button>
+              )}
               <div className="profile-header__info">
                 <h2>{data.name}</h2>
                 <RankBadge rank={data.rank} />
               </div>
             </div>
+
+            {editingAvatar && (
+              <button className="profile-avatar-done" onClick={() => setEditingAvatar(false)}>
+                Done
+              </button>
+            )}
 
             <div className="profile-stats-grid">
               <Stat label="Wins" value={data.stats?.wins ?? 0} />

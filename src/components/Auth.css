@@ -143,3 +143,26 @@
 }
 .auth-or-divider::before { left: 0; }
 .auth-or-divider::after { right: 0; }
+
+.clerk-auth-slot {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.clerk-auth-slot > * {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .auth-screen {
+    max-width: 460px;
+    padding-top: 40px;
+  }
+}
+
+@media (max-width: 380px) {
+  .auth-panel {
+    padding: 22px 18px;
+  }
+}

@@ -1,59 +1,61 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client.js";
+import { toastError, toastSuccess } from "../store/uiStore.js";
 import "./Admin.css";
 
-export default function Admin({ onBack }) {
+export default function Admin({ player, onBack }) {
+  const isSelfAdmin = !!player?.isAdmin;
   const [adminKey, setAdminKey] = useState(sessionStorage.getItem("checkers.adminKey") || "");
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(isSelfAdmin);
   const [players, setPlayers] = useState([]);
   const [targetId, setTargetId] = useState("all");
   const [coins, setCoins] = useState(0);
   const [rankSet, setRankSet] = useState("");
   const [message, setMessage] = useState("");
-  const [status, setStatus] = useState(null);
+
+  const auth = isSelfAdmin ? { playerId: player.id } : { adminKey };
 
   useEffect(() => {
     if (!unlocked) return;
     api
-      .adminPlayers(adminKey)
+      .adminPlayers(auth)
       .then(setPlayers)
-      .catch(() => setStatus({ ok: false, text: "Could not load players" }));
-  }, [unlocked, adminKey]);
+      .catch(() => toastError("Could not load players"));
+  }, [unlocked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const tryUnlock = async () => {
     try {
-      const list = await api.adminPlayers(adminKey);
+      const list = await api.adminPlayers({ adminKey });
       setPlayers(list);
       setUnlocked(true);
       sessionStorage.setItem("checkers.adminKey", adminKey);
     } catch {
-      setStatus({ ok: false, text: "Invalid admin key" });
+      toastError("Invalid admin key");
     }
   };
 
   const grant = async () => {
     try {
       if (targetId === "all") {
-        // Grant endpoint targets a single player; broadcast via message endpoint with reward instead.
-        await api.adminMessage(adminKey, { playerId: "all", message: message || "You received a reward!", rewardCoins: coins || undefined });
+        await api.adminMessage(auth, { playerId: "all", message: message || "You received a reward!", rewardCoins: coins || undefined });
       } else {
-        await api.adminGrant(adminKey, { playerId: targetId, coins: coins || 0, rankSet: rankSet ? Number(rankSet) : undefined, message });
+        await api.adminGrant(auth, { playerId: targetId, coins: coins || 0, rankSet: rankSet ? Number(rankSet) : undefined, message });
       }
-      setStatus({ ok: true, text: "Sent!" });
+      toastSuccess("Sent!");
       setCoins(0);
       setMessage("");
     } catch (err) {
-      setStatus({ ok: false, text: err.message });
+      toastError(err.message);
     }
   };
 
   const sendMessageOnly = async () => {
     try {
-      await api.adminMessage(adminKey, { playerId: targetId, message });
-      setStatus({ ok: true, text: "Message sent!" });
+      await api.adminMessage(auth, { playerId: targetId, message });
+      toastSuccess("Message sent!");
       setMessage("");
     } catch (err) {
-      setStatus({ ok: false, text: err.message });
+      toastError(err.message);
     }
   };
 
@@ -74,7 +76,6 @@ export default function Admin({ onBack }) {
         <button className="btn btn--gold" style={{ marginTop: 12, width: "100%" }} onClick={tryUnlock}>
           Unlock
         </button>
-        {status && !status.ok && <p className="auth-error">{status.text}</p>}
       </div>
     );
   }
@@ -85,6 +86,7 @@ export default function Admin({ onBack }) {
         ← Back
       </button>
       <h2 className="screen-title">Admin Panel</h2>
+      {isSelfAdmin && <p className="admin-you">Signed in as the account admin ({player.name}).</p>}
 
       <label className="auth-label">Target Player</label>
       <select className="auth-input" value={targetId} onChange={(e) => setTargetId(e.target.value)}>
@@ -117,8 +119,6 @@ export default function Admin({ onBack }) {
           Send Message Only
         </button>
       </div>
-
-      {status && <p className={status.ok ? "admin-success" : "auth-error"}>{status.text}</p>}
     </div>
   );
 }

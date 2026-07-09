@@ -5,8 +5,7 @@ import "./ChatPanel.css";
 const QUICK_EMOJI = ["👍", "😂", "😮", "😢", "🔥", "🤝", "😤", "👏"];
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 
-export default function ChatPanel({ socket, roomCode, playerName, playerColor }) {
-  const [open, setOpen] = useState(false);
+export default function ChatPanel({ socket, roomCode, playerName, playerColor, open, onClose }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [muted, setMuted] = useState(false);
@@ -158,9 +157,6 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor })
       )}
 
       <div className="chat-toolbar">
-        <button className="chat-toggle" onClick={() => setOpen((o) => !o)}>
-          💬 {open ? "Hide" : "Chat"}
-        </button>
         <button className={`chat-mic ${micStatus}`} onClick={toggleMic}>
           {micStatus === "off" ? "🎙️ Off" : micStatus === "connecting" ? "🎙️ Connecting…" : "🎙️ Live"}
         </button>
@@ -171,6 +167,12 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor })
 
       {open && (
         <div className="chat-panel">
+          <div className="chat-panel__header">
+            <span>Match Chat</span>
+            <button className="chat-panel__close" onClick={onClose} aria-label="Close chat">
+              ✕
+            </button>
+          </div>
           <div className="chat-messages">
             {messages.length === 0 && <p className="chat-empty">Say hi! Messages disappear after 1 minute.</p>}
             {messages.map((m) => (

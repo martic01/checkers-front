@@ -13,3 +13,9 @@
   color: var(--success);
   margin-top: 10px;
 }
+
+.admin-you {
+  font-size: 0.78rem;
+  color: var(--gold-bright);
+  margin: -8px 0 16px;
+}

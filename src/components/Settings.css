@@ -170,3 +170,8 @@
   padding: 9px 12px;
   font-size: 0.8rem;
 }
+
+.settings-linklike--danger {
+  color: #e2a89e;
+  border-color: rgba(200, 92, 79, 0.4);
+}

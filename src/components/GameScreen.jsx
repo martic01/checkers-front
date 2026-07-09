@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Board from "./Board.jsx";
 import GameHUD from "./GameHUD.jsx";
 import ChatPanel from "./ChatPanel.jsx";
+import CoinBurst from "./CoinBurst.jsx";
 import {
   createInitialBoard,
   boardToPieces,
@@ -28,7 +29,9 @@ export default function GameScreen({
   level = null,
   settings,
   playerName,
+  playerAvatar,
   opponentName,
+  opponentAvatar,
   playerColor: fixedPlayerColor,
   playerId,
   opponentId,
@@ -43,6 +46,8 @@ export default function GameScreen({
   const [turn, setTurn] = useState(settings.firstMove === "BLACK" ? BLACK : WHITE);
   const [history, setHistory] = useState([]);
   const [lastMove, setLastMove] = useState(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [showCoinBurst, setShowCoinBurst] = useState(false);
   const [gameOver, setGameOver] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [connStatus, setConnStatus] = useState({ player: "connected", opponent: "connecting" });
@@ -72,6 +77,11 @@ export default function GameScreen({
     }
     setGameOver({ winner, result });
     playSound(mode !== "local" && winner !== playerColor ? "lose" : "win", soundsOn);
+
+    if (mode === "online" && winner === playerColor && betAmount > 0) {
+      setShowCoinBurst(true);
+      setTimeout(() => setShowCoinBurst(false), 1300);
+    }
 
     if (mode === "online" && socket) {
       const winnerId = winner === playerColor ? playerId : opponentId;
@@ -225,20 +235,39 @@ export default function GameScreen({
 
   return (
     <div className="game-screen">
+      <CoinBurst active={showCoinBurst} />
+
       <GameHUD
         playerName={playerName}
+        playerAvatar={playerAvatar}
         opponentName={opponentName}
+        opponentAvatar={opponentAvatar}
         playerColor={playerColor}
         playerId={mode === "online" ? playerId : null}
         opponentId={mode === "online" ? opponentId : null}
         turn={turn}
         connectionStatus={connStatus}
         mode={mode}
+        potAmount={mode === "online" ? betAmount * 2 : 0}
         canUndo={history.length > 0 && mode !== "online"}
         onUndo={mode !== "online" ? handleUndo : undefined}
         onHint={settings.helper !== "OFF" ? handleHint : undefined}
         onRestart={mode !== "online" ? handleRestart : undefined}
+        onToggleChat={mode === "online" ? () => setChatOpen((o) => !o) : undefined}
+        chatOpen={chatOpen}
         onLeave={handleLeave}
+        chatSlot={
+          mode === "online" && socket ? (
+            <ChatPanel
+              socket={socket}
+              roomCode={roomCode}
+              playerName={playerName}
+              playerColor={playerColor}
+              open={chatOpen}
+              onClose={() => setChatOpen(false)}
+            />
+          ) : null
+        }
       >
         <Board
           board={board}
@@ -254,10 +283,6 @@ export default function GameScreen({
           lastMove={lastMove}
         />
       </GameHUD>
-
-      {mode === "online" && socket && (
-        <ChatPanel socket={socket} roomCode={roomCode} playerName={playerName} playerColor={playerColor} />
-      )}
 
       {gameOver && (
         <div className="game-over-overlay">
