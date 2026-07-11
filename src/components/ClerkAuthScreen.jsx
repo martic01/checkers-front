@@ -15,7 +15,7 @@ const appearance = {
     fontFamily: "Inter, sans-serif",
   },
   elements: {
-    card: { boxShadow: "none", background: "transparent", width: "100%", padding: 0 },
+    card: { boxShadow: "none", background: "transparent", width: "100%", padding: "0 20px" },
     header: { display: "none" },
     footer: { background: "transparent" },
     footerActionLink: { color: "#c9a227" },
