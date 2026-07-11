@@ -1,53 +1,85 @@
+/* ==========================================================================
+   1. COLOR PALETTE & GLOBAL MATRIX VARIABLES
+   ========================================================================== */
+:root {
+  --maple-light-a: #ebd3a6;
+  --maple-light-b: #cba468;
+  --walnut-dark-a: #4d321e;
+  --walnut-dark-b: #28160a;
+  --frame-wood-a: #3d2315;
+  --frame-wood-b: #1f1008;
+  
+  /* Refined, elegant slab thickness (~40% reduction from legacy variant) */
+  --slab-thickness: 32px;
+  
+  --gold-bright: #ffdf33;
+  --gold-dim: #d4ac0d;
+}
+
+/* ==========================================================================
+   2. CONTAINMENT WRAPPER (TIGHT SCREEN OCCUPANCY LOGIC)
+   ========================================================================== */
 .board-wrap {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  padding: 14px;
-  max-width: 100%;
+  justify-content: center;
+  padding: 10px; /* Reduced to eliminate structural dead space */
+  width: 100%;
+  max-width: 100vw;
   box-sizing: border-box;
-  background: linear-gradient(160deg, var(--board-border), #000 120%);
-  border-radius: var(--radius-lg);
+  background: radial-gradient(circle at 50% 25%, #19191c 0%, #060608 100%);
+  border-radius: 18px;
   box-shadow:
-    0 30px 70px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    inset 0 2px 6px rgba(255, 255, 255, 0.06);
+    0 30px 70px rgba(0, 0, 0, 0.85),
+    inset 0 1px 1px rgba(255, 255, 255, 0.02);
+  overflow: hidden;
 }
 
+/* ==========================================================================
+   3. BOARD COORDINATES MATRIX
+   ========================================================================== */
 .board-coords {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
-  font-family: var(--font-mono);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 800;
   font-size: 11px;
-  color: rgba(245, 239, 230, 0.55);
+  color: rgba(235, 211, 166, 0.45);
   width: 100%;
+  text-shadow: 0 -1px 2px rgba(0, 0, 0, 0.9);
+  user-select: none;
 }
 
-.board-coords--top,
-.board-coords--bottom {
-  padding: 4px 0;
+.board-coords--top, 
+.board-coords--bottom { 
+  padding: 4px 0; 
 }
-.board-coords--top span,
-.board-coords--bottom span {
-  text-align: center;
+
+.board-coords--top span, 
+.board-coords--bottom span { 
+  text-align: center; 
 }
 
 .board-middle {
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   min-height: 0;
 }
 
-.board-coords--left,
+.board-coords--left, 
 .board-coords--right {
   display: flex;
   flex-direction: column;
-  grid-template-columns: none;
   justify-content: space-around;
   padding: 0 6px;
-  width: 20px;
+  width: 18px;
   flex-shrink: 0;
 }
-.board-coords--left span,
+
+.board-coords--left span, 
 .board-coords--right span {
   display: flex;
   align-items: center;
@@ -55,104 +87,230 @@
   flex: 1;
 }
 
-/* The stage is the square area that both the square-grid and the floating
-   piece layer share. Sizing it in one place (bounded by width AND height
-   viewport units) is what keeps the board from ever overflowing the
-   viewport, on short/landscape screens as well as narrow ones. */
-.board-stage {
-  position: relative;
-  width: min(720px, 88vw, 60vh);
-  height: min(720px, 88vw, 60vh);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  box-shadow:
-    inset 0 0 0 3px var(--board-border),
-    inset 0 4px 12px rgba(0, 0, 0, 0.45);
-}
-
-.grain-defs {
-  position: absolute;
-  pointer-events: none;
-}
-
-.board-grid {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  grid-template-rows: repeat(10, minmax(0, 1fr));
-}
-
-.pieces-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.square {
-  position: relative;
+/* ==========================================================================
+   4. THE PERSPECTIVE ENGINE & STAGE SIZING
+   ========================================================================== */
+.board-3d-perspective {
+  perspective: 1200px; /* Enhanced depth focal array */
+  perspective-origin: 50% 38%;
+  padding: 16px; /* Tight perspective border wrapper prevents dead heights */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.square--light {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.5), transparent 60%),
-    linear-gradient(120deg, var(--sq-light-a), var(--sq-light-b));
+/* Maximize width to available space, strictly scaling using width as the lead */
+.board-stage {
+  position: relative;
+  width: min(calc(96vw - 60px), calc(88vh - 120px), 820px);
+  height: min(calc(96vw - 60px), calc(88vh - 120px), 820px);
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.1, 0.8, 0.25, 1);
+  will-change: transform;
 }
 
-.square--dark {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 60%),
-    linear-gradient(120deg, var(--sq-dark-a), var(--sq-dark-b));
-  cursor: pointer;
+/* Solid Cabinet Block Framing */
+.board-surface-slab {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--frame-wood-a), var(--frame-wood-b));
+  padding: 16px; /* Reduced frame size shifts real-estate focus directly onto squares */
+  border-radius: 5px;
+  box-shadow: 
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 2px 15px rgba(0, 0, 0, 0.8);
+  transform-style: preserve-3d;
+  transform: translateZ(0px);
 }
 
-.square--light::after,
-.square--dark::after {
+.board-surface-slab::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+.board-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-rows: repeat(10, minmax(0, 1fr));
+  background: #090402;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.85);
+}
+
+.grain-defs { 
+  position: absolute; 
+  width: 0; 
+  height: 0; 
+}
+
+/* ==========================================================================
+   5. SQUARES & NOISE GRAPHICS MASKING
+   ========================================================================== */
+.square {
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.2);
+}
+
+.square::after {
   content: "";
   position: absolute;
   inset: 0;
-  filter: url(#wood-grain);
-  opacity: var(--grain-opacity);
-  mix-blend-mode: overlay;
+  filter: url(#wood-grain-hq);
+  mix-blend-mode: multiply;
+  opacity: 0.85;
 }
 
+.square--light {
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.25) 0%, transparent 65%),
+    linear-gradient(140deg, var(--maple-light-a), var(--maple-light-b));
+}
+
+.square--dark {
+  background: 
+    radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.05) 0%, transparent 65%),
+    linear-gradient(140deg, var(--walnut-dark-a), var(--walnut-dark-b));
+  cursor: pointer;
+}
+
+/* Grain Rotation Variations */
+.grain-v--0::after { transform: rotate(0deg) scale(1); }
+.grain-v--1::after { transform: rotate(90deg) scale(1.1); }
+.grain-v--2::after { transform: rotate(180deg) scale(0.95); }
+.grain-v--3::after { transform: rotate(270deg) scale(1.05); }
+
+/* Play state overlays */
 .square--hint::before {
   content: "";
   position: absolute;
-  inset: 6px;
+  inset: 10%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(201, 162, 39, 0.35), transparent 70%);
+  background: radial-gradient(circle, rgba(255, 223, 51, 0.3) 0%, transparent 75%);
+  border: 2px dashed rgba(255, 223, 51, 0.65);
+  z-index: 2;
 }
 
 .square--selected {
-  box-shadow: inset 0 0 0 3px var(--gold-bright);
+  box-shadow: 
+    inset 0 0 0 3px var(--gold-bright),
+    inset 0 0 25px rgba(255, 223, 51, 0.45);
 }
 
 .square--last-move {
-  box-shadow: inset 0 0 0 2px rgba(201, 162, 39, 0.55);
+  box-shadow: inset 0 0 0 3px rgba(255, 120, 0, 0.8);
+}
+.square--last-move::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 120, 0, 0.15);
+}
+
+.square--destination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .square--destination .dot {
-  width: 22%;
-  height: 22%;
+  width: 24%;
+  height: 24%;
   border-radius: 50%;
   background: var(--gold-bright);
-  box-shadow: 0 0 10px rgba(232, 194, 92, 0.8);
-  animation: dot-pulse 1.1s ease-in-out infinite;
+  box-shadow: 
+    0 0 15px var(--gold-bright),
+    0 0 0 4px rgba(255, 223, 51, 0.3);
+  animation: dot-pulse-premium 1.3s ease-in-out infinite;
 }
 
-@keyframes dot-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.2); opacity: 0.55; }
+@keyframes dot-pulse-premium {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.25); filter: brightness(1.3); }
 }
 
-/* ---------- Animated piece layer ---------- */
-/* Pieces are positioned absolutely by percentage (10% per square) and keep
-   a stable React key across moves, so changing `left`/`top` slides them
-   smoothly instead of the old behaviour of popping into the new square. */
+/* ==========================================================================
+   6. 3D SOLID CABINET SLAB MESH WALLS
+   ========================================================================== */
+.board-wall {
+  position: absolute;
+  display: none;
+  background: linear-gradient(to bottom, var(--frame-wood-a), var(--frame-wood-b));
+  box-shadow: 
+    inset 0 2px 5px rgba(255, 255, 255, 0.1), 
+    inset 0 -3px 15px rgba(0, 0, 0, 0.65);
+}
+
+.mode-3d .board-wall { 
+  display: block; 
+}
+
+.board-wall--front {
+  width: 100%;
+  height: var(--slab-thickness);
+  bottom: 0;
+  left: 0;
+  transform-origin: bottom center;
+  transform: rotateX(-90deg);
+  background: linear-gradient(to bottom, #442617, #1f1008);
+}
+.board-wall--back {
+  width: 100%;
+  height: var(--slab-thickness);
+  top: 0;
+  left: 0;
+  transform-origin: top center;
+  transform: rotateX(90deg);
+  background: linear-gradient(to bottom, #1f1008, #070302);
+}
+.board-wall--left {
+  width: var(--slab-thickness);
+  height: 100%;
+  left: 0;
+  top: 0;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+  background: linear-gradient(to bottom, #26150c, #100804);
+}
+.board-wall--right {
+  width: var(--slab-thickness);
+  height: 100%;
+  right: 0;
+  top: 0;
+  transform-origin: right center;
+  transform: rotateY(90deg);
+  background: linear-gradient(to bottom, #331d11, #170c06);
+}
+.board-wall--bottom {
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  transform: translateZ(calc(var(--slab-thickness) * -1));
+  background: #070302;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+}
+
+.board-stage--3d {
+  box-shadow:
+    0 40px 90px rgba(0, 0, 0, 0.9),
+    0 15px 35px rgba(0, 0, 0, 0.75);
+}
+
+/* ==========================================================================
+   7. EXTRUDED CHECKER TOKENS
+   ========================================================================== */
+.pieces-layer {
+  position: absolute;
+  inset: 16px; /* Dynamically mapped directly matching the slab's thin borders */
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
+
 .piece-token {
   position: absolute;
   width: 10%;
@@ -161,128 +319,220 @@
   align-items: center;
   justify-content: center;
   transition:
-    left 0.68s cubic-bezier(0.22, 0.68, 0.32, 1),
-    top 0.68s cubic-bezier(0.22, 0.68, 0.32, 1);
+    left 0.48s cubic-bezier(0.25, 1, 0.32, 1),
+    top 0.48s cubic-bezier(0.25, 1, 0.32, 1);
   will-change: left, top;
+  transform-style: preserve-3d;
 }
 
-.piece-token__body {
+.piece-body-3d {
   position: relative;
-  width: 82%;
-  height: 82%;
+  width: 86%;
+  height: 86%;
+  transform-style: preserve-3d;
+  transform: translateZ(8px);
+  transition: transform 0.4s cubic-bezier(0.34, 1.5, 0.64, 1);
+}
+
+.piece-layer-slice {
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
+}
+
+/* Volumetric slice positioning structures */
+.slice-base { transform: translateZ(0px); }
+.slice-mid  { transform: translateZ(5px); border: 1px solid rgba(0, 0, 0, 0.15); }
+.slice-deep { transform: translateZ(10px); }
+.slice-top  {
+  transform: translateZ(13px);
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.3);
+}
+
+/* King Heights Modification */
+.piece-token--king .piece-body-3d { transform: translateZ(15px); }
+.piece-token--king .slice-deep { transform: translateZ(12px); }
+.piece-token--king .slice-top  { transform: translateZ(18px); }
+
+/* Material shading properties */
+.piece-token--white .slice-base { background: #544835; }
+.piece-token--white .slice-mid  { background: #a18862; border-color: #7d6849; }
+.piece-token--white .slice-deep { background: #c9af84; }
+.piece-token--white .slice-top  {
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ecd2b0 45%, #bca074 95%);
+}
+
+.piece-token--black .slice-base { background: #000000; }
+.piece-token--black .slice-mid  { background: #181413; border-color: #0b0908; }
+.piece-token--black .slice-deep { background: #26201d; }
+.piece-token--black .slice-top  {
+  background: radial-gradient(circle at 30% 30%, #59514b 0%, #241e1a 50%, #080707 100%);
+}
+
+.piece-concentric-ridges {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  border: 3px double rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: scale(1);
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, opacity 0.45s ease;
+}
+.piece-token--white .piece-concentric-ridges { border-color: rgba(255, 255, 255, 0.25); }
+
+/* Selection lift mechanics */
+.piece-token--selected .piece-body-3d {
+  transform: translateZ(36px) scale(1.1);
+}
+.piece-token--king.piece-token--selected .piece-body-3d {
+  transform: translateZ(44px) scale(1.1);
 }
 
-.piece-token__body::after {
-  content: "";
+.piece-shadow-container {
   position: absolute;
-  top: 10%;
-  left: 16%;
-  width: 46%;
-  height: 30%;
+  inset: 2px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 75%);
-  filter: blur(0.3px);
-  pointer-events: none;
+  background: rgba(0, 0, 0, 0.7);
+  filter: blur(5px);
+  transform: translateZ(-3px);
+  transition: transform 0.4s ease, filter 0.4s ease, opacity 0.4s ease;
+}
+.piece-token--selected .piece-shadow-container {
+  transform: translateZ(-30px) scale(1.2);
+  filter: blur(10px);
+  opacity: 0.35;
 }
 
-.piece-token--white .piece-token__body {
-  background:
-    radial-gradient(circle at 32% 26%, #ffffff, #f3e4c8 38%, #d8b988 68%, #a9834f 100%);
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.45),
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    inset 0 -5px 8px rgba(120, 85, 40, 0.45),
-    inset 0 4px 7px rgba(255, 255, 255, 0.75);
+.premium-crown-container {
+  width: 56%;
+  height: 56%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+  animation: premium-crown-entrance 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.25);
 }
 
-.piece-token--black .piece-token__body {
-  background:
-    radial-gradient(circle at 32% 26%, #6a625a, #2c2620 42%, #14100d 72%, #050403 100%);
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.55),
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    inset 0 -5px 8px rgba(0, 0, 0, 0.6),
-    inset 0 4px 7px rgba(255, 255, 255, 0.22);
+.crown-svg {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold-dim));
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 22h20v-2H2v2zm2-4h16v-3l-3.5 2.5-2.5-4.5-2 3.5-2-3.5-2.5 4.5L4 15v3z"/></svg>') no-repeat center;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 22h20v-2H2v2zm2-4h16v-3l-3.5 2.5-2.5-4.5-2 3.5-2-3.5-2.5 4.5L4 15v3z"/></svg>') no-repeat center;
 }
 
-.piece-token--selected .piece-token__body {
-  transform: scale(1.1);
-  box-shadow: 0 0 0 3px var(--gold-bright), 0 6px 14px rgba(0, 0, 0, 0.5);
+@keyframes premium-crown-entrance {
+  0% { transform: scale(0.2) rotate(-35deg); filter: brightness(2); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 
-.piece-token--king .piece-crown {
-  color: var(--gold-bright);
-  font-size: 1.1rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-  animation: king-glow 0.6s ease-out;
-}
-
-@keyframes king-glow {
-  0% { transform: scale(0.4) rotate(-20deg); opacity: 0; }
-  60% { transform: scale(1.25) rotate(6deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-/* Captured pieces fade + shrink in place before being removed from state. */
-.piece-token--capturing .piece-token__body {
-  transition: transform 0.5s cubic-bezier(0.55, 0, 1, 0.45), opacity 0.5s ease;
-  transform: scale(0.15);
+.piece-token--capturing .piece-body-3d {
+  transition: transform 0.6s cubic-bezier(0.55, 0.01, 0.65, 0.2), opacity 0.5s ease;
+  transform: translateZ(-50px) rotateX(85deg) scale(0.05);
   opacity: 0;
 }
 
-.board-wrap--vert .board-middle {
-  flex-direction: row;
+/* ==========================================================================
+   8. HUD CONTROL INTERFACE PANEL
+   ========================================================================== */
+.board-3d-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px; /* Highly compressed to minimize empty space below the board */
+  flex-wrap: wrap;
 }
 
-@media (max-width: 640px) {
-  .board-stage {
-    width: min(600px, 92vw, 54vh);
-    height: min(600px, 92vw, 54vh);
-  }
+.board-3d-toggle, .board-rotate-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(to bottom, #2b2b32, #1b1b20);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ebd3a6;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s ease, background 0.2s ease;
+  user-select: none;
 }
 
-/* Matches GameHUD's landscape "rail" layout: the HUD becomes a slim side
-   column, so the board can safely reclaim almost the full viewport height. */
-@media (max-width: 900px) and (orientation: landscape) and (max-height: 560px) {
-  .board-stage {
-    width: min(90vh, calc(100vw - 190px), 620px);
-    height: min(90vh, calc(100vw - 190px), 620px);
-  }
+.board-rotate-handle {
+  background: #131316;
+  border-style: dashed;
+  color: rgba(235, 211, 166, 0.7);
+  cursor: grab;
+  touch-action: none;
 }
 
-/* Guarantees the full board (with coordinate rails) fits with no horizontal
-   scroll/overflow even on the smallest phone widths. */
-@media (max-width: 499px) {
-  .board-wrap {
-    padding: 6px;
-  }
-  .board-coords--left,
-  .board-coords--right {
-    width: 13px;
-    padding: 0 3px;
-    font-size: 9px;
-  }
-  .board-coords--top,
-  .board-coords--bottom {
-    font-size: 9px;
-    padding: 3px 0;
-  }
+.board-3d-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--gold-bright);
+}
+.board-rotate-handle:active {
+  cursor: grabbing;
+  border-color: var(--gold-bright);
+  color: #fff;
+}
+
+.board-3d-toggle--active {
+  border-color: var(--gold-bright);
+  background: linear-gradient(to bottom, #423414, #211905);
+  color: #fff;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 223, 51, 0.2);
+}
+
+.btn-icon { display: inline-block; font-size: 0.9rem; }
+.btn-text { display: inline-block; }
+
+/* ==========================================================================
+   9. MOBILE RESPONSIVE MATRIX (< 600px)
+   ========================================================================== */
+@media (max-width: 600px) {
+  .board-wrap { padding: 4px; }
+  .board-3d-perspective { padding: 8px; }
+  
   .board-stage {
-    width: min(500px, 93vw, 48vh);
-    height: min(500px, 93vw, 48vh);
+    /* Clamps to near edge-to-edge width layouts securely on mobile displays */
+    width: min(calc(100vw - 36px), calc(86vh - 80px));
+    height: min(calc(100vw - 36px), calc(86vh - 80px));
+  }
+  
+  .board-surface-slab { padding: 12px; }
+  .pieces-layer { inset: 12px; }
+
+  .board-coords--left, .board-coords--right { width: 12px; padding: 0 3px; font-size: 9px; }
+  .board-coords--top, .board-coords--bottom { font-size: 9px; padding: 2px 0; }
+
+  /* Control buttons turn into uniform icons with perfect identical gaps */
+  .board-3d-controls { gap: 8px; margin-top: 8px; }
+  
+  .board-3d-toggle, .board-rotate-handle {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  
+  .btn-text { display: none; }
+  .btn-icon { font-size: 1.1rem; }
+}
+
+@media (max-width: 400px) {
+  .board-stage {
+    width: min(calc(100vw - 28px), calc(86vh - 70px));
+    height: min(calc(100vw - 28px), calc(86vh - 70px));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .piece-token,
-  .piece-token__body {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
+  .board-stage, .piece-token, .piece-body-3d, .piece-shadow-container {
+    transition: none !important;
+    animation: none !important;
   }
 }

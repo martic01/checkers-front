@@ -1,0 +1,64 @@
+.challenge-popup {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 14px;
+  border-radius: 999px;
+  background: rgba(18, 12, 9, 0.96);
+  border: 1px solid var(--gold);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  max-width: 94vw;
+  animation: challenge-drop 0.3s ease-out;
+}
+
+@keyframes challenge-drop {
+  from { opacity: 0; transform: translate(-50%, -14px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.challenge-popup__text {
+  font-size: 0.74rem;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.challenge-popup__text strong {
+  color: var(--gold-bright);
+}
+
+.challenge-popup__timer {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--cream-dim);
+  flex-shrink: 0;
+}
+
+.challenge-popup__btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.challenge-popup__btn--accept {
+  background: var(--success);
+  color: #0d1a0d;
+}
+.challenge-popup__btn--reject {
+  background: rgba(200, 92, 79, 0.8);
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .challenge-popup__text {
+    max-width: 44vw;
+  }
+}

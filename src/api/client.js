@@ -31,10 +31,19 @@ export const api = {
 
   claimDaily: (id) => request(`/api/players/${id}/daily-claim`, { method: "POST" }),
   getInbox: (id) => request(`/api/players/${id}/inbox`),
+  markInboxRead: (id, msgId) => request(`/api/players/${id}/inbox/${msgId}/read`, { method: "POST" }),
   claimInbox: (id, msgId) => request(`/api/players/${id}/inbox/${msgId}/claim`, { method: "POST" }),
   getSeasonProgress: (id) => request(`/api/players/${id}/season`),
   claimSeasonReward: (id, letter) => request(`/api/players/${id}/season/claim/${letter}`, { method: "POST" }),
   getTiers: (id) => request(`/api/players/${id}/tiers`),
+
+  getFriends: (id) => request(`/api/players/${id}/friends`),
+  addFriend: (id, targetId) => request(`/api/players/${id}/friends/request`, { method: "POST", body: JSON.stringify({ targetId }) }),
+  acceptFriend: (id, requesterId) =>
+    request(`/api/players/${id}/friends/accept`, { method: "POST", body: JSON.stringify({ requesterId }) }),
+  rejectFriend: (id, requesterId) =>
+    request(`/api/players/${id}/friends/reject`, { method: "POST", body: JSON.stringify({ requesterId }) }),
+  removeFriend: (id, friendId) => request(`/api/players/${id}/friends/${friendId}`, { method: "DELETE" }),
 
   adminGrant: (auth, payload) => request("/api/admin/grant", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
   adminMessage: (auth, payload) =>

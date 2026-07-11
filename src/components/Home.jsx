@@ -1,8 +1,9 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Home.css";
 import Avatar from "./Avatar.jsx";
 import { RankBadge, CoinPill } from "./RankBadge.jsx";
 import { openProfile } from "../store/uiStore.js";
+import { api } from "../api/client.js";
 
 const MODE_CARDS = [
   {
@@ -35,6 +36,18 @@ const ICON_NAV = [
 export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, onOpenAdmin }) {
   const tapCount = useRef(0);
   const tapTimer = useRef(null);
+  const [playersOnline, setPlayersOnline] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () => api.lobby().then((d) => !cancelled && setPlayersOnline(d.playersOnline)).catch(() => {});
+    poll();
+    const id = setInterval(poll, 8000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
 
   // Secret admin access: tap the eyebrow text 5 times quickly.
   const handleSecretTap = () => {
@@ -76,6 +89,12 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
             <span className="mode-icon">{card.icon}</span>
             <span className="mode-title">{card.title}</span>
             <span className="mode-desc">{card.desc}</span>
+            {card.key === "online" && playersOnline !== null && (
+              <span className="mode-card__online-badge">
+                <span className="mode-card__online-dot" />
+                {playersOnline} online
+              </span>
+            )}
           </button>
         ))}
       </div>

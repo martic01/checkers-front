@@ -1,0 +1,44 @@
+.rotate-hint {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 105;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 92vw;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(18, 12, 9, 0.95);
+  border: 1px solid var(--gold);
+  color: var(--cream);
+  font-size: 0.72rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  animation: rotate-hint-in 0.3s ease-out;
+}
+
+.rotate-hint__icon {
+  font-size: 1rem;
+  animation: rotate-hint-wiggle 1.6s ease-in-out infinite;
+}
+
+.rotate-hint__dismiss {
+  background: none;
+  border: none;
+  color: var(--cream-dim);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+@keyframes rotate-hint-in {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes rotate-hint-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}

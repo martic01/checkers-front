@@ -72,3 +72,86 @@
   color: var(--gold-bright);
   margin-top: -10px;
 }
+
+/* ---------- Score rail (left of board, online rematches) ---------- */
+.board-with-rail {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.score-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+.score-rail__label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cream-dim);
+}
+.score-rail__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.score-rail__you { color: var(--gold-bright); }
+.score-rail__them { color: var(--cream-dim); }
+.score-rail__sep { color: var(--cream-dim); font-size: 0.8rem; }
+
+@media (max-width: 640px) {
+  .board-with-rail {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .score-rail {
+    flex-direction: row;
+    gap: 10px;
+    padding: 6px 14px;
+  }
+}
+
+/* ---------- Rematch UI ---------- */
+.game-over-score {
+  font-family: var(--font-mono);
+  color: var(--cream-dim);
+  font-size: 0.85rem;
+  margin-top: -6px;
+}
+
+.rematch-picker {
+  margin: 4px 0;
+}
+.rematch-picker__label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cream-dim);
+  margin-bottom: 6px;
+}
+.rematch-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.rematch-offer p,
+.rematch-waiting {
+  font-size: 0.85rem;
+  color: var(--cream);
+}
+.rematch-waiting {
+  color: var(--cream-dim);
+  font-style: italic;
+}

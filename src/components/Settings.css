@@ -175,3 +175,15 @@
   color: #e2a89e;
   border-color: rgba(200, 92, 79, 0.4);
 }
+
+.settings-music-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 10px;
+}
+.settings-music-hint {
+  font-size: 0.64rem;
+  color: var(--cream-dim);
+}

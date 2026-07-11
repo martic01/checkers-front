@@ -1,6 +1,8 @@
+import { useRef, useState } from "react";
 import "./Settings.css";
 import { usePlayerStore } from "../store/playerStore.js";
-import { toastInfo, confirmDialog } from "../store/uiStore.js";
+import { toastInfo, toastError, toastSuccess, confirmDialog } from "../store/uiStore.js";
+import { validateAndLoadMusicFile } from "../utils/musicValidation.js";
 
 const THEMES = [
   { key: "classic-maple", label: "Maple & Walnut" },
@@ -28,9 +30,28 @@ function OptionRow({ label, options, value, onChange }) {
   );
 }
 
-export default function Settings({ settings, onChange, onBack, onContactUs, onRate }) {
+export default function Settings({ settings, onChange, onBack, onContactUs, onRate, onLocalMusicFile }) {
   const logout = usePlayerStore((s) => s.logout);
   const set = (key) => (value) => onChange({ [key]: value });
+  const fileInputRef = useRef(null);
+  const [uploadBusy, setUploadBusy] = useState(false);
+
+  const handleMusicFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploadBusy(true);
+    try {
+      const url = await validateAndLoadMusicFile(file);
+      onLocalMusicFile?.(url);
+      set("music")("ON");
+      toastSuccess(`Now playing "${file.name}"`);
+    } catch (err) {
+      toastError(err.message);
+    } finally {
+      setUploadBusy(false);
+    }
+  };
 
   return (
     <div className="settings-screen">
@@ -86,6 +107,26 @@ export default function Settings({ settings, onChange, onBack, onContactUs, onRa
             defaultValue={settings.musicUrl}
             onBlur={(e) => set("musicUrl")(e.target.value)}
           />
+          <div className="settings-music-upload">
+            <button
+              type="button"
+              className="settings-linklike"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadBusy}
+            >
+              {uploadBusy ? "Checking file…" : "📁 Upload a music file instead"}
+            </button>
+            <span className="settings-music-hint">
+              MP3, WAV, OGG, M4A, AAC or FLAC · plays instantly · this session only
+            </span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac"
+              hidden
+              onChange={handleMusicFile}
+            />
+          </div>
         </Section>
 
         <Section title="First Move">

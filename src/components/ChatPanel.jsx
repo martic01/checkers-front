@@ -10,6 +10,7 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
   const [text, setText] = useState("");
   const [muted, setMuted] = useState(false);
   const [floatingEmoji, setFloatingEmoji] = useState(null);
+  const [floatingText, setFloatingText] = useState(null);
   const [micOn, setMicOn] = useState(false);
   const [micStatus, setMicStatus] = useState("off"); // off | connecting | live
 
@@ -17,13 +18,17 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
   const localStreamRef = useRef(null);
   const remoteAudioRef = useRef(null);
   const mutedRef = useRef(muted);
+  const peerReadyRef = useRef(false);
   mutedRef.current = muted;
 
   useEffect(() => {
     if (!socket) return;
 
     const onMessage = (msg) => {
-      setMessages((prev) => (mutedRef.current && msg.from !== playerName ? prev : [...prev, msg]));
+      if (mutedRef.current && msg.from !== playerName) return;
+      setMessages((prev) => [...prev, msg]);
+      setFloatingText({ text: msg.text, from: msg.from, key: `${msg.id}-float` });
+      setTimeout(() => setFloatingText((cur) => (cur?.key === `${msg.id}-float` ? null : cur)), 2600);
     };
     const onExpire = ({ id }) => setMessages((prev) => prev.filter((m) => m.id !== id));
     const onEmoji = ({ emoji, from }) => {
@@ -56,18 +61,26 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
         if (remoteAudioRef.current) remoteAudioRef.current.srcObject = e.streams[0];
         setMicStatus("live");
       };
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
+          setMicStatus(micOn ? "connecting" : "off");
+        }
+      };
       return pc;
     };
 
-    const onReady = async () => {
-      if (!micOn || !localStreamRef.current) return;
-      if (playerColor === "white") {
-        const pc = pcRef.current || (pcRef.current = createPeerConnection());
-        localStreamRef.current.getTracks().forEach((t) => pc.addTrack(t, localStreamRef.current));
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit("voice:offer", { code: roomCode, sdp: offer });
-      }
+    const startOffer = async () => {
+      const pc = pcRef.current || (pcRef.current = createPeerConnection());
+      localStreamRef.current.getTracks().forEach((t) => pc.addTrack(t, localStreamRef.current));
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      socket.emit("voice:offer", { code: roomCode, sdp: offer });
+    };
+
+    const onReady = () => {
+      peerReadyRef.current = true;
+      if (!micOn || !localStreamRef.current) return; // we'll retry once our own mic turns on
+      if (playerColor === "white") startOffer();
     };
 
     const onOffer = async ({ sdp }) => {
@@ -103,6 +116,12 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
     socket.on("voice:answer", onAnswer);
     socket.on("voice:ice", onIce);
     socket.on("voice:leave", onLeave);
+
+    // Covers the case where the peer turned their mic on (and signaled
+    // ready) before we turned ours on — without this, that ready signal
+    // would have been missed entirely and the call would hang on
+    // "Connecting…" forever.
+    if (peerReadyRef.current) onReady();
 
     return () => {
       socket.off("voice:ready", onReady);
@@ -153,6 +172,13 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
       {floatingEmoji && (
         <div key={floatingEmoji.key} className="chat-emoji-float">
           {floatingEmoji.emoji}
+        </div>
+      )}
+
+      {floatingText && (
+        <div key={floatingText.key} className="chat-text-float">
+          <span className="chat-text-float__from">{floatingText.from}</span>
+          {floatingText.text}
         </div>
       )}
 

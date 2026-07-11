@@ -40,6 +40,7 @@
 }
 
 .mode-card {
+  position: relative;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-lg);
@@ -55,6 +56,29 @@
 .mode-card:hover {
   transform: translateY(-4px);
   border-color: var(--gold);
+}
+
+.mode-card__online-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--success);
+  background: rgba(111, 174, 111, 0.12);
+  border: 1px solid rgba(111, 174, 111, 0.4);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.mode-card__online-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 5px var(--success);
 }
 
 .mode-icon {

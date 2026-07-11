@@ -144,3 +144,35 @@
   color: var(--cream-dim);
   font-size: 0.8rem;
 }
+
+.chat-text-float {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 240px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(18, 12, 9, 0.92);
+  border: 1px solid var(--gold);
+  color: var(--cream);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: text-float-up 2.6s ease-out forwards;
+  pointer-events: none;
+  z-index: 6;
+}
+.chat-text-float__from {
+  color: var(--gold-bright);
+  font-weight: 700;
+  margin-right: 5px;
+}
+
+@keyframes text-float-up {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.9); }
+  10% { opacity: 1; transform: translate(-50%, -14px) scale(1); }
+  80% { opacity: 1; transform: translate(-50%, -34px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50px) scale(0.96); }
+}

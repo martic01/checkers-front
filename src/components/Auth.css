@@ -1,14 +1,14 @@
 .auth-screen {
-  padding: 0 20px;
+  width: 100%;
+  max-width: 420px;
   display: flex;
   justify-content: center;
   justify-self: center;
-  margin-top: -40px;
+  padding-top: 20px;
 }
 
 .auth-panel {
   width: 100%;
-  padding: 10px;
 }
 
 .auth-tabs {
@@ -18,7 +18,7 @@
 }
 .auth-tabs button {
   flex: 1;
-  padding: 10px 0;
+  padding: 10px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);

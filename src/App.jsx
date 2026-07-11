@@ -4,7 +4,7 @@ import "./App.css";
 
 import { usePlayerStore } from "./store/playerStore.js";
 import { toastError, toastSuccess } from "./store/uiStore.js";
-import { connectSocket, disconnectSocket, getSocket } from "./api/socket.js";
+import { connectSocket, getSocket } from "./api/socket.js";
 import { playSound, isSoundEnabled } from "./utils/sound.js";
 
 import Auth from "./components/Auth.jsx";
@@ -22,6 +22,10 @@ import OnlineLobby from "./components/OnlineLobby.jsx";
 import GameScreen from "./components/GameScreen.jsx";
 import MusicPlayer from "./components/MusicPlayer.jsx";
 import UIOverlay from "./components/UIOverlay.jsx";
+import NetworkStatus from "./components/NetworkStatus.jsx";
+import RotateHint from "./components/RotateHint.jsx";
+import Friends from "./components/Friends.jsx";
+import ChallengePopup from "./components/ChallengePopup.jsx";
 
 const IDLE_ONLINE_STATE = { phase: "idle", betAmount: 0, roomCode: null, opponent: null, playerColor: "white" };
 const CLERK_ENABLED = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -45,6 +49,7 @@ export default function App() {
       }}
     >
       <UIOverlay />
+      <NetworkStatus />
       <AppRouter />
     </div>
   );
@@ -71,6 +76,7 @@ function AppRouter() {
   const [aiLevel, setAiLevel] = useState(null);
   const [online, setOnline] = useState(IDLE_ONLINE_STATE);
   const [showInbox, setShowInbox] = useState(false);
+  const [localMusicUrl, setLocalMusicUrl] = useState(null);
   const dailyClaimedRef = useRef(false);
 
   const settings = player?.settings;
@@ -88,6 +94,22 @@ function AppRouter() {
     });
   }, [player, offline, claimDaily, soundsOn]);
 
+  // Stay connected in the background (not just inside the online lobby) so
+  // friends can see this player's online status and send challenges from
+  // anywhere in the app.
+  useEffect(() => {
+    if (!player || offline) return;
+    const socket = connectSocket();
+    socket.emit("presence:hello", { playerId: player.id });
+
+    const onFound = ({ code, color, opponent, betAmount: bet }) => {
+      setOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color.toLowerCase() });
+      setScreen("online-game");
+    };
+    socket.on("match:found", onFound);
+    return () => socket.off("match:found", onFound);
+  }, [player, offline]);
+
   const navigate = useCallback((next) => setScreen(next), []);
 
   const handleModeSelect = (mode) => {
@@ -103,10 +125,7 @@ function AppRouter() {
         await reportResult({ result, mode: screen.replace("-game", ""), level: aiLevel });
       }
     }
-    if (screen === "online-game") {
-      disconnectSocket();
-      setOnline(IDLE_ONLINE_STATE);
-    }
+    setOnline(IDLE_ONLINE_STATE);
     setScreen("home");
   };
 
@@ -120,13 +139,6 @@ function AppRouter() {
   const handleQuickMatch = (betAmount) => {
     setOnline({ ...IDLE_ONLINE_STATE, phase: "searching", betAmount });
     const socket = connectSocket();
-
-    const onFound = ({ code, color, opponent, betAmount: bet }) => {
-      setOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color.toLowerCase() });
-      setScreen("online-game");
-    };
-    socket.off("match:found", onFound);
-    socket.on("match:found", onFound);
 
     socket.emit("quickmatch:join", { playerId: player.id, betAmount, name: player.name, avatar: player.avatar }, (res) => {
       if (!res?.ok) {
@@ -203,9 +215,11 @@ function AppRouter() {
 
   return (
     <>
-      {settings && <MusicPlayer settings={settings} />}
+      {settings && <MusicPlayer settings={settings} localFileUrl={localMusicUrl} />}
+      {!offline && <ChallengePopup player={player} soundsOn={soundsOn} onAccepted={() => {}} />}
 
       {showInbox && <Inbox messages={player.inbox} onClaim={claimInboxReward} onClose={() => setShowInbox(false)} />}
+      {screen.endsWith("-game") && <RotateHint />}
 
       {renderScreen()}
     </>
@@ -221,6 +235,7 @@ function AppRouter() {
             onBack={() => navigate("home")}
             onContactUs={() => toastSuccess("Reach us at support@woodendraughts.example")}
             onRate={() => toastSuccess("Thanks for playing! Rating is only available on the app store build.")}
+            onLocalMusicFile={setLocalMusicUrl}
           />
         );
       case "levels":
@@ -245,6 +260,8 @@ function AppRouter() {
         return <Season playerId={player.id} onBack={() => navigate("home")} />;
       case "admin":
         return <Admin player={player} onBack={() => navigate("home")} />;
+      case "friends":
+        return <Friends player={player} onBack={() => navigate("home")} />;
       case "online-lobby":
         return (
           <OnlineLobby
@@ -286,6 +303,7 @@ function AppRouter() {
             playerId={player.id}
             opponentId={online.opponent?.id}
             betAmount={online.betAmount}
+            totalEarnings={player.totalEarnings}
             socket={getSocket()}
             roomCode={online.roomCode}
             onSettled={handleSettled}

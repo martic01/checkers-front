@@ -5,13 +5,21 @@
   align-items: center;
   gap: 14px;
   min-height: 0;
- 
+
 }
 
 /* ---------- Top bar: player chips (left) + controls (right) ---------- */
+@media (max-height: 520px)  {
+  .game-topbar {
+  padding: 0;
+  }
+}
+
+
 .game-topbar {
+ 
   width: 100%;
-  max-width: 900px;
+  /* max-width: 900px; */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -22,14 +30,16 @@
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
   backdrop-filter: blur(10px);
-
 }
+
+
+
 
 .game-topbar__players {
   display: flex;
   align-items: center;
   gap: 10px;
-
+  flex-wrap: wrap;
 }
 
 .game-topbar__vs {
@@ -37,14 +47,12 @@
   font-size: 0.65rem;
   color: var(--cream-dim);
   text-transform: uppercase;
-
 }
 
 .game-topbar__controls {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-
 }
 
 .player-chip {
@@ -59,17 +67,27 @@
   font: inherit;
   text-align: left;
   position: relative;
-
 }
-
 
 .player-chip--clickable {
   cursor: pointer;
 }
 
 .player-chip--active {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.3);
+  border-color: var(--gold-bright);
+  background: rgba(201, 162, 39, 0.16);
+  box-shadow: 0 0 0 2px rgba(232, 194, 92, 0.4), 0 0 16px rgba(232, 194, 92, 0.3);
+  animation: chip-glow 1.6s ease-in-out infinite;
+}
+
+@keyframes chip-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(232, 194, 92, 0.4), 0 0 16px rgba(232, 194, 92, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 0 2px rgba(232, 194, 92, 0.65), 0 0 20px rgba(232, 194, 92, 0.5);
+  }
 }
 
 .player-chip .avatar {
@@ -79,7 +97,6 @@
   border: 1px solid var(--gold);
   flex-shrink: 0;
 }
-
 
 .avatar--white {
   background: radial-gradient(circle at 35% 30%, #fffaf1, #b89c6c 100%);
@@ -96,6 +113,12 @@
   line-height: 1.15;
 }
 
+@media (max-width: 640px) {
+  .player-chip__info {
+    display: none;
+  }
+}
+
 .player-chip__badge {
   font-size: 0.56rem;
   text-transform: uppercase;
@@ -109,18 +132,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 70px;
-
-}
-
-@media (max-width: 480px) {
-  .player-chip {
-    padding: 2px;
-  }
-
-  .player-chip__info {
-    display: none;
-  }
+  max-width: 110px;
 }
 
 .conn-dot {
