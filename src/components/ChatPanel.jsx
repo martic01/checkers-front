@@ -187,7 +187,7 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
           {micStatus === "off" ? "🎙️ Off" : micStatus === "connecting" ? "🎙️ Connecting…" : "🎙️ Live"}
         </button>
         <button className={`chat-mute ${muted ? "chat-mute--active" : ""}`} onClick={() => setMuted((m) => !m)}>
-          {muted ? "🔇 Muted" : "🔊 Mute Opponent"}
+          {muted ? "🔇" : "🔊"}
         </button>
       </div>
 

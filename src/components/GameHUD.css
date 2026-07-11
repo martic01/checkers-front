@@ -9,17 +9,11 @@
 }
 
 /* ---------- Top bar: player chips (left) + controls (right) ---------- */
-@media (max-height: 520px)  {
-  .game-topbar {
-  padding: 0;
-  }
-}
 
 
 .game-topbar {
- 
   width: 100%;
-  /* max-width: 900px; */
+  max-width: 900px;
   display: flex;
   align-items: center;
   justify-content: space-between;

@@ -41,6 +41,10 @@
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
   padding: 12px;
+  position: absolute;
+  right: 1vw;
+  top: 2%;
+  z-index: 999999;
 }
 
 .chat-messages {
