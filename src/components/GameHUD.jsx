@@ -50,6 +50,11 @@ export default function GameHUD({
             onClick={opponentId ? () => openProfile(opponentId) : undefined}
           />
         </div>
+        {potAmount > 0 && (
+          <div className="game-pot-pill">
+            🪙<strong>{potAmount}</strong>
+          </div>
+        )}
 
         <div className="game-topbar__controls">
           {onHint && (
@@ -78,11 +83,6 @@ export default function GameHUD({
         </div>
       </div>
 
-      {potAmount > 0 && (
-        <div className="game-pot-pill">
-          🪙 Playing for <strong>{potAmount}</strong> coins
-        </div>
-      )}
 
       {chatSlot}
 
