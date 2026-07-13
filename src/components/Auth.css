@@ -9,7 +9,9 @@
 
 .auth-panel {
   width: 100%;
+  background-color: rgb(59, 44, 2);
 }
+
 
 .auth-tabs {
   display: flex;
