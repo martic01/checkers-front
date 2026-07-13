@@ -1,0 +1,138 @@
+.trophy-carousel {
+  margin-top: 6px;
+}
+
+.trophy-carousel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.trophy-carousel__toggle {
+  background: none;
+  border: 1px solid var(--panel-border);
+  color: var(--gold-bright);
+  font-size: 0.66rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.trophy-carousel__stage {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.trophy-carousel__arrow {
+  width: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--panel-border);
+  color: var(--cream);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.trophy-carousel__arrow:disabled {
+  opacity: 0.25;
+}
+
+.trophy-carousel__pair {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  min-width: 0;
+}
+
+.trophy-card {
+  position: relative;
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--tier-color, var(--panel-border));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.trophy-card--earned {
+  box-shadow: 0 0 18px var(--tier-glow, transparent);
+  animation: trophy-shine 2.6s ease-in-out infinite;
+}
+
+.trophy-card--locked {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+}
+
+@keyframes trophy-shine {
+  0%, 100% { box-shadow: 0 0 12px var(--tier-glow, transparent); }
+  50% { box-shadow: 0 0 22px var(--tier-glow, transparent); }
+}
+
+.trophy-card__badge {
+  font-size: 1.6rem;
+}
+.trophy-card__tier {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tier-color, var(--cream-dim));
+  font-weight: 700;
+}
+.trophy-card__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.trophy-card__desc {
+  font-size: 0.64rem;
+  color: var(--cream-dim);
+  line-height: 1.3;
+}
+.trophy-card__reward {
+  font-size: 0.62rem;
+  color: var(--gold-bright);
+  font-family: var(--font-mono);
+}
+
+.trophy-card__equip {
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--panel-border);
+  color: var(--cream);
+  font-size: 0.62rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.trophy-card__equip--active {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+.trophy-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+.trophy-carousel__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+.trophy-carousel__dot--active {
+  background: var(--gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trophy-card--earned {
+    animation: none;
+  }
+}

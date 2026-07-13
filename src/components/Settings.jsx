@@ -30,7 +30,7 @@ function OptionRow({ label, options, value, onChange }) {
   );
 }
 
-export default function Settings({ settings, onChange, onBack, onContactUs, onRate, onLocalMusicFile }) {
+export default function Settings({ settings, onChange, onBack, onContactUs, onRate, playlist = [], onPlaylistChange }) {
   const logout = usePlayerStore((s) => s.logout);
   const set = (key) => (value) => onChange({ [key]: value });
   const fileInputRef = useRef(null);
@@ -40,17 +40,26 @@ export default function Settings({ settings, onChange, onBack, onContactUs, onRa
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    if (playlist.length >= 5) {
+      toastError("Your playlist is full — remove a song first (max 5).");
+      return;
+    }
     setUploadBusy(true);
     try {
       const url = await validateAndLoadMusicFile(file);
-      onLocalMusicFile?.(url);
+      const track = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, name: file.name, url };
+      onPlaylistChange?.([...playlist, track]);
       set("music")("ON");
-      toastSuccess(`Now playing "${file.name}"`);
+      toastSuccess(`Added "${file.name}" to your playlist`);
     } catch (err) {
       toastError(err.message);
     } finally {
       setUploadBusy(false);
     }
+  };
+
+  const removeTrack = (id) => {
+    onPlaylistChange?.(playlist.filter((t) => t.id !== id));
   };
 
   return (
@@ -101,23 +110,32 @@ export default function Settings({ settings, onChange, onBack, onContactUs, onRa
             value={settings.music}
             onChange={set("music")}
           />
-          <input
-            className="settings-music-input"
-            placeholder="Paste a background music URL (mp3)…"
-            defaultValue={settings.musicUrl}
-            onBlur={(e) => set("musicUrl")(e.target.value)}
-          />
+
+          {playlist.length > 0 && (
+            <ul className="playlist-list">
+              {playlist.map((track, i) => (
+                <li key={track.id} className="playlist-item">
+                  <span className="playlist-item__num">{i + 1}</span>
+                  <span className="playlist-item__name">{track.name}</span>
+                  <button className="playlist-item__remove" onClick={() => removeTrack(track.id)} aria-label="Remove song">
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
           <div className="settings-music-upload">
             <button
               type="button"
               className="settings-linklike"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploadBusy}
+              disabled={uploadBusy || playlist.length >= 5}
             >
-              {uploadBusy ? "Checking file…" : "📁 Upload a music file instead"}
+              {uploadBusy ? "Checking file…" : playlist.length >= 5 ? "Playlist full (5/5)" : `📁 Add a song (${playlist.length}/5)`}
             </button>
             <span className="settings-music-hint">
-              MP3, WAV, OGG, M4A, AAC or FLAC · plays instantly · this session only
+              MP3, WAV, OGG, M4A, AAC or FLAC · up to 5 songs · plays in order · this session only
             </span>
             <input
               ref={fileInputRef}

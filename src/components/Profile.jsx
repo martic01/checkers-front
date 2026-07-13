@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client.js";
 import Avatar from "./Avatar.jsx";
 import AvatarCarousel from "./AvatarCarousel.jsx";
+import TrophyCarousel from "./TrophyCarousel.jsx";
 import { RankBadge } from "./RankBadge.jsx";
 import { formatCoins } from "../game/rank.js";
-import { TROPHY_CATALOG } from "../game/trophyCatalog.js";
+import { toastError } from "../store/uiStore.js";
 import "./Profile.css";
 
-export default function Profile({ target, viewerId, onAvatarChange, onClose }) {
+export default function Profile({ target, viewerId, onAvatarChange, onEquipTitle, onClose }) {
   const [data, setData] = useState(typeof target === "object" ? target : null);
   const [error, setError] = useState(null);
   const [editingAvatar, setEditingAvatar] = useState(false);
@@ -77,18 +78,24 @@ export default function Profile({ target, viewerId, onAvatarChange, onClose }) {
               <Stat label="Lifetime Earnings" value={`${formatCoins(data.totalEarnings || 0)} 🪙`} />
             </div>
 
-            <h3 className="profile-section-title">Trophy Case</h3>
-            <div className="profile-trophies">
-              {TROPHY_CATALOG.map((t) => {
-                const earned = data.trophies?.includes(t.id);
-                return (
-                  <div key={t.id} className={`profile-trophy ${earned ? "profile-trophy--earned" : ""}`} title={t.desc}>
-                    <span className="profile-trophy__icon">{earned ? "🏆" : "🔒"}</span>
-                    <span className="profile-trophy__label">{t.label}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <TrophyCarousel
+              trophies={data.trophies || []}
+              equippedTitle={data.equippedTitle}
+              isOwnProfile={isOwnProfile}
+              onEquip={async (trophyId) => {
+                setData((d) => ({ ...d, equippedTitle: trophyId }));
+                if (onEquipTitle) {
+                  await onEquipTitle(trophyId);
+                } else {
+                  try {
+                    const updated = await api.equipTitle(data.id, trophyId);
+                    setData((d) => ({ ...d, equippedTitle: updated.equippedTitle }));
+                  } catch (err) {
+                    toastError(err.message || "Could not equip that title");
+                  }
+                }
+              }}
+            />
           </>
         )}
       </div>

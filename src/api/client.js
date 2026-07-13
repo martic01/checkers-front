@@ -19,6 +19,7 @@ export const api = {
   getPublicProfile: (id) => request(`/api/players/${id}/public`),
   updateName: (id, name) => request(`/api/players/${id}/name`, { method: "PATCH", body: JSON.stringify({ name }) }),
   updateAvatar: (id, avatar) => request(`/api/players/${id}/avatar`, { method: "PATCH", body: JSON.stringify({ avatar }) }),
+  equipTitle: (id, trophyId) => request(`/api/players/${id}/equip-title`, { method: "PATCH", body: JSON.stringify({ trophyId }) }),
   updateSettings: (id, settings) => request(`/api/players/${id}/settings`, { method: "PATCH", body: JSON.stringify(settings) }),
   reportResult: (id, payload) => request(`/api/players/${id}/result`, { method: "POST", body: JSON.stringify(payload) }),
   leaderboard: () => request("/api/players"),
@@ -38,6 +39,7 @@ export const api = {
   getTiers: (id) => request(`/api/players/${id}/tiers`),
 
   getFriends: (id) => request(`/api/players/${id}/friends`),
+  searchPlayers: (q, excludeId) => request(`/api/players/search?q=${encodeURIComponent(q)}&excludeId=${excludeId}`),
   addFriend: (id, targetId) => request(`/api/players/${id}/friends/request`, { method: "POST", body: JSON.stringify({ targetId }) }),
   acceptFriend: (id, requesterId) =>
     request(`/api/players/${id}/friends/accept`, { method: "POST", body: JSON.stringify({ requesterId }) }),

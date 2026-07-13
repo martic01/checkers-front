@@ -28,7 +28,7 @@ export default function Auth({ onRegister, onLogin, onGoogle, onGuest, error }) 
   return (
     <div className="auth-screen">
       <div className="panel auth-panel">
-        <h1 className="screen-title">Wooden Draughts</h1>
+        <h1 className="screen-title">MarCheckers</h1>
         <p className="screen-subtitle">{mode === "register" ? "Create your account" : "Welcome back"}</p>
 
         <div className="auth-tabs">
@@ -88,7 +88,7 @@ export default function Auth({ onRegister, onLogin, onGoogle, onGuest, error }) 
         </form>
 
         <button className="auth-guest" onClick={onGuest}>
-          Continue as Guest (offline, progress not saved)
+          🎮 Play Offline (Local &amp; vs AI only — no login needed)
         </button>
       </div>
     </div>

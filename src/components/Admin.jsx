@@ -13,6 +13,23 @@ const DELETE_MODES = [
   { id: "30d-any", label: "30 days (read or not)" },
 ];
 
+const WEALTH_TIERS = [
+  { id: "all", label: "All Balances" },
+  { id: "low", label: "Low (< 1K)", test: (c) => c < 1000 },
+  { id: "average", label: "Average (1K–10K)", test: (c) => c >= 1000 && c < 10000 },
+  { id: "rich", label: "Rich (10K–100K)", test: (c) => c >= 10000 && c < 100000 },
+  { id: "wealthy", label: "Wealthy (100K–1M)", test: (c) => c >= 100000 && c < 1000000 },
+  { id: "kings", label: "Kings (1M+)", test: (c) => c >= 1000000 },
+];
+
+const RANK_TIER_FILTERS = [
+  { id: "all", label: "All Ranks" },
+  { id: "legend", label: "Legend (1–49)", test: (r) => r <= 49 },
+  { id: "master", label: "Master (50–149)", test: (r) => r >= 50 && r <= 149 },
+  { id: "diamond", label: "Diamond (150–299)", test: (r) => r >= 150 && r <= 299 },
+  { id: "gold", label: "Gold–Bronze (300+)", test: (r) => r >= 300 },
+];
+
 export default function Admin({ player, onBack }) {
   const isSelfAdmin = !!player?.isAdmin;
   const [adminKey, setAdminKey] = useState(sessionStorage.getItem("checkers.adminKey") || "");
@@ -23,9 +40,24 @@ export default function Admin({ player, onBack }) {
   const [rankSet, setRankSet] = useState("");
   const [message, setMessage] = useState("");
   const [deleteMode, setDeleteMode] = useState("7d-any");
+  const [search, setSearch] = useState("");
+  const [wealthFilter, setWealthFilter] = useState("all");
+  const [rankFilter, setRankFilter] = useState("all");
 
   const auth = isSelfAdmin ? { playerId: player.id } : { adminKey };
   const target = players.find((p) => p.id === targetId);
+
+  const filteredPlayers = players.filter((p) => {
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      if (!p.name?.toLowerCase().includes(q) && !p.username?.toLowerCase().includes(q) && p.id !== q) return false;
+    }
+    const wealthTest = WEALTH_TIERS.find((w) => w.id === wealthFilter)?.test;
+    if (wealthTest && !wealthTest(p.coins)) return false;
+    const rankTest = RANK_TIER_FILTERS.find((r) => r.id === rankFilter)?.test;
+    if (rankTest && !rankTest(p.rank)) return false;
+    return true;
+  });
 
   useEffect(() => {
     if (!unlocked) return;
@@ -126,7 +158,31 @@ export default function Admin({ player, onBack }) {
 
       <div className="admin-grid">
         <div className="admin-card admin-card--players">
-          <h3>Players ({players.length})</h3>
+          <h3>Players ({filteredPlayers.length} of {players.length})</h3>
+
+          <input
+            className="auth-input admin-search-input"
+            placeholder="Search by name, username, or ID…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <div className="admin-filter-row">
+            <select className="auth-input" value={wealthFilter} onChange={(e) => setWealthFilter(e.target.value)}>
+              {WEALTH_TIERS.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.label}
+                </option>
+              ))}
+            </select>
+            <select className="auth-input" value={rankFilter} onChange={(e) => setRankFilter(e.target.value)}>
+              {RANK_TIER_FILTERS.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="admin-player-list">
             <button
               className={`admin-player-row ${targetId === "all" ? "admin-player-row--selected" : ""}`}
@@ -135,7 +191,7 @@ export default function Admin({ player, onBack }) {
               <span className="admin-player-row__avatar admin-player-row__avatar--all">🌐</span>
               <span className="admin-player-row__name">Everyone</span>
             </button>
-            {players.map((p) => (
+            {filteredPlayers.map((p) => (
               <button
                 key={p.id}
                 className={`admin-player-row ${targetId === p.id ? "admin-player-row--selected" : ""}`}

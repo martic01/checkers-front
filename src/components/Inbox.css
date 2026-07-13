@@ -85,3 +85,8 @@
   75% { opacity: 1; transform: translate(-50%, -34px) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -48px) scale(1); }
 }
+
+.inbox-item--unread {
+  border-color: rgba(232, 194, 92, 0.5);
+  box-shadow: 0 0 0 1px rgba(232, 194, 92, 0.15);
+}

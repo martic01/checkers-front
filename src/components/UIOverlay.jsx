@@ -15,6 +15,7 @@ export default function UIOverlay() {
   const closeProfile = useUIStore((s) => s.closeProfile);
   const viewerId = usePlayerStore((s) => s.player?.id);
   const updateAvatar = usePlayerStore((s) => s.updateAvatar);
+  const equipTitle = usePlayerStore((s) => s.equipTitle);
 
   return (
     <>
@@ -47,7 +48,13 @@ export default function UIOverlay() {
       {promptState && <PromptModal state={promptState} onResolve={resolvePrompt} />}
 
       {profileTarget && (
-        <Profile target={profileTarget} viewerId={viewerId} onAvatarChange={updateAvatar} onClose={closeProfile} />
+        <Profile
+          target={profileTarget}
+          viewerId={viewerId}
+          onAvatarChange={updateAvatar}
+          onEquipTitle={equipTitle}
+          onClose={closeProfile}
+        />
       )}
     </>
   );

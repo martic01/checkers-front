@@ -4,6 +4,8 @@ import Avatar from "./Avatar.jsx";
 import { RankBadge, CoinPill } from "./RankBadge.jsx";
 import { openProfile } from "../store/uiStore.js";
 import { api } from "../api/client.js";
+import TitleMarquee from "./TitleMarquee.jsx";
+import { TROPHY_CATALOG } from "../game/trophyCatalog.js";
 
 const MODE_CARDS = [
   {
@@ -27,6 +29,7 @@ const MODE_CARDS = [
 ];
 
 const ICON_NAV = [
+  { key: "friends", icon: "👥", label: "Friends" },
   { key: "season", icon: "🏆", label: "Season" },
   { key: "rules", icon: "📖", label: "Rules" },
   { key: "settings", icon: "⚙️", label: "Settings" },
@@ -66,6 +69,9 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
         <button className="home-player" onClick={() => openProfile(player)}>
           <Avatar avatar={player.avatar} size={36} />
           <span className="home-player__name">{player.name}</span>
+          {player.equippedTitle && (
+            <TitleMarquee title={TROPHY_CATALOG.find((t) => t.id === player.equippedTitle)?.label} />
+          )}
         </button>
         <div className="home-topbar__right">
           <CoinPill coins={player.coins} />
@@ -80,7 +86,7 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
         <span className="home-eyebrow" onClick={handleSecretTap}>
           International Draughts
         </span>
-        <h1 className="home-title">Wooden Draughts</h1>
+        <h1 className="home-title">MarCheckers</h1>
       </div>
 
       <div className="mode-cards">

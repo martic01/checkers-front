@@ -183,3 +183,18 @@
   color: var(--gold-bright);
   margin: -8px 0 16px;
 }
+
+.admin-search-input {
+  margin-bottom: 8px;
+}
+
+.admin-filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.admin-filter-row select {
+  flex: 1;
+  font-size: 0.72rem;
+  padding: 8px 28px 8px 10px;
+}

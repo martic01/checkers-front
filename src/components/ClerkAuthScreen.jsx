@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { SignIn, SignUp, useAuth } from "@clerk/clerk-react";
 import { usePlayerStore } from "../store/playerStore.js";
+import GameLoader from "./GameLoader.jsx";
 import "./Auth.css";
 
 const appearance = {
@@ -15,7 +16,7 @@ const appearance = {
     fontFamily: "Inter, sans-serif",
   },
   elements: {
-    card: { boxShadow: "none", background: "transparent", width: "100%", padding: "0 20px" },
+    card: { boxShadow: "none", background: "transparent", width: "100%", padding: 0 },
     header: { display: "none" },
     footer: { background: "transparent" },
     footerActionLink: { color: "#c9a227" },
@@ -29,6 +30,7 @@ const appearance = {
 export default function ClerkAuthScreen() {
   const { isSignedIn, getToken } = useAuth();
   const clerkSync = usePlayerStore((s) => s.clerkSync);
+  const continueAsGuest = usePlayerStore((s) => s.continueAsGuest);
   const [mode, setMode] = useState("register");
   const [syncing, setSyncing] = useState(false);
 
@@ -39,13 +41,13 @@ export default function ClerkAuthScreen() {
   }, [isSignedIn, syncing, getToken, clerkSync]);
 
   if (isSignedIn) {
-    return <div className="app-loading">Setting up your table…</div>;
+    return <GameLoader label="Setting up your table" />;
   }
 
   return (
     <div className="auth-screen">
       <div className="panel auth-panel">
-        <h1 className="screen-title">Wooden Draughts</h1>
+        <h1 className="screen-title">MarCheckers</h1>
         <p className="screen-subtitle">{mode === "register" ? "Create your account" : "Welcome back"}</p>
 
         <div className="auth-tabs">
@@ -64,6 +66,10 @@ export default function ClerkAuthScreen() {
             <SignIn routing="virtual" appearance={appearance} />
           )}
         </div>
+
+        <button className="auth-guest" onClick={continueAsGuest}>
+          🎮 Play Offline (Local &amp; vs AI only — no login needed)
+        </button>
       </div>
     </div>
   );

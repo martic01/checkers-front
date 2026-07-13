@@ -1,0 +1,58 @@
+.reconnect-prompt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, var(--gold), #a97f1f);
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  animation: reconnect-drop 0.35s cubic-bezier(0.22, 0.68, 0.32, 1);
+}
+
+@keyframes reconnect-drop {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+.reconnect-prompt__icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.reconnect-prompt__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.reconnect-prompt__btn {
+  background: var(--ink);
+  color: var(--gold-bright);
+  border: none;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.reconnect-prompt__dismiss {
+  background: none;
+  border: none;
+  color: var(--ink);
+  opacity: 0.7;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .reconnect-prompt__text {
+    font-size: 0.72rem;
+  }
+}

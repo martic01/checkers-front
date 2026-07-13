@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { playSound } from "../utils/sound.js";
 import "./Inbox.css";
 
-export default function Inbox({ messages, onClaim, onClose }) {
+export default function Inbox({ messages, onClaim, onMarkRead, onClose }) {
   const [claimingId, setClaimingId] = useState(null);
   const [justClaimed, setJustClaimed] = useState(null);
+
+  useEffect(() => {
+    const unread = messages.filter((m) => !m.readAt).map((m) => m.id);
+    if (unread.length) onMarkRead?.(unread);
+    // Only run once when the inbox is first opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleClaim = async (msg) => {
     setClaimingId(msg.id);
@@ -28,8 +35,8 @@ export default function Inbox({ messages, onClaim, onClose }) {
             .slice()
             .reverse()
             .map((msg) => (
-              <div key={msg.id} className={`inbox-item ${msg.from === "admin" ? "inbox-item--admin" : ""}`}>
-                <div className="inbox-item__from">{msg.from === "admin" ? "🛡 Admin" : "📣 System"}</div>
+              <div key={msg.id} className={`inbox-item ${msg.from === "admin" ? "inbox-item--admin" : ""} ${!msg.readAt ? "inbox-item--unread" : ""}`}>
+                <div className="inbox-item__from">{msg.from === "admin" ? "🛡 MarticamC" : "📣 System"}</div>
                 <div className="inbox-item__msg">{msg.message}</div>
                 {msg.reward && (
                   <div className="inbox-item__reward-row">

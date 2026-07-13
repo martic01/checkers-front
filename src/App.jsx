@@ -9,6 +9,7 @@ import { playSound, isSoundEnabled } from "./utils/sound.js";
 
 import Auth from "./components/Auth.jsx";
 import ClerkAuthScreen from "./components/ClerkAuthScreen.jsx";
+import GameLoader from "./components/GameLoader.jsx";
 import Home from "./components/Home.jsx";
 import Settings from "./components/Settings.jsx";
 import Levels from "./components/Levels.jsx";
@@ -23,6 +24,7 @@ import GameScreen from "./components/GameScreen.jsx";
 import MusicPlayer from "./components/MusicPlayer.jsx";
 import UIOverlay from "./components/UIOverlay.jsx";
 import NetworkStatus from "./components/NetworkStatus.jsx";
+import ReconnectPrompt from "./components/ReconnectPrompt.jsx";
 import RotateHint from "./components/RotateHint.jsx";
 import Friends from "./components/Friends.jsx";
 import ChallengePopup from "./components/ChallengePopup.jsx";
@@ -50,6 +52,7 @@ export default function App() {
     >
       <UIOverlay />
       <NetworkStatus />
+      <ReconnectPrompt />
       <AppRouter />
     </div>
   );
@@ -69,14 +72,18 @@ function AppRouter() {
   const reportResult = usePlayerStore((s) => s.reportResult);
   const claimDaily = usePlayerStore((s) => s.claimDaily);
   const claimInboxReward = usePlayerStore((s) => s.claimInboxReward);
+  const markInboxRead = usePlayerStore((s) => s.markInboxRead);
   const refreshPlayer = usePlayerStore((s) => s.refreshPlayer);
 
   const [screen, setScreen] = useState("home");
-  const [aiDifficulty, setAiDifficulty] = useState("medium");
-  const [aiLevel, setAiLevel] = useState(null);
+  const [aiDifficulty, setAiDifficulty] = useState(() => localStorage.getItem("checkers.aiDifficulty") || "medium");
+  const [aiLevel, setAiLevel] = useState(() => {
+    const saved = localStorage.getItem("checkers.aiLevel");
+    return saved ? Number(saved) : null;
+  });
   const [online, setOnline] = useState(IDLE_ONLINE_STATE);
   const [showInbox, setShowInbox] = useState(false);
-  const [localMusicUrl, setLocalMusicUrl] = useState(null);
+  const [playlist, setPlaylist] = useState([]);
   const dailyClaimedRef = useRef(false);
 
   const settings = player?.settings;
@@ -102,8 +109,8 @@ function AppRouter() {
     const socket = connectSocket();
     socket.emit("presence:hello", { playerId: player.id });
 
-    const onFound = ({ code, color, opponent, betAmount: bet }) => {
-      setOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color.toLowerCase() });
+    const onFound = ({ code, color, opponent, betAmount: bet, vsBot }) => {
+      setOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color.toLowerCase(), vsBot: !!vsBot });
       setScreen("online-game");
     };
     socket.on("match:found", onFound);
@@ -115,8 +122,13 @@ function AppRouter() {
   const handleModeSelect = (mode) => {
     if (mode === "ai") setScreen("levels");
     else if (mode === "local") setScreen("local-game");
-    else if (mode === "online") setScreen("online-lobby");
-    else setScreen(mode);
+    else if (mode === "online") {
+      if (offline) {
+        toastError("Online play needs an internet connection and an account — log in to play online.");
+        return;
+      }
+      setScreen("online-lobby");
+    } else setScreen(mode);
   };
 
   const handleGameExit = async (result) => {
@@ -210,15 +222,17 @@ function AppRouter() {
       if (CLERK_ENABLED) return <ClerkAuthScreen />;
       return <Auth onRegister={register} onLogin={login} onGoogle={googleSignIn} onGuest={continueAsGuest} error={authError} />;
     }
-    return <div className="app-loading">Loading the board…</div>;
+    return <GameLoader label="Setting up the table" />;
   }
 
   return (
     <>
-      {settings && <MusicPlayer settings={settings} localFileUrl={localMusicUrl} />}
+      {settings && <MusicPlayer settings={settings} playlist={playlist} />}
       {!offline && <ChallengePopup player={player} soundsOn={soundsOn} onAccepted={() => {}} />}
 
-      {showInbox && <Inbox messages={player.inbox} onClaim={claimInboxReward} onClose={() => setShowInbox(false)} />}
+      {showInbox && (
+        <Inbox messages={player.inbox} onClaim={claimInboxReward} onMarkRead={markInboxRead} onClose={() => setShowInbox(false)} />
+      )}
       {screen.endsWith("-game") && <RotateHint />}
 
       {renderScreen()}
@@ -235,7 +249,8 @@ function AppRouter() {
             onBack={() => navigate("home")}
             onContactUs={() => toastSuccess("Reach us at support@woodendraughts.example")}
             onRate={() => toastSuccess("Thanks for playing! Rating is only available on the app store build.")}
-            onLocalMusicFile={setLocalMusicUrl}
+            playlist={playlist}
+            onPlaylistChange={setPlaylist}
           />
         );
       case "levels":
@@ -245,6 +260,8 @@ function AppRouter() {
             onSelect={(level) => {
               setAiLevel(level);
               setAiDifficulty(["beginner", "easy", "medium", "hard", "expert"][level - 1]);
+              localStorage.setItem("checkers.aiLevel", level);
+              localStorage.setItem("checkers.aiDifficulty", ["beginner", "easy", "medium", "hard", "expert"][level - 1]);
               setScreen("ai-game");
             }}
             onBack={() => navigate("home")}
@@ -304,6 +321,7 @@ function AppRouter() {
             opponentId={online.opponent?.id}
             betAmount={online.betAmount}
             totalEarnings={player.totalEarnings}
+            vsBot={online.vsBot}
             socket={getSocket()}
             roomCode={online.roomCode}
             onSettled={handleSettled}
@@ -316,7 +334,7 @@ function AppRouter() {
           <Home
             onNavigate={handleModeSelect}
             player={player}
-            inboxCount={player.inbox?.filter((m) => !m.claimed).length || 0}
+            inboxCount={player.inbox?.filter((m) => !m.readAt).length || 0}
             onOpenInbox={() => setShowInbox(true)}
             onOpenAdmin={() => navigate("admin")}
           />

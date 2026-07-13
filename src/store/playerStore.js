@@ -3,6 +3,30 @@ import { api } from "../api/client.js";
 import { toastError, toastSuccess } from "./uiStore.js";
 
 const STORAGE_KEY = "checkers.playerId";
+const SETTINGS_KEY = "checkers.settings";
+
+function loadLocalSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+function saveLocalSettings(settings) {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch {
+    /* storage might be unavailable (private mode etc.) — not critical */
+  }
+}
+// Local settings are the source of truth for personal preferences so they
+// survive being offline or logged out, and immediately apply to any account
+// signed into on this device.
+function applyLocalSettings(player) {
+  const local = loadLocalSettings();
+  if (!local || !player) return player;
+  return { ...player, settings: { ...player.settings, ...local } };
+}
 
 const DEFAULT_SETTINGS = {
   view: "HORIZ",
@@ -47,7 +71,7 @@ export const usePlayerStore = create((set, get) => ({
     const savedId = localStorage.getItem(STORAGE_KEY);
     try {
       if (savedId) {
-        const profile = await api.getPlayer(savedId);
+        const profile = applyLocalSettings(await api.getPlayer(savedId));
         set({ player: profile, offline: false, loading: false });
       } else {
         set({ needsAuth: true, loading: false });
@@ -62,7 +86,7 @@ export const usePlayerStore = create((set, get) => ({
   register: async ({ username, password, name, avatar }) => {
     set({ authError: null });
     try {
-      const profile = await api.register({ username, password, name, avatar });
+      const profile = applyLocalSettings(await api.register({ username, password, name, avatar }));
       localStorage.setItem(STORAGE_KEY, profile.id);
       set({ player: profile, offline: false, needsAuth: false });
       return true;
@@ -75,7 +99,7 @@ export const usePlayerStore = create((set, get) => ({
   login: async ({ username, password }) => {
     set({ authError: null });
     try {
-      const profile = await api.login({ username, password });
+      const profile = applyLocalSettings(await api.login({ username, password }));
       localStorage.setItem(STORAGE_KEY, profile.id);
       set({ player: profile, offline: false, needsAuth: false });
       return true;
@@ -90,11 +114,11 @@ export const usePlayerStore = create((set, get) => ({
   // fully local stub only if the backend can't be reached at all.
   continueAsGuest: async () => {
     try {
-      const profile = await api.createPlayer("Guest");
+      const profile = applyLocalSettings(await api.createPlayer("Guest"));
       localStorage.setItem(STORAGE_KEY, profile.id);
       set({ player: profile, offline: false, needsAuth: false });
     } catch {
-      set({ player: LOCAL_ONLY_PLAYER, offline: true, needsAuth: false });
+      set({ player: applyLocalSettings(LOCAL_ONLY_PLAYER), offline: true, needsAuth: false });
       toastError("Backend unreachable — playing fully offline. Online matches are disabled.");
     }
   },
@@ -102,7 +126,7 @@ export const usePlayerStore = create((set, get) => ({
   googleSignIn: async (credential) => {
     set({ authError: null });
     try {
-      const profile = await api.googleSignIn(credential);
+      const profile = applyLocalSettings(await api.googleSignIn(credential));
       localStorage.setItem(STORAGE_KEY, profile.id);
       set({ player: profile, offline: false, needsAuth: false });
       return true;
@@ -114,7 +138,7 @@ export const usePlayerStore = create((set, get) => ({
 
   clerkSync: async (token) => {
     try {
-      const profile = await api.clerkSync(token);
+      const profile = applyLocalSettings(await api.clerkSync(token));
       localStorage.setItem(STORAGE_KEY, profile.id);
       set({ player: profile, offline: false, needsAuth: false });
       return true;
@@ -130,9 +154,18 @@ export const usePlayerStore = create((set, get) => ({
     set({ player: null, needsAuth: true });
   },
 
+  // Lets someone who started in offline/local-only mode go log in properly
+  // once their connection is back, without discarding anything server-side
+  // (they were never really signed in to begin with).
+  goToLogin: () => {
+    set({ player: null, needsAuth: true, offline: false });
+  },
+
   updateSettings: async (patch) => {
     const { player, offline } = get();
-    set({ player: { ...player, settings: { ...player.settings, ...patch } } });
+    const merged = { ...player.settings, ...patch };
+    set({ player: { ...player, settings: merged } });
+    saveLocalSettings(merged);
     if (offline) return;
     try {
       await api.updateSettings(player.id, patch);
@@ -164,6 +197,17 @@ export const usePlayerStore = create((set, get) => ({
     }
   },
 
+  equipTitle: async (trophyId) => {
+    const { player, offline } = get();
+    if (offline) return;
+    try {
+      const updated = await api.equipTitle(player.id, trophyId);
+      set({ player: updated });
+    } catch (err) {
+      toastError(err.message || "Couldn't equip that title.");
+    }
+  },
+
   claimDaily: async () => {
     const { player, offline } = get();
     if (offline) return null;
@@ -186,6 +230,27 @@ export const usePlayerStore = create((set, get) => ({
     } catch {
       toastError("Couldn't claim that reward — try again.");
       return null;
+    }
+  },
+
+  markInboxRead: async (msgIds) => {
+    const { player, offline } = get();
+    if (offline || !msgIds?.length) return;
+    // Mark them read locally right away so the badge clears instantly...
+    set((s) => ({
+      player: {
+        ...s.player,
+        inbox: s.player.inbox.map((m) => (msgIds.includes(m.id) && !m.readAt ? { ...m, readAt: Date.now() } : m)),
+      },
+    }));
+    // ...then persist each read (and let 'instant' mode messages disappear
+    // server-side) without blocking the UI.
+    try {
+      for (const id of msgIds) {
+        await api.markInboxRead(player.id, id);
+      }
+    } catch {
+      /* best-effort */
     }
   },
 

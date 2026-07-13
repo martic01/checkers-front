@@ -20,6 +20,7 @@ export default function GameHUD({
   chatOpen,
   canUndo,
   mode,
+  vsBot,
   potAmount,
   chatSlot,
   children,
@@ -46,7 +47,7 @@ export default function GameHUD({
             color={opponentColor}
             active={turn === opponentColor}
             status={mode === "online" ? connectionStatus?.opponent : null}
-            badge={mode === "ai" ? "AI" : "Opponent"}
+            badge={mode === "ai" || vsBot ? "🤖 Bot" : "Opponent"}
             onClick={opponentId ? () => openProfile(opponentId) : undefined}
           />
         </div>

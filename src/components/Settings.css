@@ -187,3 +187,50 @@
   font-size: 0.64rem;
   color: var(--cream-dim);
 }
+
+.playlist-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+}
+
+.playlist-item__num {
+  font-family: var(--font-mono);
+  color: var(--gold);
+  font-size: 0.7rem;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.playlist-item__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-item__remove {
+  background: none;
+  border: none;
+  color: var(--cream-dim);
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+.playlist-item__remove:hover {
+  color: #e2a89e;
+}

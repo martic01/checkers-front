@@ -171,13 +171,13 @@
 .square--light {
   background: 
     radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.25) 0%, transparent 65%),
-    linear-gradient(140deg, var(--maple-light-a), var(--maple-light-b));
+    linear-gradient(140deg, var(--sq-light-a, var(--maple-light-a)), var(--sq-light-b, var(--maple-light-b)));
 }
 
 .square--dark {
   background: 
     radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.05) 0%, transparent 65%),
-    linear-gradient(140deg, var(--walnut-dark-a), var(--walnut-dark-b));
+    linear-gradient(140deg, var(--sq-dark-a, var(--walnut-dark-a)), var(--sq-dark-b, var(--walnut-dark-b)));
   cursor: pointer;
 }
 

@@ -14,6 +14,10 @@ export default function Friends({ player, onBack, onChallengeSent }) {
   const [onlineMap, setOnlineMap] = useState({});
   const [challengeTarget, setChallengeTarget] = useState(null);
   const [betAmount, setBetAmount] = useState(100);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [sentTo, setSentTo] = useState([]);
 
   const load = () => {
     api
@@ -28,6 +32,35 @@ export default function Friends({ player, onBack, onChallengeSent }) {
   };
 
   useEffect(load, [player.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounced search-as-you-type by name or exact player id.
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+    setSearching(true);
+    const t = setTimeout(() => {
+      api
+        .searchPlayers(query.trim(), player.id)
+        .then(setResults)
+        .catch(() => toastError("Search failed"))
+        .finally(() => setSearching(false));
+    }, 350);
+    return () => clearTimeout(t);
+  }, [query, player.id]);
+
+  const friendIds = new Set(friends.map((f) => f.id));
+
+  const sendRequest = async (target) => {
+    try {
+      await api.addFriend(player.id, target.id);
+      setSentTo((s) => [...s, target.id]);
+      toastSuccess(`Friend request sent to ${target.name}`);
+    } catch (err) {
+      toastError(err.message || "Could not send request");
+    }
+  };
 
   const accept = async (requesterId) => {
     await api.acceptFriend(player.id, requesterId).catch(() => toastError("Could not accept request"));
@@ -69,6 +102,42 @@ export default function Friends({ player, onBack, onChallengeSent }) {
       </button>
       <h2 className="screen-title">👥 Friends</h2>
 
+      <div className="friends-section">
+        <h3>Find Players</h3>
+        <input
+          className="auth-input"
+          placeholder="Search by name or player ID…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        {searching && <p className="friends-empty">Searching…</p>}
+        {!searching && query && results.length === 0 && <p className="friends-empty">No players found.</p>}
+        {results.map((r) => {
+          const already = friendIds.has(r.id);
+          const sent = sentTo.includes(r.id);
+          return (
+            <div key={r.id} className="friend-row">
+              <Avatar avatar={r.avatar} size={38} />
+              <div className="friend-row__info">
+                <span className="friend-row__name">{r.name}</span>
+                <RankBadge rank={r.rank} size="sm" />
+              </div>
+              <div className="friend-row__actions">
+                {already ? (
+                  <span className="friends-tag">Friends</span>
+                ) : sent ? (
+                  <span className="friends-tag">Request Sent</span>
+                ) : (
+                  <Button variant="gold" size="sm" onClick={() => sendRequest(r)}>
+                    ➕ Add
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {requests.length > 0 && (
         <div className="friends-section">
           <h3>Requests</h3>
@@ -91,7 +160,7 @@ export default function Friends({ player, onBack, onChallengeSent }) {
 
       <div className="friends-section">
         <h3>Your Friends ({friends.length})</h3>
-        {friends.length === 0 && <p className="friends-empty">No friends yet — add some from their profile!</p>}
+        {friends.length === 0 && <p className="friends-empty">No friends yet — search above to add some!</p>}
         {friends.map((f) => (
           <div key={f.id} className="friend-row">
             <span className={`friend-row__presence ${onlineMap[f.id] ? "friend-row__presence--online" : ""}`} />
@@ -116,18 +185,27 @@ export default function Friends({ player, onBack, onChallengeSent }) {
         <div className="modal-overlay" onClick={() => setChallengeTarget(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h3>Challenge {challengeTarget.name}</h3>
-            <p>Choose a bet amount</p>
+            <p>
+              Your balance: {formatCoins(player.coins)} 🪙 · Their balance:{" "}
+              {challengeTarget.coins != null ? formatCoins(challengeTarget.coins) : "?"} 🪙
+            </p>
             <div className="friends-bet-grid">
-              {BET_TIERS.slice(0, 8).map((tier) => (
-                <button
-                  key={tier}
-                  className={`bet-chip ${betAmount === tier ? "bet-chip--selected" : ""} ${!isTierUnlocked(tier, player.totalEarnings) ? "bet-chip--locked" : ""}`}
-                  disabled={!isTierUnlocked(tier, player.totalEarnings)}
-                  onClick={() => setBetAmount(tier)}
-                >
-                  {formatCoins(tier)}
-                </button>
-              ))}
+              {BET_TIERS.slice(0, 8).map((tier) => {
+                const theyCanAfford = challengeTarget.coins == null || challengeTarget.coins >= tier;
+                const iCanAfford = player.coins >= tier;
+                const locked = !isTierUnlocked(tier, player.totalEarnings) || !theyCanAfford || !iCanAfford;
+                return (
+                  <button
+                    key={tier}
+                    className={`bet-chip ${betAmount === tier ? "bet-chip--selected" : ""} ${locked ? "bet-chip--locked" : ""}`}
+                    disabled={locked}
+                    title={!theyCanAfford ? `${challengeTarget.name} can't afford this bet` : ""}
+                    onClick={() => setBetAmount(tier)}
+                  >
+                    {formatCoins(tier)}
+                  </button>
+                );
+              })}
             </div>
             <div className="modal-actions">
               <Button variant="ghost" full onClick={() => setChallengeTarget(null)}>

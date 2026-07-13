@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Board from "./Board.jsx";
 import GameHUD from "./GameHUD.jsx";
 import ChatPanel from "./ChatPanel.jsx";
@@ -42,6 +42,7 @@ export default function GameScreen({
   totalEarnings = 0,
   socket,
   roomCode,
+  vsBot = false,
   onSettled, // ({ result, coinsDelta, newlyEarned, ... }) => void
   onExit, // (result: 'win'|'loss'|'draw') => void
 }) {
@@ -84,11 +85,13 @@ export default function GameScreen({
   const playerColor = mode === "online" ? fixedPlayerColor : mode === "local" ? turn : fixedPlayerColor || WHITE;
   const aiColor = playerColor === WHITE ? BLACK : WHITE;
 
-  const legalMoves = getAllMoves(board, turn, mandatoryJumps);
+  const legalMoves = useMemo(() => getAllMoves(board, turn, mandatoryJumps), [board, turn, mandatoryJumps]);
 
   // Restrict interactive moves to the color the local human may currently play.
-  const interactiveMoves =
-    mode === "local" ? legalMoves : turn === playerColor ? legalMoves : [];
+  const interactiveMoves = useMemo(
+    () => (mode === "local" ? legalMoves : turn === playerColor ? legalMoves : []),
+    [mode, legalMoves, turn, playerColor]
+  );
 
   const isDisabled = isAnimating || gameOver !== null || interactiveMoves.length === 0;
 
@@ -244,16 +247,20 @@ export default function GameScreen({
     [commitMove, isDisabled, mode, roomCode, socket, turn]
   );
 
-  // AI turn.
+  // AI turn — either a real "vs AI" game, or an online quickmatch that
+  // fell back to a bot because no real opponent was available in time.
+  const botDifficultyRef = useRef(Math.random() < 0.5 ? "hard" : "expert");
   useEffect(() => {
-    if (mode !== "ai" || gameOver || isAnimating) return;
+    const isBotTurn = mode === "ai" || (mode === "online" && vsBot);
+    if (!isBotTurn || gameOver || isAnimating) return;
     if (turn !== aiColor) return;
+    const effectiveDifficulty = mode === "online" ? botDifficultyRef.current : difficulty;
     const timer = setTimeout(() => {
-      const move = getAiMove(board, aiColor, difficulty, mandatoryJumps);
+      const move = getAiMove(board, aiColor, effectiveDifficulty, mandatoryJumps);
       if (move) commitMove(move);
     }, 500);
     return () => clearTimeout(timer);
-  }, [mode, turn, aiColor, board, difficulty, mandatoryJumps, gameOver, isAnimating, commitMove]);
+  }, [mode, vsBot, turn, aiColor, board, difficulty, mandatoryJumps, gameOver, isAnimating, commitMove]);
 
   // Online: listen for opponent moves.
   useEffect(() => {
@@ -356,10 +363,11 @@ export default function GameScreen({
         opponentAvatar={opponentAvatar}
         playerColor={playerColor}
         playerId={mode === "online" ? playerId : null}
-        opponentId={mode === "online" ? opponentId : null}
+        opponentId={mode === "online" && !vsBot ? opponentId : null}
         turn={turn}
         connectionStatus={connStatus}
         mode={mode}
+        vsBot={vsBot}
         potAmount={mode === "online" ? betAmount * 2 : 0}
         canUndo={history.length > 0 && mode !== "online"}
         onUndo={mode !== "online" ? handleUndo : undefined}
@@ -434,7 +442,7 @@ export default function GameScreen({
               </p>
             )}
 
-            {mode === "online" && !gameOver.forfeit && (
+            {mode === "online" && !gameOver.forfeit && !vsBot && (
               <>
                 {(myScore > 0 || oppScore > 0) && (
                   <p className="game-over-score">
