@@ -67,7 +67,14 @@ export const usePlayerStore = create((set, get) => ({
   needsAuth: false,
   authError: null,
 
+  backendClerkEnabled: null, // null = unknown yet, avoids a flash of the wrong screen
+
   init: async () => {
+    api
+      .authConfig()
+      .then((cfg) => set({ backendClerkEnabled: cfg.clerkEnabled }))
+      .catch(() => set({ backendClerkEnabled: false }));
+
     const savedId = localStorage.getItem(STORAGE_KEY);
     try {
       if (savedId) {

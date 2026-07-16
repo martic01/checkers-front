@@ -63,6 +63,7 @@ function AppRouter() {
   const loading = usePlayerStore((s) => s.loading);
   const offline = usePlayerStore((s) => s.offline);
   const needsAuth = usePlayerStore((s) => s.needsAuth);
+  const backendClerkEnabled = usePlayerStore((s) => s.backendClerkEnabled);
   const authError = usePlayerStore((s) => s.authError);
   const register = usePlayerStore((s) => s.register);
   const login = usePlayerStore((s) => s.login);
@@ -219,7 +220,13 @@ function AppRouter() {
 
   if (loading || !player) {
     if (needsAuth) {
-      if (CLERK_ENABLED) return <ClerkAuthScreen />;
+      // Wait for backend confirmation before committing to the Clerk flow —
+      // showing it when only the frontend key is set (but not the backend's
+      // CLERK_SECRET_KEY) led straight into a dead-end 501 after signing in.
+      if (CLERK_ENABLED && backendClerkEnabled === null) {
+        return <GameLoader label="Checking sign-in options" />;
+      }
+      if (CLERK_ENABLED && backendClerkEnabled) return <ClerkAuthScreen />;
       return <Auth onRegister={register} onLogin={login} onGoogle={googleSignIn} onGuest={continueAsGuest} error={authError} />;
     }
     return <GameLoader label="Setting up the table" />;
