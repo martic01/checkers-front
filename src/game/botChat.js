@@ -3,7 +3,11 @@ import { getAllMoves, countPieces, WHITE } from "./checkersLogic.js";
 // How often the bot actually says something when a situation fires — not
 // every qualifying move, per the request. "Silent" personalities barely
 // talk at all; everyone else talks sometimes, not constantly.
-const SPEAK_CHANCE = { friendly: 0.4, funny: 0.4, competitive: 0.38, angry: 0.35, playful: 0.42, respectful: 0.32, silent: 0.08 };
+const SPEAK_CHANCE = { friendly: 0.16, funny: 0.16, competitive: 0.15, angry: 0.13, playful: 0.17, respectful: 0.12, silent: 0.03 };
+// Minimum moves that must pass between two bot messages, regardless of how
+// many qualifying situations fire in between — stops the bot from
+// commenting on nearly every move in a long, close game.
+export const BOT_CHAT_COOLDOWN_MOVES = 4;
 
 const EMOJI_POOL = {
   friendly: ["😊", "👍", "🙂"],
@@ -153,12 +157,17 @@ function pick(arr) {
 
 // Returns a chat line for the given situation/personality, or null if the
 // bot decides not to speak this time (the common case — see SPEAK_CHANCE).
-export function maybeGetBotLine(situation, personality = "friendly") {
+// `recentLines`, if given, is a Set of lines said in the last few messages —
+// avoided when a fresh alternative exists, so the same line doesn't repeat
+// back-to-back or every other message.
+export function maybeGetBotLine(situation, personality = "friendly", recentLines = null) {
   const chance = SPEAK_CHANCE[personality] ?? 0.35;
   if (Math.random() > chance) return null;
   const bucket = LINES[situation]?.[personality] || LINES[situation]?.friendly;
   if (!bucket) return null;
-  let line = pick(bucket);
+
+  const fresh = recentLines ? bucket.filter((l) => !recentLines.has(l)) : bucket;
+  let line = pick(fresh.length ? fresh : bucket);
   if (personality !== "silent" && Math.random() < 0.3) {
     line = `${line} ${pick(EMOJI_POOL[personality] || EMOJI_POOL.friendly)}`;
   }

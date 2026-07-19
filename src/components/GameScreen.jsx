@@ -15,11 +15,10 @@ import {
   BLACK,
 } from "../game/checkersLogic.js";
 import { getAiMove, aiRandomDecision } from "../game/ai.js";
-import { detectChatSituations, maybeGetBotLine } from "../game/botChat.js";
+import { detectChatSituations, maybeGetBotLine, BOT_CHAT_COOLDOWN_MOVES } from "../game/botChat.js";
 import { playSound, isSoundEnabled } from "../utils/sound.js";
-import { confirmDialog, toastSuccess, toastError, toastInfo } from "../store/uiStore.js";
-import { api } from "../api/client.js";
-import { BET_TIERS, isTierUnlocked, formatCoins, formatCoinsFull } from "../game/rank.js";
+import { confirmDialog, toastError, toastInfo } from "../store/uiStore.js";
+import { formatCoinsFull } from "../game/rank.js";
 import Button from "./Button.jsx";
 import "./GameScreen.css";
 
@@ -47,12 +46,14 @@ export default function GameScreen({
   opponentEquippedTitle,
   betAmount: initialBetAmount = 0,
   totalEarnings = 0,
+  playerCoins = 0,
   socket,
   roomCode,
   vsBot = false,
   aiDifficulty: onlineAiDifficulty,
   onSettled, // ({ result, coinsDelta, newlyEarned, ... }) => void
-  onExit, // (result: 'win'|'loss'|'draw') => void
+  onExit, // (result, winner, destination) => void
+  onMatchEnd, // (payload) => void — online only, fired once when gameOver is set
 }) {
   const [board, setBoard] = useState(createInitialBoard);
   const [pieces, setPieces] = useState(() => boardToPieces(createInitialBoard()));
@@ -68,12 +69,6 @@ export default function GameScreen({
 
   const [betAmount, setBetAmount] = useState(initialBetAmount);
   const [scores, setScores] = useState({});
-  const [rematchOffer, setRematchOffer] = useState(null); // { betAmount, from: 'me' | 'them' }
-  const rematchOfferRef = useRef(null);
-  rematchOfferRef.current = rematchOffer;
-  const [rematchBetChoice, setRematchBetChoice] = useState(initialBetAmount);
-  const [opponentQuit, setOpponentQuit] = useState(false);
-  const [friendStatus, setFriendStatus] = useState("idle"); // idle | sent | friends
 
   // Mid-game draw proposal (only ever offered, never automatic — see
   // finishDraw/proposeDraw below). { from: 'me' | 'them' } | null
@@ -90,13 +85,21 @@ export default function GameScreen({
   // the same chat UI exactly like a real opponent's message would.
   const botPersonality = opponentProfile?.personality || "friendly";
   const botWasBehindRef = useRef(false);
+  const botMoveCountRef = useRef(0);
+  const botLastSpokeMoveRef = useRef(-BOT_CHAT_COOLDOWN_MOVES);
+  const botRecentLinesRef = useRef([]);
 
   const maybeBotChat = useCallback(
     (situations) => {
       if (mode !== "online" || !vsBot || !socket || situations.length === 0) return;
+      botMoveCountRef.current += 1;
+      if (botMoveCountRef.current - botLastSpokeMoveRef.current < BOT_CHAT_COOLDOWN_MOVES) return;
       const situation = situations[Math.floor(Math.random() * situations.length)];
-      const line = maybeGetBotLine(situation, botPersonality);
+      const recent = new Set(botRecentLinesRef.current);
+      const line = maybeGetBotLine(situation, botPersonality, recent);
       if (!line) return;
+      botLastSpokeMoveRef.current = botMoveCountRef.current;
+      botRecentLinesRef.current = [...botRecentLinesRef.current, line].slice(-4);
       setTimeout(() => {
         socket.emit("chat:message", { code: roomCode, text: line, from: opponentName });
       }, 500 + Math.random() * 1500);
@@ -200,7 +203,14 @@ export default function GameScreen({
     setDrawOffer(null);
   };
 
-  // Online: server-driven events (settlement, forfeit, rematch handshake).
+  useEffect(() => {
+    if (mode === "online" && gameOver) {
+      onMatchEnd?.({ ...gameOver, betAmount, scores });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameOver]);
+
+  // Online: server-driven events (settlement, forfeit, draw handshake).
   useEffect(() => {
     if (mode !== "online" || !socket) return;
 
@@ -209,9 +219,10 @@ export default function GameScreen({
       onSettled?.(payload);
     };
 
-    // Opponent quit mid-match: we're auto-declared the winner, the pot and
-    // coin animation land immediately, no rematch is offered, and we head
-    // back to the lobby shortly after.
+    // Opponent quit mid-match: we're auto-declared the winner and the pot
+    // and coin animation land immediately. The post-game page (reached via
+    // the hand-off effect above) shows this as a forfeit win with no
+    // rematch offered, since there's no one left to rematch.
     const onForfeit = (payload) => {
       if (payload.scores) setScores(payload.scores);
       setGameOver({ winner: playerColor, result: "win", forfeit: true });
@@ -219,46 +230,6 @@ export default function GameScreen({
       setShowCoinBurst(true);
       setTimeout(() => setShowCoinBurst(false), 1300);
       onSettled?.(payload);
-      setTimeout(() => onExit("win", null, "lobby"), 3200);
-    };
-
-    const onRematchOffered = ({ betAmount: offered }) => {
-      // Both sides clicked Rematch around the same time — accept right away
-      // instead of leaving both stuck waiting on each other.
-      if (rematchOfferRef.current?.from === "me") {
-        socket.emit("rematch:accept", { code: roomCode }, () => {});
-      }
-      setRematchOffer({ betAmount: offered, from: "them" });
-      playSound("notify", soundsOn);
-    };
-    const onRematchStarted = ({ betAmount: newBet, scores: newScores }) => {
-      setRematchOffer(null);
-      setOpponentQuit(false);
-      setBetAmount(newBet);
-      if (newScores) setScores(newScores);
-      clearTimeout(animTimer.current);
-      const fresh = createInitialBoard();
-      setBoard(fresh);
-      setPieces(boardToPieces(fresh));
-      setTurn(settings.firstMove === "BLACK" ? BLACK : WHITE);
-      setHistory([]);
-      setLastMove(null);
-      setGameOver(null);
-      setIsAnimating(false);
-      toastSuccess(`Rematch! Playing for ${newBet} coins.`);
-    };
-    const onRematchDeclined = () => {
-      setRematchOffer(null);
-      toastInfo("Your opponent declined the rematch.");
-    };
-    const onRematchCancelled = ({ reason }) => {
-      setRematchOffer(null);
-      toastError(reason || "Rematch could not start");
-    };
-    const onRematchQuit = ({ name }) => {
-      setOpponentQuit(true);
-      setRematchOffer(null);
-      toastInfo(`${name || opponentName} quit.`);
     };
 
     const onDrawOffered = () => {
@@ -273,22 +244,12 @@ export default function GameScreen({
 
     socket.on("game:settled", onSettledEvent);
     socket.on("opponent:forfeit", onForfeit);
-    socket.on("rematch:offered", onRematchOffered);
-    socket.on("rematch:started", onRematchStarted);
-    socket.on("rematch:declined", onRematchDeclined);
-    socket.on("rematch:cancelled", onRematchCancelled);
-    socket.on("rematch:quit", onRematchQuit);
     socket.on("draw:offered", onDrawOffered);
     socket.on("draw:agreed", onDrawAgreed);
     socket.on("draw:declined", onDrawDeclined);
     return () => {
       socket.off("game:settled", onSettledEvent);
       socket.off("opponent:forfeit", onForfeit);
-      socket.off("rematch:offered", onRematchOffered);
-      socket.off("rematch:started", onRematchStarted);
-      socket.off("rematch:declined", onRematchDeclined);
-      socket.off("rematch:cancelled", onRematchCancelled);
-      socket.off("rematch:quit", onRematchQuit);
       socket.off("draw:offered", onDrawOffered);
       socket.off("draw:agreed", onDrawAgreed);
       socket.off("draw:declined", onDrawDeclined);
@@ -446,52 +407,14 @@ export default function GameScreen({
   const handleInvalidClick = useCallback(() => playSound("invalid", soundsOn), [soundsOn]);
 
   const handleLeave = async () => {
-    if (!gameOver) {
-      const message =
-        mode === "online" && betAmount > 0
-          ? `You'll forfeit this match and your ${formatCoinsFull(betAmount)} coin bet, plus a 100 coin penalty. Leave anyway?`
-          : "Leave this game in progress?";
-      const ok = await confirmDialog({ title: "Leave game?", message, confirmLabel: "Leave", tone: "danger" });
-      if (!ok) return;
-      if (mode === "online" && socket) socket.emit("room:leave");
-      onExit(gameOver?.result);
-      return;
-    }
-    // Leaving from the post-game screen: the match is already settled, so no
-    // confirmation needed — just let the other side know and head back to
-    // the online lobby (not the home screen) to find another match.
-    if (mode === "online" && socket && !vsBot) {
-      socket.emit("rematch:quit", { code: roomCode });
-    }
-    onExit(gameOver.result, gameOver.winner, mode === "online" ? "lobby" : "home");
-  };
-
-  const offerRematch = (amount) => {
-    socket.emit("rematch:offer", { code: roomCode, betAmount: amount });
-    setRematchOffer({ betAmount: amount, from: "me" });
-    if (vsBot) {
-      const delay = 1200 + Math.random() * 1800;
-      setTimeout(() => {
-        if (aiRandomDecision()) {
-          socket.emit("rematch:accept", { code: roomCode }, (res) => {
-            if (!res?.ok) toastError("Could not start the rematch");
-          });
-        } else {
-          setRematchOffer(null);
-          setOpponentQuit(true);
-          toastInfo("Opponent doesn't want a rematch.");
-        }
-      }, delay);
-    }
-  };
-  const acceptRematch = () => {
-    socket.emit("rematch:accept", { code: roomCode }, (res) => {
-      if (!res?.ok) toastError("Could not start the rematch");
-    });
-  };
-  const declineRematch = () => {
-    socket.emit("rematch:decline", { code: roomCode });
-    setRematchOffer(null);
+    const message =
+      mode === "online" && betAmount > 0
+        ? `You'll forfeit this match and your ${formatCoinsFull(betAmount)} coin bet, plus a 100 coin penalty. Leave anyway?`
+        : "Leave this game in progress?";
+    const ok = await confirmDialog({ title: "Leave game?", message, confirmLabel: "Leave", tone: "danger" });
+    if (!ok) return;
+    if (mode === "online" && socket) socket.emit("room:leave");
+    onExit(null, null, mode === "online" ? "lobby" : "home");
   };
 
   // Non-online modes have no opponent to ask over the network — the "other
@@ -517,20 +440,9 @@ export default function GameScreen({
   };
   const handleProposeDraw = mode === "online" ? proposeDraw : handleProposeDrawLocal;
 
-  const handleAddFriend = async () => {
-    try {
-      await api.addFriend(playerId, opponentId);
-      setFriendStatus("friends");
-      toastSuccess(`${opponentName} added as a friend!`);
-    } catch (err) {
-      if (err.message?.includes("Already")) setFriendStatus("friends");
-      else toastError(err.message || "Could not add friend");
-    }
-  };
-
   const myScore = scores[playerId] || 0;
   const oppScore = scores[opponentId] || 0;
-  const showScoreRail = mode === "online" && (myScore > 0 || oppScore > 0 || rematchOffer || gameOver);
+  const showScoreRail = mode === "online" && (myScore > 0 || oppScore > 0 || gameOver);
 
   return (
     <div className="game-screen">
@@ -630,22 +542,12 @@ export default function GameScreen({
         </div>
       )}
 
-      {gameOver && !reviewingBoard && (
+      {gameOver && !reviewingBoard && mode !== "online" && (
         <div className="game-over-overlay">
           <div className="game-over-card">
-            <h3>
-              {gameOver.forfeit
-                ? "Opponent Left"
-                : gameOver.result === "draw"
-                ? "Draw"
-                : gameOver.winner === playerColor || mode === "local"
-                ? "Game Over"
-                : "Defeat"}
-            </h3>
+            <h3>{gameOver.result === "draw" ? "Draw" : gameOver.winner === playerColor || mode === "local" ? "Game Over" : "Defeat"}</h3>
             <p>
-              {gameOver.forfeit
-                ? `${opponentName} left the match — you win! 🎉`
-                : gameOver.result === "draw"
+              {gameOver.result === "draw"
                 ? "Both players agreed to a draw."
                 : mode === "local"
                 ? `${gameOver.winner.toUpperCase()} wins!`
@@ -653,92 +555,17 @@ export default function GameScreen({
                 ? "You win! 🎉"
                 : "You lose. Try again?"}
             </p>
-            {mode === "online" && betAmount > 0 && (
-              <p className="game-over-bet">
-                {gameOver.result === "draw"
-                  ? `Bet returned: ${formatCoinsFull(betAmount)}`
-                  : gameOver.winner === playerColor
-                  ? `+${formatCoinsFull(betAmount * 2)}`
-                  : `-${formatCoinsFull(betAmount)}`}{" "}
-                🪙
-              </p>
-            )}
 
             <Button variant="ghost" onClick={() => setReviewingBoard(true)}>
               Review Board
             </Button>
 
-            {mode === "online" && !gameOver.forfeit && (
-              <>
-                {(myScore > 0 || oppScore > 0) && (
-                  <p className="game-over-score">
-                    Score: {myScore} — {oppScore}
-                  </p>
-                )}
-
-                {opponentQuit ? (
-                  <p className="rematch-waiting">{opponentName} quit.</p>
-                ) : (
-                  <>
-                    {!rematchOffer && (
-                      <div className="rematch-picker">
-                        <div className="rematch-picker__label">Rematch bet:</div>
-                        <div className="rematch-picker__chips">
-                          {BET_TIERS.slice(0, 6).map((tier) => (
-                            <button
-                              key={tier}
-                              className={`bet-chip ${rematchBetChoice === tier ? "bet-chip--selected" : ""} ${!isTierUnlocked(tier, totalEarnings) ? "bet-chip--locked" : ""}`}
-                              disabled={!isTierUnlocked(tier, totalEarnings)}
-                              onClick={() => setRematchBetChoice(tier)}
-                            >
-                              {formatCoins(tier)}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {rematchOffer?.from === "them" ? (
-                      <div className="rematch-offer">
-                        <p>
-                          {opponentName} wants a rematch for {formatCoinsFull(rematchOffer.betAmount)} 🪙
-                        </p>
-                        <div className="game-over-actions">
-                          <Button variant="ghost" onClick={declineRematch}>
-                            Decline
-                          </Button>
-                          <Button variant="gold" onClick={acceptRematch}>
-                            Accept
-                          </Button>
-                        </div>
-                      </div>
-                    ) : rematchOffer?.from === "me" ? (
-                      <p className="rematch-waiting">Waiting for {opponentName} to respond…</p>
-                    ) : (
-                      <div className="game-over-actions">
-                        <Button variant="gold" onClick={() => offerRematch(rematchBetChoice)}>
-                          🔁 Rematch
-                        </Button>
-                        {!vsBot && friendStatus !== "friends" && (
-                          <Button variant="ghost" onClick={handleAddFriend}>
-                            ➕ Add Friend
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
-            )}
-
             <div className="game-over-actions">
-              {mode !== "online" && (
-                <Button variant="ghost" onClick={handleRestart}>
-                  Play Again
-                </Button>
-              )}
-              <Button variant={mode === "online" ? "ghost" : "gold"} onClick={handleLeave}>
-                {mode === "online" ? "Quit to Lobby" : "Exit"}
+              <Button variant="ghost" onClick={handleRestart}>
+                Play Again
+              </Button>
+              <Button variant="gold" onClick={handleLeave}>
+                Exit
               </Button>
             </div>
           </div>

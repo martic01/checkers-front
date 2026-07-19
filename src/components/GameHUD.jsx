@@ -1,12 +1,12 @@
 import "./GameHUD.css";
 import Avatar from "./Avatar.jsx";
 import { openProfile } from "../store/uiStore.js";
-import { TROPHY_CATALOG } from "../game/trophyCatalog.js";
+import { getTrophyLabel } from "../game/trophyCatalog.js";
 import { formatCoins } from "../game/rank.js";
 
 function equippedTagLabel(trophyId) {
   if (!trophyId) return null;
-  return TROPHY_CATALOG.find((t) => t.id === trophyId)?.label || null;
+  return getTrophyLabel(trophyId);
 }
 
 export default function GameHUD({

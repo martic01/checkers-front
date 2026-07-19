@@ -204,6 +204,19 @@ export const usePlayerStore = create((set, get) => ({
     }
   },
 
+  updateBio: async (bio) => {
+    const { player, offline } = get();
+    const trimmed = (bio || "").slice(0, 100);
+    set({ player: { ...player, bio: trimmed } });
+    if (offline) return;
+    try {
+      await api.updateBio(player.id, trimmed);
+      toastSuccess("Bio updated");
+    } catch {
+      toastError("Couldn't update your bio.");
+    }
+  },
+
   equipTitle: async (trophyId) => {
     const { player, offline } = get();
     if (offline) return;

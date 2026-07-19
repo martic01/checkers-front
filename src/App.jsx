@@ -21,6 +21,7 @@ import Season from "./components/Season.jsx";
 import Admin from "./components/Admin.jsx";
 import Inbox from "./components/Inbox.jsx";
 import OnlineLobby from "./components/OnlineLobby.jsx";
+import PostGameScreen from "./components/PostGameScreen.jsx";
 import GameScreen from "./components/GameScreen.jsx";
 import MusicPlayer from "./components/MusicPlayer.jsx";
 import UIOverlay from "./components/UIOverlay.jsx";
@@ -84,6 +85,7 @@ function AppRouter() {
     return saved ? Number(saved) : null;
   });
   const [online, setOnline] = useState(IDLE_ONLINE_STATE);
+  const [matchResult, setMatchResult] = useState(null);
   const [showInbox, setShowInbox] = useState(false);
   const [playlist, setPlaylist] = useState([]);
   const dailyClaimedRef = useRef(false);
@@ -141,7 +143,9 @@ function AppRouter() {
 
     const onFound = ({ code, color, opponent, betAmount: bet, vsBot, aiDifficulty }) => {
       setOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color.toLowerCase(), vsBot: !!vsBot, aiDifficulty });
-      setScreen("online-game");
+      // Give the pairing-reveal screen (opponent avatar + equipped trophy)
+      // a few seconds to show before actually dropping into the match.
+      setTimeout(() => setScreen("online-game"), 5000);
     };
     socket.on("match:found", onFound);
     return () => socket.off("match:found", onFound);
@@ -161,6 +165,10 @@ function AppRouter() {
     } else setScreen(mode);
   };
 
+  useEffect(() => {
+    if (screen === "post-game" && !matchResult) setScreen("online-lobby");
+  }, [screen, matchResult]);
+
   const handleGameExit = async (result, _winner, destination = "home") => {
     if (result === "win" || result === "loss" || result === "draw") {
       if (screen !== "online-game") {
@@ -169,6 +177,25 @@ function AppRouter() {
     }
     setOnline(IDLE_ONLINE_STATE);
     setScreen(destination === "lobby" ? "online-lobby" : "home");
+  };
+
+  // Online match ended (win/loss/draw/forfeit) — hand off to the post-game
+  // page instead of dumping the player back to the lobby/home directly.
+  const handleMatchEnd = (payload) => {
+    setMatchResult(payload);
+    setScreen("post-game");
+  };
+
+  const handlePostGameQuit = () => {
+    setMatchResult(null);
+    setOnline(IDLE_ONLINE_STATE);
+    setScreen("online-lobby");
+  };
+
+  const handleRematchStart = ({ betAmount }) => {
+    setOnline((o) => ({ ...o, betAmount }));
+    setMatchResult(null);
+    setScreen("online-game");
   };
 
   const handleSettled = (payload) => {
@@ -215,10 +242,10 @@ function AppRouter() {
           phase: "matched",
           betAmount: room.betAmount,
           roomCode: res.code,
-          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar },
+          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar, rank: opp?.rank, equippedTitle: opp?.equippedTitle },
           playerColor: "white",
         });
-        setScreen("online-game");
+        setTimeout(() => setScreen("online-game"), 5000);
       });
     });
   };
@@ -239,10 +266,10 @@ function AppRouter() {
           phase: "matched",
           betAmount: room.betAmount,
           roomCode: code,
-          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar },
+          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar, rank: opp?.rank, equippedTitle: opp?.equippedTitle },
           playerColor: "black",
         });
-        setScreen("online-game");
+        setTimeout(() => setScreen("online-game"), 5000);
       });
     });
   };
@@ -362,11 +389,31 @@ function AppRouter() {
             opponentEquippedTitle={online.opponent?.equippedTitle}
             betAmount={online.betAmount}
             totalEarnings={player.totalEarnings}
+            playerCoins={player.coins}
             vsBot={online.vsBot}
             socket={getSocket()}
             roomCode={online.roomCode}
             onSettled={handleSettled}
             onExit={handleGameExit}
+            onMatchEnd={handleMatchEnd}
+          />
+        );
+      case "post-game":
+        if (!matchResult) return null;
+        return (
+          <PostGameScreen
+            player={player}
+            opponent={online.opponent}
+            playerEquippedTitle={player.equippedTitle}
+            playerColor={online.playerColor}
+            vsBot={online.vsBot}
+            roomCode={online.roomCode}
+            socket={getSocket()}
+            matchResult={matchResult}
+            totalEarnings={player.totalEarnings}
+            playerCoins={player.coins}
+            onQuit={handlePostGameQuit}
+            onRematchStart={handleRematchStart}
           />
         );
       case "home":

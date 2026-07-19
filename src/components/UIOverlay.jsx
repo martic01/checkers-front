@@ -16,6 +16,7 @@ export default function UIOverlay() {
   const viewerId = usePlayerStore((s) => s.player?.id);
   const updateAvatar = usePlayerStore((s) => s.updateAvatar);
   const equipTitle = usePlayerStore((s) => s.equipTitle);
+  const updateBio = usePlayerStore((s) => s.updateBio);
 
   return (
     <>
@@ -53,6 +54,7 @@ export default function UIOverlay() {
           viewerId={viewerId}
           onAvatarChange={updateAvatar}
           onEquipTitle={equipTitle}
+          onUpdateBio={updateBio}
           onClose={closeProfile}
         />
       )}

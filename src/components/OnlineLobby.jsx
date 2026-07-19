@@ -3,6 +3,9 @@ import "./OnlineLobby.css";
 import { api } from "../api/client.js";
 import { toastSuccess } from "../store/uiStore.js";
 import { BET_TIERS, isTierUnlocked, getUnlockThreshold, formatCoins } from "../game/rank.js";
+import { DEFAULT_AVATARS } from "../game/avatars.js";
+import { getTrophyLabel } from "../game/trophyCatalog.js";
+import { RankBadge } from "./RankBadge.jsx";
 import Avatar from "./Avatar.jsx";
 
 export default function OnlineLobby({
@@ -17,6 +20,13 @@ export default function OnlineLobby({
   const [joinCode, setJoinCode] = useState("");
   const [selectedBet, setSelectedBet] = useState(100);
   const [lobby, setLobby] = useState({ playersOnline: 0, activeMatches: 0 });
+  const [scanIndex, setScanIndex] = useState(0);
+
+  useEffect(() => {
+    if (state.phase !== "searching") return;
+    const id = setInterval(() => setScanIndex((i) => (i + 1) % DEFAULT_AVATARS.length), 350);
+    return () => clearInterval(id);
+  }, [state.phase]);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +66,9 @@ export default function OnlineLobby({
               <span />
             </div>
             <div className="searching-avatar searching-avatar--mystery">
-              <div className="mystery-avatar">?</div>
+              <div className="scanning-avatar-frame">
+                <Avatar avatar={{ type: "default", value: DEFAULT_AVATARS[scanIndex].id }} size={64} />
+              </div>
               <span>Searching…</span>
             </div>
           </div>
@@ -64,6 +76,29 @@ export default function OnlineLobby({
           <button className="btn btn--ghost" onClick={() => onCancelSearch(state.betAmount)}>
             ✕ Cancel Search
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.phase === "matched") {
+    const tag = getTrophyLabel(state.opponent?.equippedTitle);
+    return (
+      <div className="lobby-screen">
+        <div className="panel lobby-panel matched-panel">
+          <h2 className="lobby-title">Opponent Found!</h2>
+          <p className="screen-subtitle">Betting {formatCoins(state.betAmount)} 🪙</p>
+
+          <div className="matched-reveal">
+            <div className="scanning-avatar-frame scanning-avatar-frame--revealed">
+              {tag && <span className="matched-trophy-tag">{tag}</span>}
+              <Avatar avatar={state.opponent?.avatar} size={96} />
+            </div>
+            <div className="matched-name">{state.opponent?.name || "Opponent"}</div>
+            {typeof state.opponent?.rank === "number" && <RankBadge rank={state.opponent.rank} size="sm" />}
+          </div>
+
+          <p className="lobby-waiting-text">Game starting…</p>
         </div>
       </div>
     );

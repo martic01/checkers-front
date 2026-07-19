@@ -19,6 +19,7 @@ export const api = {
   getPublicProfile: (id) => request(`/api/players/${id}/public`),
   updateName: (id, name) => request(`/api/players/${id}/name`, { method: "PATCH", body: JSON.stringify({ name }) }),
   updateAvatar: (id, avatar) => request(`/api/players/${id}/avatar`, { method: "PATCH", body: JSON.stringify({ avatar }) }),
+  updateBio: (id, bio) => request(`/api/players/${id}/bio`, { method: "PATCH", body: JSON.stringify({ bio }) }),
   equipTitle: (id, trophyId) => request(`/api/players/${id}/equip-title`, { method: "PATCH", body: JSON.stringify({ trophyId }) }),
   updateSettings: (id, settings) => request(`/api/players/${id}/settings`, { method: "PATCH", body: JSON.stringify(settings) }),
   reportResult: (id, payload) => request(`/api/players/${id}/result`, { method: "POST", body: JSON.stringify(payload) }),

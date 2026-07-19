@@ -1,0 +1,216 @@
+.postgame-screen {
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px 60px;
+}
+
+.postgame-panel {
+  width: 100%;
+  max-width: 440px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px;
+  box-shadow: var(--panel-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+}
+
+.postgame-title {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 1.4rem;
+}
+.postgame-title--win {
+  color: var(--gold-bright);
+}
+.postgame-title--loss {
+  color: #c96a5a;
+}
+.postgame-title--draw {
+  color: var(--cream);
+}
+
+.postgame-bet {
+  margin: -8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  color: var(--gold-bright);
+}
+
+.postgame-score {
+  margin: -4px 0 0;
+  font-size: 0.8rem;
+  color: var(--cream-dim);
+}
+
+.postgame-players {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 10px 0;
+}
+
+.postgame-vs {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--cream-dim);
+  text-transform: uppercase;
+}
+
+.postgame-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px;
+}
+.postgame-card--clickable {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+}
+.postgame-card--clickable:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.postgame-card__avatar-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.postgame-card__tag {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.52rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  border-radius: 999px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.postgame-card__name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+.postgame-status {
+  font-size: 0.82rem;
+  color: var(--cream-dim);
+  font-style: italic;
+}
+
+.postgame-rematch-offer p {
+  font-size: 0.85rem;
+  color: var(--cream);
+  margin: 0 0 8px;
+}
+
+.postgame-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.postgame-bank {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+.postgame-bank__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cream-dim);
+  margin-bottom: 8px;
+}
+.postgame-bank__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.postgame-chat {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  text-align: left;
+}
+.postgame-chat__messages {
+  max-height: 140px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.postgame-chat__empty {
+  font-size: 0.76rem;
+  color: var(--cream-dim);
+  text-align: center;
+  margin: 6px 0;
+}
+.postgame-chat__msg {
+  font-size: 0.8rem;
+  color: var(--cream);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+}
+.postgame-chat__msg--me {
+  background: rgba(201, 162, 39, 0.12);
+}
+.postgame-chat__from {
+  color: var(--gold-bright);
+  font-weight: 700;
+  margin-right: 5px;
+}
+.postgame-chat__input-row {
+  display: flex;
+  gap: 6px;
+}
+.postgame-chat__input-row input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--cream);
+  padding: 8px 10px;
+  font-size: 16px;
+}
+.postgame-chat__input-row button {
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+@media (max-width: 480px) {
+  .postgame-panel {
+    padding: 20px 16px;
+  }
+  .postgame-players {
+    gap: 12px;
+  }
+}

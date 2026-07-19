@@ -58,15 +58,12 @@
 
 .chat-panel {
   width: 232px;
-  max-width: 78vw;
-  margin-top: 0;
+  max-width: calc(100vw - 16px);
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
   padding: 10px;
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
   z-index: 999999;
 }
 
@@ -106,13 +103,18 @@
 
 .chat-emoji-row {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
   margin-bottom: 8px;
 }
 .chat-emoji-row button {
   background: none;
   border: none;
   font-size: 1.1rem;
+  line-height: 1;
+  padding: 3px;
+  flex: 0 0 auto;
 }
 
 .chat-input-row {

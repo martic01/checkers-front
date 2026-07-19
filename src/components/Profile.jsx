@@ -8,10 +8,12 @@ import { formatCoins } from "../game/rank.js";
 import { toastError } from "../store/uiStore.js";
 import "./Profile.css";
 
-export default function Profile({ target, viewerId, onAvatarChange, onEquipTitle, onClose }) {
+export default function Profile({ target, viewerId, onAvatarChange, onEquipTitle, onUpdateBio, onClose }) {
   const [data, setData] = useState(typeof target === "object" ? target : null);
   const [error, setError] = useState(null);
   const [editingAvatar, setEditingAvatar] = useState(false);
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioDraft, setBioDraft] = useState("");
 
   const targetId = typeof target === "object" ? target.id : target;
   const isOwnProfile = !!viewerId && viewerId === targetId;
@@ -75,7 +77,46 @@ export default function Profile({ target, viewerId, onAvatarChange, onEquipTitle
               </button>
             )}
 
-            {data.bio && <p className="profile-bio">"{data.bio}"</p>}
+            {isOwnProfile ? (
+              editingBio ? (
+                <div className="profile-bio-edit">
+                  <input
+                    value={bioDraft}
+                    onChange={(e) => setBioDraft(e.target.value.slice(0, 100))}
+                    placeholder="Say something about yourself…"
+                    maxLength={100}
+                    autoFocus
+                  />
+                  <div className="profile-bio-edit__actions">
+                    <button
+                      className="profile-bio-edit__save"
+                      onClick={() => {
+                        onUpdateBio?.(bioDraft.trim());
+                        setData((d) => ({ ...d, bio: bioDraft.trim() }));
+                        setEditingBio(false);
+                      }}
+                    >
+                      Save
+                    </button>
+                    <button className="profile-bio-edit__cancel" onClick={() => setEditingBio(false)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="profile-bio profile-bio--editable"
+                  onClick={() => {
+                    setBioDraft(data.bio || "");
+                    setEditingBio(true);
+                  }}
+                >
+                  {data.bio ? `"${data.bio}"` : "+ Add a short bio"}
+                </button>
+              )
+            ) : (
+              data.bio && <p className="profile-bio">"{data.bio}"</p>
+            )}
 
             <div className="profile-stats-grid">
               <Stat label="Wins" value={data.stats?.wins ?? 0} />

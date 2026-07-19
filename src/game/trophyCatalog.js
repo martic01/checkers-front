@@ -20,3 +20,11 @@ export const STRENGTH_META = {
   gold: { color: "#d9b34d", glow: "rgba(217, 179, 77, 0.6)", label: "Gold" },
   platinum: { color: "#7cc7ff", glow: "rgba(124, 199, 255, 0.6)", label: "Platinum" },
 };
+
+export function getTrophy(id) {
+  return TROPHY_CATALOG.find((t) => t.id === id) || null;
+}
+
+export function getTrophyLabel(id) {
+  return getTrophy(id)?.label || null;
+}

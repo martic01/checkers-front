@@ -48,6 +48,31 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
   const peerReadyRef = useRef(false);
   mutedRef.current = muted;
 
+  // The chat popup used to be position:absolute inside .chat-anchor, but
+  // .chat-anchor lives inside .game-topbar which has backdrop-filter — that
+  // creates its own stacking context, so the popup's z-index only ever won
+  // against other elements *inside the topbar*, not the board. It could
+  // render behind the board, and on narrow screens the fixed 232px width
+  // anchored to the button's right edge could push it off the left edge of
+  // the viewport. Portaling to body + measuring the button's position fixes
+  // both: real page-level stacking, and a position we can clamp on-screen.
+  const widgetRef = useRef(null);
+  const [panelPos, setPanelPos] = useState(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const PANEL_WIDTH = 232;
+    const measure = () => {
+      const rect = widgetRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const left = Math.min(Math.max(8, rect.right - PANEL_WIDTH), window.innerWidth - PANEL_WIDTH - 8);
+      setPanelPos({ top: rect.bottom + 8, left });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [open]);
+
   // ---------- Floating draggable mic/speaker controls (request #5) ----------
   const [voicePos, setVoicePos] = useState(() => loadVoicePos() || defaultVoicePos());
   const [dragging, setDragging] = useState(false);
@@ -230,7 +255,7 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
   };
 
   return (
-    <div className="chat-widget">
+    <div className="chat-widget" ref={widgetRef}>
       <audio ref={remoteAudioRef} autoPlay playsInline />
 
       {floatingEmoji &&
@@ -272,44 +297,47 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
         document.body
       )}
 
-      {open && (
-        <div className="chat-panel">
-          <div className="chat-panel__header">
-            <span>Match Chat</span>
-            <button className="chat-panel__close" onClick={onClose} aria-label="Close chat">
-              ✕
-            </button>
-          </div>
-          <div className="chat-messages">
-            {messages.length === 0 && <p className="chat-empty">Say hi! Messages disappear after 1 minute.</p>}
-            {messages.map((m) => (
-              <div key={m.id} className={`chat-msg ${m.from === playerName ? "chat-msg--me" : ""}`}>
-                <span className="chat-msg__from">{m.from}</span>
-                <span className="chat-msg__text">{m.text}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="chat-emoji-row">
-            {QUICK_EMOJI.map((e) => (
-              <button key={e} onClick={() => sendEmoji(e)}>
-                {e}
+      {open &&
+        panelPos &&
+        createPortal(
+          <div className="chat-panel" style={{ top: panelPos.top, left: panelPos.left }}>
+            <div className="chat-panel__header">
+              <span>Match Chat</span>
+              <button className="chat-panel__close" onClick={onClose} aria-label="Close chat">
+                ✕
               </button>
-            ))}
-          </div>
+            </div>
+            <div className="chat-messages">
+              {messages.length === 0 && <p className="chat-empty">Say hi! Messages disappear after 1 minute.</p>}
+              {messages.map((m) => (
+                <div key={m.id} className={`chat-msg ${m.from === playerName ? "chat-msg--me" : ""}`}>
+                  <span className="chat-msg__from">{m.from}</span>
+                  <span className="chat-msg__text">{m.text}</span>
+                </div>
+              ))}
+            </div>
 
-          <div className="chat-input-row">
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Message…"
-              maxLength={200}
-            />
-            <button onClick={sendMessage}>Send</button>
-          </div>
-        </div>
-      )}
+            <div className="chat-emoji-row">
+              {QUICK_EMOJI.map((e) => (
+                <button key={e} onClick={() => sendEmoji(e)}>
+                  {e}
+                </button>
+              ))}
+            </div>
+
+            <div className="chat-input-row">
+              <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                placeholder="Message…"
+                maxLength={200}
+              />
+              <button onClick={sendMessage}>Send</button>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
