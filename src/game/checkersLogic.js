@@ -247,3 +247,51 @@ export function getWinner(board, turn, mandatoryJumps = true) {
   if (movesForTurn.length === 0) return opponent(turn);
   return null;
 }
+
+// ---------------------------------------------------------------------------
+// Draws are never automatic — they only ever happen when one player
+// proposes one and the other side (or, vs. an AI opponent, a coin-flip)
+// agrees. This just gates *when the option becomes available* so players
+// can't spam draw offers mid-game: once the board is down to its final few
+// pieces, either side may suggest calling it.
+// ---------------------------------------------------------------------------
+
+export function totalPieceCount(board) {
+  let count = 0;
+  for (const row of board) {
+    for (const cell of row) {
+      if (cell) count++;
+    }
+  }
+  return count;
+}
+
+export function canProposeDraw(board) {
+  return totalPieceCount(board) === 3;
+}
+
+export function allPiecesAreKings(board) {
+  let sawAny = false;
+  for (const row of board) {
+    for (const cell of row) {
+      if (!cell) continue;
+      sawAny = true;
+      if (!cell.king) return false;
+    }
+  }
+  return sawAny;
+}
+
+// Serializes a board + the color to move into a string key. Used by ai.js to
+// steer the AI away from a position it's already repeated, when an equally
+// good alternative move exists.
+export function boardPositionKey(board, turn) {
+  let key = turn === WHITE ? "W|" : "B|";
+  for (let row = 0; row < BOARD_SIZE; row++) {
+    for (let col = 0; col < BOARD_SIZE; col++) {
+      const cell = board[row][col];
+      key += cell ? (cell.color === WHITE ? "w" : "b") + (cell.king ? "K" : "m") : ".";
+    }
+  }
+  return key;
+}

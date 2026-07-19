@@ -65,6 +65,9 @@ export default function Settings({ settings, onChange, onBack, onContactUs, onRa
   return (
     <div className="settings-screen">
       <div className="settings-panel">
+        <button className="back-link" onClick={onBack}>
+          ← Back
+        </button>
         <h2 className="settings-title">Settings</h2>
 
         <Section title="View">
@@ -213,9 +216,6 @@ export default function Settings({ settings, onChange, onBack, onContactUs, onRa
         </Section>
 
         <div className="settings-footer">
-          <button className="settings-btn" onClick={onBack}>
-            Back
-          </button>
           <button className="settings-btn settings-btn--gold" onClick={onRate}>
             Rate
           </button>

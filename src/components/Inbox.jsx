@@ -35,7 +35,7 @@ export default function Inbox({ messages, onClaim, onMarkRead, onClose }) {
             .slice()
             .reverse()
             .map((msg) => (
-              <div key={msg.id} className={`inbox-item ${msg.from === "admin" ? "inbox-item--admin" : ""} ${!msg.readAt ? "inbox-item--unread" : ""}`}>
+              <div key={msg.id} className={`inbox-item ${msg.from === "admin" ? "inbox-item--admin" : ""}`}>
                 <div className="inbox-item__from">{msg.from === "admin" ? "🛡 MarticamC" : "📣 System"}</div>
                 <div className="inbox-item__msg">{msg.message}</div>
                 {msg.reward && (

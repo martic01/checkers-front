@@ -36,3 +36,10 @@ export function formatCoins(n) {
   if (n >= 1_000) return `${(n / 1_000).toFixed(n % 1_000 === 0 ? 0 : 1)}K`;
   return `${n}`;
 }
+
+// Full, comma-grouped amount (e.g. 1000000 -> "1,000,000") for contexts where
+// the exact figure should read clearly rather than being abbreviated —
+// confirmation messages, win/loss deltas, challenge/rematch offers.
+export function formatCoinsFull(n) {
+  return Math.round(n || 0).toLocaleString("en-US");
+}

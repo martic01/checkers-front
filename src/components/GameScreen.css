@@ -73,6 +73,58 @@
   margin-top: -10px;
 }
 
+.game-over-review-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 10px 16px;
+  box-shadow: var(--panel-shadow);
+  z-index: 50;
+  font-size: 0.82rem;
+  color: var(--cream-dim);
+}
+
+.game-over-review-bar button {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--gold);
+  color: var(--ink);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.draw-offer-bar {
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 10px 16px;
+  box-shadow: var(--panel-shadow);
+  z-index: 60;
+  font-size: 0.82rem;
+  color: var(--cream);
+}
+
+.draw-offer-bar__actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* ---------- Score rail (left of board, online rematches) ---------- */
 .board-with-rail {
   display: flex;

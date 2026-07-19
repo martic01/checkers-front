@@ -100,6 +100,9 @@ export default function OnlineLobby({
   return (
     <div className="lobby-screen">
       <div className="panel lobby-panel">
+        <button className="lobby-back" onClick={onBack}>
+          ← Back
+        </button>
         <h2 className="lobby-title">🌐 Online Match</h2>
 
         <div className="bet-picker">
@@ -158,10 +161,6 @@ export default function OnlineLobby({
           <span>Players Online: {lobby.playersOnline}</span>
           <span>Active Matches: {lobby.activeMatches}</span>
         </div>
-
-        <button className="lobby-back" onClick={onBack}>
-          ← Back
-        </button>
       </div>
     </div>
   );

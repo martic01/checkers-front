@@ -6,6 +6,7 @@ import { usePlayerStore } from "./store/playerStore.js";
 import { toastError, toastSuccess } from "./store/uiStore.js";
 import { connectSocket, getSocket } from "./api/socket.js";
 import { playSound, isSoundEnabled } from "./utils/sound.js";
+import { formatCoinsFull } from "./game/rank.js";
 
 import Auth from "./components/Auth.jsx";
 import ClerkAuthScreen from "./components/ClerkAuthScreen.jsx";
@@ -97,10 +98,38 @@ function AppRouter() {
     claimDaily().then((amount) => {
       if (amount) {
         playSound("notify", soundsOn);
-        toastSuccess(`🎁 Daily bonus: +${amount} coins!`);
+        toastSuccess(`🎁 Daily bonus: +${formatCoinsFull(amount)} coins!`);
       }
     });
   }, [player, offline, claimDaily, soundsOn]);
+
+  // Cross-device sync: the store only ever refetches the player record
+  // right after *this* device's own actions, so if the same account plays
+  // a match on another device, this tab keeps showing stale wins/losses/
+  // coins/rank/cosmetics until something here happens to trigger a refetch.
+  // Re-sync from the server whenever this tab regains focus/visibility, and
+  // periodically while idle in menus, so both devices converge on the same
+  // server-truth data instead of one lagging behind. We always take the
+  // server's response as-is (never write local state back over it), so this
+  // can only pull in newer data, never overwrite it with something older.
+  // Paused during an active match so it can't interrupt gameplay.
+  const inActiveMatch = screen === "ai-game" || screen === "local-game" || screen === "online-game";
+  useEffect(() => {
+    if (!player || offline) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && !inActiveMatch) refreshPlayer();
+    };
+    window.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    const interval = setInterval(() => {
+      if (!inActiveMatch) refreshPlayer();
+    }, 60000);
+    return () => {
+      window.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      clearInterval(interval);
+    };
+  }, [player, offline, inActiveMatch, refreshPlayer]);
 
   // Stay connected in the background (not just inside the online lobby) so
   // friends can see this player's online status and send challenges from
@@ -110,8 +139,8 @@ function AppRouter() {
     const socket = connectSocket();
     socket.emit("presence:hello", { playerId: player.id });
 
-    const onFound = ({ code, color, opponent, betAmount: bet, vsBot }) => {
-      setOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color.toLowerCase(), vsBot: !!vsBot });
+    const onFound = ({ code, color, opponent, betAmount: bet, vsBot, aiDifficulty }) => {
+      setOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color.toLowerCase(), vsBot: !!vsBot, aiDifficulty });
       setScreen("online-game");
     };
     socket.on("match:found", onFound);
@@ -132,14 +161,14 @@ function AppRouter() {
     } else setScreen(mode);
   };
 
-  const handleGameExit = async (result) => {
+  const handleGameExit = async (result, _winner, destination = "home") => {
     if (result === "win" || result === "loss" || result === "draw") {
       if (screen !== "online-game") {
         await reportResult({ result, mode: screen.replace("-game", ""), level: aiLevel });
       }
     }
     setOnline(IDLE_ONLINE_STATE);
-    setScreen("home");
+    setScreen(destination === "lobby" ? "online-lobby" : "home");
   };
 
   const handleSettled = (payload) => {
@@ -309,8 +338,9 @@ function AppRouter() {
             settings={settings}
             playerName={player.name}
             playerAvatar={player.avatar}
-            opponentName={`AI (${aiDifficulty})`}
+            opponentName="Opponent"
             playerColor={settings.playAs === "BLACK" ? "black" : "white"}
+            playerEquippedTitle={player.equippedTitle}
             onExit={handleGameExit}
           />
         );
@@ -326,6 +356,10 @@ function AppRouter() {
             playerColor={online.playerColor}
             playerId={player.id}
             opponentId={online.opponent?.id}
+            opponentProfile={online.vsBot ? online.opponent : null}
+            aiDifficulty={online.aiDifficulty}
+            playerEquippedTitle={player.equippedTitle}
+            opponentEquippedTitle={online.opponent?.equippedTitle}
             betAmount={online.betAmount}
             totalEarnings={player.totalEarnings}
             vsBot={online.vsBot}

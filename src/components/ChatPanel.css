@@ -1,24 +1,45 @@
 .chat-widget {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  margin-top: 10px;
+  position: static;
 }
 
-.chat-toolbar {
+.voice-controls {
+  position: fixed;
+  z-index: 99998;
   display: flex;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 5px 8px;
+  box-shadow: var(--panel-shadow);
+  touch-action: none;
+  transition: box-shadow 0.15s ease;
 }
 
-.chat-toolbar button {
+.voice-controls--dragging {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  cursor: grabbing;
+}
+
+.voice-controls__grip {
+  cursor: grab;
+  color: var(--cream-dim);
+  font-size: 0.85rem;
+  padding: 0 2px;
+  user-select: none;
+  touch-action: none;
+}
+
+.voice-controls .chat-mic,
+.voice-controls .chat-mute {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--panel-border);
   color: var(--cream);
-  padding: 7px 12px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
+  white-space: nowrap;
 }
 
 .chat-mic.live {
@@ -36,19 +57,21 @@
 }
 
 .chat-panel {
-  margin-top: 10px;
+  width: 232px;
+  max-width: 78vw;
+  margin-top: 0;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 10px;
   position: absolute;
-  right: 1vw;
-  top: 2%;
+  top: calc(100% + 8px);
+  right: 0;
   z-index: 999999;
 }
 
 .chat-messages {
-  max-height: 140px;
+  max-height: 110px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -116,20 +139,20 @@
 }
 
 .chat-emoji-float {
-  position: absolute;
-  top: -10px;
+  position: fixed;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  font-size: 2rem;
-  animation: emoji-float-up 1.2s ease-out forwards;
+  transform: translate(-50%, -50%);
+  font-size: 2.4rem;
+  animation: emoji-float-up 1.4s ease-out forwards;
   pointer-events: none;
-  z-index: 5;
+  z-index: 99997;
 }
 
 @keyframes emoji-float-up {
-  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.6); }
-  30% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
-  100% { opacity: 0; transform: translate(-50%, -60px) scale(1); }
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  25% { opacity: 1; transform: translate(-50%, -65%) scale(1.25); }
+  100% { opacity: 0; transform: translate(-50%, -140%) scale(1); }
 }
 
 .chat-panel__header {
@@ -150,23 +173,23 @@
 }
 
 .chat-text-float {
-  position: absolute;
-  top: -10px;
+  position: fixed;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  max-width: 240px;
+  transform: translate(-50%, -50%);
+  max-width: 280px;
   padding: 8px 14px;
   border-radius: 999px;
   background: rgba(18, 12, 9, 0.92);
   border: 1px solid var(--gold);
   color: var(--cream);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  animation: text-float-up 2.6s ease-out forwards;
+  animation: text-float-up 2.8s ease-out forwards;
   pointer-events: none;
-  z-index: 6;
+  z-index: 99998;
 }
 .chat-text-float__from {
   color: var(--gold-bright);
@@ -175,8 +198,8 @@
 }
 
 @keyframes text-float-up {
-  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.9); }
-  10% { opacity: 1; transform: translate(-50%, -14px) scale(1); }
-  80% { opacity: 1; transform: translate(-50%, -34px) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50px) scale(0.96); }
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  12% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+  80% { opacity: 1; transform: translate(-50%, -110%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -130%) scale(0.96); }
 }

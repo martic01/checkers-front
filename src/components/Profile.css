@@ -54,6 +54,30 @@
   font-size: 1.2rem;
 }
 
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--cream-dim);
+}
+
+.profile-bio {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--cream-dim);
+  border-left: 2px solid var(--panel-border);
+  padding-left: 10px;
+  margin: 0 0 18px;
+}
+
+.profile-favorite-theme {
+  font-size: 0.76rem;
+  color: var(--cream-dim);
+  margin: -8px 0 18px;
+}
+
 .profile-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

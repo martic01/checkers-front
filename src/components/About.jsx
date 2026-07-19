@@ -4,6 +4,9 @@ export default function About({ onBack }) {
   return (
     <div className="rules-screen">
       <div className="rules-panel">
+        <button className="rules-back" onClick={onBack}>
+          Back
+        </button>
         <h2 className="rules-title">About</h2>
         <section className="rules-section">
           <h3>MarCheckers</h3>
@@ -16,9 +19,6 @@ export default function About({ onBack }) {
           <h3>Version</h3>
           <p>1.0.0</p>
         </section>
-        <button className="rules-back" onClick={onBack}>
-          Back
-        </button>
       </div>
     </div>
   );

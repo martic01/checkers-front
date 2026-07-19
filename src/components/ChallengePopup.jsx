@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSocket } from "../api/socket.js";
 import { playSound } from "../utils/sound.js";
+import { formatCoinsFull } from "../game/rank.js";
 import "./ChallengePopup.css";
 
 export default function ChallengePopup({ player, soundsOn, onAccepted }) {
@@ -51,7 +52,7 @@ export default function ChallengePopup({ player, soundsOn, onAccepted }) {
   return (
     <div className="challenge-popup">
       <span className="challenge-popup__text">
-        <strong>{challenge.fromName}</strong> challenges you for <strong>{challenge.betAmount} 🪙</strong>
+        <strong>{challenge.fromName}</strong> challenges you for <strong>{formatCoinsFull(challenge.betAmount)} 🪙</strong>
       </span>
       <span className="challenge-popup__timer">{secondsLeft}s</span>
       <button className="challenge-popup__btn challenge-popup__btn--reject" onClick={reject}>

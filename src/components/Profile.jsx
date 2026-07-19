@@ -60,6 +60,12 @@ export default function Profile({ target, viewerId, onAvatarChange, onEquipTitle
               <div className="profile-header__info">
                 <h2>{data.name}</h2>
                 <RankBadge rank={data.rank} />
+                {(data.country || data.createdAt) && (
+                  <div className="profile-meta">
+                    {data.country && <span>{data.country}</span>}
+                    {data.createdAt && <span>Joined {formatJoinDate(data.createdAt)}</span>}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -69,14 +75,22 @@ export default function Profile({ target, viewerId, onAvatarChange, onEquipTitle
               </button>
             )}
 
+            {data.bio && <p className="profile-bio">"{data.bio}"</p>}
+
             <div className="profile-stats-grid">
               <Stat label="Wins" value={data.stats?.wins ?? 0} />
               <Stat label="Losses" value={data.stats?.losses ?? 0} />
               <Stat label="Draws" value={data.stats?.draws ?? 0} />
               <Stat label="Games" value={data.stats?.gamesPlayed ?? 0} />
+              <Stat label="Win Rate" value={formatWinRate(data.stats)} />
+              <Stat label="Trophies" value={(data.trophies || []).length} />
               <Stat label="Best Streak" value={data.stats?.bestWinStreak ?? 0} />
               <Stat label="Lifetime Earnings" value={`${formatCoins(data.totalEarnings || 0)} 🪙`} />
             </div>
+
+            {data.favoriteTheme && (
+              <p className="profile-favorite-theme">Favorite board: {formatThemeName(data.favoriteTheme)}</p>
+            )}
 
             <TrophyCarousel
               trophies={data.trophies || []}
@@ -110,4 +124,25 @@ function Stat({ label, value }) {
       <div className="profile-stat__label">{label}</div>
     </div>
   );
+}
+
+function formatWinRate(stats) {
+  const games = stats?.gamesPlayed ?? 0;
+  if (!games) return "—";
+  return `${Math.round(((stats.wins ?? 0) / games) * 100)}%`;
+}
+
+function formatJoinDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString(undefined, { month: "short", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
+function formatThemeName(key) {
+  return key
+    .split("-")
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" & ");
 }

@@ -1,10 +1,10 @@
-import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { memo, useMemo, useState, useCallback, useEffect, useRef } from "react";
 import "./Board.css";
 import { BOARD_SIZE, isDark } from "../game/checkersLogic.js";
 
 const COLS = "ABCDEFGHIJ".split("");
 
-export default function Board({
+function Board({
   board,
   pieces = [],
   turn,
@@ -20,20 +20,43 @@ export default function Board({
 }) {
   const [selected, setSelected] = useState(null);
   const [is3D, setIs3D] = useState(false);
-  
-  // High-impact multi-axis tracking matrices
-  const [rotation, setRotation] = useState({ x: 0, z: 0 });
-  const dragRef = useRef({ 
-    dragging: false, 
-    startX: 0, 
-    startY: 0, 
-    startIdxX: 0, 
-    startIdxZ: 0,
+
+  // Camera rotation is driven by drag gestures at up to 60-120 updates/sec.
+  // Routing every one of those through React state would re-render all 100
+  // squares and every piece each frame just because a CSS transform value
+  // changed — nothing about the squares/pieces actually depends on it. So
+  // the live value lives in a ref and is written straight to the DOM;
+  // `hasRotated` is the only bit of it that ever needs to trigger a
+  // React re-render (to show/hide the Reset button).
+  const [hasRotated, setHasRotated] = useState(false);
+  const rotationRef = useRef({ x: 0, z: 0 });
+  const stageRef = useRef(null);
+  const dragRef = useRef({
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    startRotX: 0,
+    startRotZ: 0,
     velX: 0,
     velZ: 0,
-    lastTime: 0
+    lastTime: 0,
   });
   const inertiaRef = useRef(null);
+
+  const applyStageTransform = useCallback(
+    (x, z) => {
+      const el = stageRef.current;
+      if (!el) return;
+      const pitch = is3D ? 38 + x * 0.49 : 0;
+      el.style.transform = `rotateX(${pitch}deg) rotateZ(${z}deg)`;
+    },
+    [is3D]
+  );
+
+  // Re-apply on 2D/3D toggle (rare — a real state change, not a perf concern).
+  useEffect(() => {
+    applyStageTransform(rotationRef.current.x, rotationRef.current.z);
+  }, [applyStageTransform]);
 
   useEffect(() => setSelected(null), [board]);
 
@@ -87,34 +110,39 @@ export default function Board({
       dragging: true,
       startX: clientX,
       startY: clientY,
-      startIdxX: rotation.x,
-      startIdxZ: rotation.z,
+      startRotX: rotationRef.current.x,
+      startRotZ: rotationRef.current.z,
       velX: 0,
       velZ: 0,
-      lastTime: performance.now()
+      lastTime: performance.now(),
     };
-  }, [rotation]);
+  }, []);
 
-  const handleRotateMove = useCallback((clientX, clientY) => {
-    if (!dragRef.current.dragging) return;
-    const now = performance.now();
-    const dt = Math.max(now - dragRef.current.lastTime, 1);
-    
-    const deltaX = clientX - dragRef.current.startX;
-    const deltaY = clientY - dragRef.current.startY;
+  const handleRotateMove = useCallback(
+    (clientX, clientY) => {
+      if (!dragRef.current.dragging) return;
+      const now = performance.now();
+      const dt = Math.max(now - dragRef.current.lastTime, 1);
 
-    let nextZ = (dragRef.current.startIdxZ + deltaX * 0.7) % 360;
-    if (nextZ < 0) nextZ += 360;
+      const deltaX = clientX - dragRef.current.startX;
+      const deltaY = clientY - dragRef.current.startY;
 
-    // Expanded cinematic tilt capacity: 0deg to 75deg pitch tracking
-    let nextX = Math.max(0, Math.min(75, dragRef.current.startIdxX - deltaY * 0.5));
+      let nextZ = (dragRef.current.startRotZ + deltaX * 0.7) % 360;
+      if (nextZ < 0) nextZ += 360;
 
-    dragRef.current.velZ = ((nextZ - rotation.z) / dt) * 16;
-    dragRef.current.velX = ((nextX - rotation.x) / dt) * 16;
-    
-    dragRef.current.lastTime = now;
-    setRotation({ x: nextX, z: nextZ });
-  }, [rotation]);
+      // Expanded cinematic tilt capacity: 0deg to 75deg pitch tracking
+      let nextX = Math.max(0, Math.min(75, dragRef.current.startRotX - deltaY * 0.5));
+
+      dragRef.current.velZ = ((nextZ - rotationRef.current.z) / dt) * 16;
+      dragRef.current.velX = ((nextX - rotationRef.current.x) / dt) * 16;
+      dragRef.current.lastTime = now;
+
+      rotationRef.current = { x: nextX, z: nextZ };
+      applyStageTransform(nextX, nextZ);
+      if (!hasRotated) setHasRotated(true);
+    },
+    [applyStageTransform, hasRotated]
+  );
 
   const handleRotateEnd = useCallback(() => {
     if (!dragRef.current.dragging) return;
@@ -124,23 +152,25 @@ export default function Board({
       dragRef.current.velX *= 0.93;
       dragRef.current.velZ *= 0.93;
 
-      setRotation((prev) => {
-        let nZ = (prev.z + dragRef.current.velZ) % 360;
-        let nX = Math.max(0, Math.min(75, prev.x + dragRef.current.velX));
-        if (nZ < 0) nZ += 360;
+      let nZ = (rotationRef.current.z + dragRef.current.velZ) % 360;
+      let nX = Math.max(0, Math.min(75, rotationRef.current.x + dragRef.current.velX));
+      if (nZ < 0) nZ += 360;
 
-        if (Math.abs(dragRef.current.velX) > 0.04 || Math.abs(dragRef.current.velZ) > 0.04) {
-          inertiaRef.current = requestAnimationFrame(applyInertia);
-        }
-        return { x: nX, z: nZ };
-      });
+      rotationRef.current = { x: nX, z: nZ };
+      applyStageTransform(nX, nZ);
+
+      if (Math.abs(dragRef.current.velX) > 0.04 || Math.abs(dragRef.current.velZ) > 0.04) {
+        inertiaRef.current = requestAnimationFrame(applyInertia);
+      }
     };
     inertiaRef.current = requestAnimationFrame(applyInertia);
-  }, []);
+  }, [applyStageTransform]);
 
   const handleReset = () => {
     if (inertiaRef.current) cancelAnimationFrame(inertiaRef.current);
-    setRotation({ x: 0, z: 0 });
+    rotationRef.current = { x: 0, z: 0 };
+    applyStageTransform(0, 0);
+    setHasRotated(false);
   };
 
   useEffect(() => {
@@ -173,9 +203,6 @@ export default function Board({
     dCol: rotated ? BOARD_SIZE - 1 - col : col,
   });
 
-  const finalPitch = is3D ? 38 + rotation.x * 0.49 : 0;
-  const finalYaw = rotation.z;
-
   return (
     <div className={`board-wrap ${view === "VERT" ? "board-wrap--vert" : "board-wrap--horiz"} ${is3D ? "mode-3d" : ""}`}>
       <svg className="grain-defs" width="0" height="0">
@@ -204,8 +231,9 @@ export default function Board({
 
         <div className="board-3d-perspective">
           <div
+            ref={stageRef}
             className={`board-stage ${is3D ? "board-stage--3d" : ""}`}
-            style={{ transform: `rotateX(${finalPitch}deg) rotateZ(${finalYaw}deg)` }}
+            style={{ transform: `rotateX(${is3D ? 38 : 0}deg) rotateZ(0deg)` }}
           >
             {/* Structural Architectural 3D Side Frame Mesh Elements */}
             <div className="board-wall board-wall--front"></div>
@@ -269,7 +297,7 @@ export default function Board({
                       ]
                         .filter(Boolean)
                         .join(" ")}
-                      style={{ left: `${dCol * 10}%`, top: `${dRow * 10}%` }}
+                      style={{ transform: `translate3d(${dCol * 100}%, ${dRow * 100}%, 0)` }}
                     >
                       <div className="piece-shadow-container"></div>
                       <div className="piece-body-3d">
@@ -324,7 +352,7 @@ export default function Board({
           <span className="btn-icon">↻</span>
           <span className="btn-text">Drag to Orbit</span>
         </div>
-        {(rotation.x !== 0 || rotation.z !== 0) && (
+        {hasRotated && (
           <button 
             type="button" 
             className="board-3d-toggle board-3d-reset" 
@@ -339,4 +367,6 @@ export default function Board({
     </div>
   );
 }
+
+export default memo(Board);
 

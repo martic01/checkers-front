@@ -27,6 +27,9 @@ export default function Rules({ onBack }) {
   return (
     <div className="rules-screen">
       <div className="rules-panel">
+        <button className="rules-back" onClick={onBack}>
+          Back
+        </button>
         <h2 className="rules-title">Rules</h2>
         {SECTIONS.map((s) => (
           <section key={s.title} className="rules-section">
@@ -34,9 +37,6 @@ export default function Rules({ onBack }) {
             <p>{s.body}</p>
           </section>
         ))}
-        <button className="rules-back" onClick={onBack}>
-          Back
-        </button>
       </div>
     </div>
   );

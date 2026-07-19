@@ -1,9 +1,36 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toastError } from "../store/uiStore.js";
 import "./ChatPanel.css";
 
 const QUICK_EMOJI = ["👍", "😂", "😮", "😢", "🔥", "🤝", "😤", "👏"];
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
+const VOICE_POS_KEY = "checkers.voiceControlsPos";
+const VOICE_WIDGET_SIZE = { width: 118, height: 44 };
+
+function loadVoicePos() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(VOICE_POS_KEY) || "null");
+    if (saved && typeof saved.x === "number" && typeof saved.y === "number") return saved;
+  } catch {
+    /* ignore corrupt/unavailable storage */
+  }
+  return null;
+}
+
+function clampVoicePos(x, y) {
+  if (typeof window === "undefined") return { x, y };
+  const maxX = Math.max(6, window.innerWidth - VOICE_WIDGET_SIZE.width - 6);
+  const maxY = Math.max(6, window.innerHeight - VOICE_WIDGET_SIZE.height - 6);
+  return { x: Math.min(Math.max(6, x), maxX), y: Math.min(Math.max(6, y), maxY) };
+}
+
+// Default spot: bottom-left, clear of the top-right chat/game controls and
+// the board itself, so it doesn't need to overlap anything until dragged.
+function defaultVoicePos() {
+  if (typeof window === "undefined") return { x: 12, y: 90 };
+  return clampVoicePos(12, window.innerHeight - VOICE_WIDGET_SIZE.height - 96);
+}
 
 export default function ChatPanel({ socket, roomCode, playerName, playerColor, open, onClose }) {
   const [messages, setMessages] = useState([]);
@@ -20,6 +47,41 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
   const mutedRef = useRef(muted);
   const peerReadyRef = useRef(false);
   mutedRef.current = muted;
+
+  // ---------- Floating draggable mic/speaker controls (request #5) ----------
+  const [voicePos, setVoicePos] = useState(() => loadVoicePos() || defaultVoicePos());
+  const [dragging, setDragging] = useState(false);
+  const voiceWidgetRef = useRef(null);
+  const dragOffset = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const onResize = () => setVoicePos((p) => clampVoicePos(p.x, p.y));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const handleVoicePointerDown = (e) => {
+    const rect = voiceWidgetRef.current.getBoundingClientRect();
+    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    setDragging(true);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+  const handleVoicePointerMove = (e) => {
+    if (!dragging) return;
+    setVoicePos(clampVoicePos(e.clientX - dragOffset.current.x, e.clientY - dragOffset.current.y));
+  };
+  const handleVoicePointerUp = () => {
+    if (!dragging) return;
+    setDragging(false);
+    setVoicePos((p) => {
+      try {
+        localStorage.setItem(VOICE_POS_KEY, JSON.stringify(p));
+      } catch {
+        /* storage unavailable — position just won't persist across sessions */
+      }
+      return p;
+    });
+  };
 
   useEffect(() => {
     if (!socket) return;
@@ -159,37 +221,56 @@ export default function ChatPanel({ socket, roomCode, playerName, playerColor, o
     if (!text.trim()) return;
     socket.emit("chat:message", { code: roomCode, text, from: playerName });
     setText("");
+    onClose?.();
   };
 
   const sendEmoji = (emoji) => {
     socket.emit("emoji:react", { code: roomCode, emoji, from: playerName });
+    onClose?.();
   };
 
   return (
     <div className="chat-widget">
       <audio ref={remoteAudioRef} autoPlay playsInline />
 
-      {floatingEmoji && (
-        <div key={floatingEmoji.key} className="chat-emoji-float">
-          {floatingEmoji.emoji}
-        </div>
-      )}
+      {floatingEmoji &&
+        createPortal(
+          <div key={floatingEmoji.key} className="chat-emoji-float">
+            {floatingEmoji.emoji}
+          </div>,
+          document.body
+        )}
 
-      {floatingText && (
-        <div key={floatingText.key} className="chat-text-float">
-          <span className="chat-text-float__from">{floatingText.from}</span>
-          {floatingText.text}
-        </div>
-      )}
+      {floatingText &&
+        createPortal(
+          <div key={floatingText.key} className="chat-text-float">
+            <span className="chat-text-float__from">{floatingText.from}</span>
+            {floatingText.text}
+          </div>,
+          document.body
+        )}
 
-      <div className="chat-toolbar">
-        <button className={`chat-mic ${micStatus}`} onClick={toggleMic}>
-          {micStatus === "off" ? "🎙️ Off" : micStatus === "connecting" ? "🎙️ Connecting…" : "🎙️ Live"}
-        </button>
-        <button className={`chat-mute ${muted ? "chat-mute--active" : ""}`} onClick={() => setMuted((m) => !m)}>
-          {muted ? "🔇" : "🔊"}
-        </button>
-      </div>
+      {createPortal(
+        <div
+          ref={voiceWidgetRef}
+          className={`voice-controls ${dragging ? "voice-controls--dragging" : ""}`}
+          style={{ left: voicePos.x, top: voicePos.y }}
+          onPointerMove={handleVoicePointerMove}
+          onPointerUp={handleVoicePointerUp}
+          onPointerCancel={handleVoicePointerUp}
+        >
+          <span className="voice-controls__grip" onPointerDown={handleVoicePointerDown} title="Drag">
+            ⠿
+          </span>
+          <button className={`chat-mic ${micStatus}`} onClick={toggleMic}>
+            {micStatus === "off" ? "🎙️ Off" : micStatus === "connecting" ? "🎙️ Connecting…" : "🎙️ Live"}
+          </button>
+          <button className={`chat-mute ${muted ? "chat-mute--active" : ""}`} onClick={() => setMuted((m) => !m)} title={muted ? "Unmute" : "Mute"}>
+            {muted ? "🔇" : "🔊"}
+          </button>
+        </div>,
+        document.body
+      )}
 
       {open && (
         <div className="chat-panel">

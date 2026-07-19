@@ -20,6 +20,9 @@ export default function Statistics({ player, onBack }) {
   return (
     <div className="stats-screen">
       <div className="stats-panel">
+        <button className="stats-back" onClick={onBack}>
+          Back
+        </button>
         <h2 className="stats-title">Statistics</h2>
 
         <div className="stats-grid">
@@ -60,10 +63,6 @@ export default function Statistics({ player, onBack }) {
             );
           })}
         </div>
-
-        <button className="stats-back" onClick={onBack}>
-          Back
-        </button>
       </div>
     </div>
   );

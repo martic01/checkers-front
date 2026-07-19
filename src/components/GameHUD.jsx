@@ -1,6 +1,13 @@
 import "./GameHUD.css";
 import Avatar from "./Avatar.jsx";
 import { openProfile } from "../store/uiStore.js";
+import { TROPHY_CATALOG } from "../game/trophyCatalog.js";
+import { formatCoins } from "../game/rank.js";
+
+function equippedTagLabel(trophyId) {
+  if (!trophyId) return null;
+  return TROPHY_CATALOG.find((t) => t.id === trophyId)?.label || null;
+}
 
 export default function GameHUD({
   playerName,
@@ -10,11 +17,15 @@ export default function GameHUD({
   playerColor,
   playerId,
   opponentId,
+  opponentProfile,
+  playerEquippedTitle,
+  opponentEquippedTitle,
   turn,
   connectionStatus,
   onUndo,
   onRestart,
   onHint,
+  onProposeDraw,
   onLeave,
   onToggleChat,
   chatOpen,
@@ -38,6 +49,7 @@ export default function GameHUD({
             active={turn === playerColor}
             status={mode === "online" ? connectionStatus?.player : null}
             badge="You"
+            equippedTag={equippedTagLabel(playerEquippedTitle)}
             onClick={playerId ? () => openProfile(playerId) : undefined}
           />
           <span className="game-topbar__vs">vs</span>
@@ -47,13 +59,14 @@ export default function GameHUD({
             color={opponentColor}
             active={turn === opponentColor}
             status={mode === "online" ? connectionStatus?.opponent : null}
-            badge={mode === "ai" || vsBot ? "🤖 Bot" : "Opponent"}
-            onClick={opponentId ? () => openProfile(opponentId) : undefined}
+            badge="Opponent"
+            equippedTag={equippedTagLabel(opponentEquippedTitle)}
+            onClick={opponentId ? () => openProfile(opponentProfile || opponentId) : undefined}
           />
         </div>
         {potAmount > 0 && (
           <div className="game-pot-pill">
-            🪙<strong>{potAmount}</strong>
+            🪙<strong>{formatCoins(potAmount)}</strong>
           </div>
         )}
 
@@ -64,13 +77,21 @@ export default function GameHUD({
             </button>
           )}
           {onToggleChat && (
-            <button className={`hud-btn ${chatOpen ? "hud-btn--active" : ""}`} onClick={onToggleChat} title="Chat">
-              💬<span>Chat</span>
-            </button>
+            <div className="chat-anchor">
+              <button className={`hud-btn ${chatOpen ? "hud-btn--active" : ""}`} onClick={onToggleChat} title="Chat">
+                💬<span>Chat</span>
+              </button>
+              {chatSlot}
+            </div>
           )}
           {onUndo && (
             <button className="hud-btn" onClick={onUndo} disabled={!canUndo} title="Undo">
               ↺<span>Undo</span>
+            </button>
+          )}
+          {onProposeDraw && (
+            <button className="hud-btn" onClick={onProposeDraw} title="Propose a draw">
+              🤝<span>Draw</span>
             </button>
           )}
           {onRestart && (
@@ -84,19 +105,19 @@ export default function GameHUD({
         </div>
       </div>
 
-
-      {chatSlot}
-
       <div className="game-board-area">{children}</div>
     </div>
   );
 }
 
-function PlayerChip({ name, avatar, color, active, status, badge, onClick }) {
+function PlayerChip({ name, avatar, color, active, status, badge, equippedTag, onClick }) {
   const Tag = onClick ? "button" : "div";
   return (
     <Tag className={`player-chip ${active ? "player-chip--active" : ""} ${onClick ? "player-chip--clickable" : ""}`} onClick={onClick}>
-      {avatar ? <Avatar avatar={avatar} size={30} /> : <div className={`avatar avatar--${color}`} />}
+      <div className="player-chip__avatar-col">
+        {equippedTag && <span className="player-chip__tag">{equippedTag}</span>}
+        {avatar ? <Avatar avatar={avatar} size={30} /> : <div className={`avatar avatar--${color}`} />}
+      </div>
       <div className="player-chip__info">
         <span className="player-chip__badge">{badge}</span>
         <span className="player-chip__name">{name}</span>

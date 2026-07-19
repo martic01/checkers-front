@@ -135,6 +135,8 @@
 }
 
 .board-grid {
+  position: relative;
+  z-index: 5;
   width: 100%;
   height: 100%;
   display: grid;
@@ -142,6 +144,8 @@
   grid-template-rows: repeat(10, minmax(0, 1fr));
   background: #090402;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.85);
+  transform: translateZ(2px);
+  touch-action: manipulation;
 }
 
 .grain-defs { 
@@ -157,6 +161,7 @@
   position: relative;
   overflow: hidden;
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.2);
+  touch-action: manipulation;
 }
 
 .square::after {
@@ -166,6 +171,8 @@
   filter: url(#wood-grain-hq);
   mix-blend-mode: multiply;
   opacity: 0.85;
+  will-change: filter;
+  transform: translateZ(0);
 }
 
 .square--light {
@@ -242,6 +249,7 @@
 .board-wall {
   position: absolute;
   display: none;
+  pointer-events: none;
   background: linear-gradient(to bottom, var(--frame-wood-a), var(--frame-wood-b));
   box-shadow: 
     inset 0 2px 5px rgba(255, 255, 255, 0.1), 
@@ -315,15 +323,15 @@
 
 .piece-token {
   position: absolute;
+  left: 0;
+  top: 0;
   width: 10%;
   height: 10%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    left 0.48s cubic-bezier(0.25, 1, 0.32, 1),
-    top 0.48s cubic-bezier(0.25, 1, 0.32, 1);
-  will-change: left, top;
+  transition: transform 0.48s cubic-bezier(0.25, 1, 0.32, 1);
+  will-change: transform;
   transform-style: preserve-3d;
 }
 
@@ -429,7 +437,7 @@
 }
 
 .piece-token--capturing .piece-body-3d {
-  transition: transform 0.6s cubic-bezier(0.55, 0.01, 0.65, 0.2), opacity 0.5s ease;
+  transition: transform 0.85s cubic-bezier(0.55, 0.01, 0.65, 0.2), opacity 0.75s ease;
   transform: translateZ(-50px) rotateX(85deg) scale(0.05);
   opacity: 0;
 }
