@@ -1,0 +1,171 @@
+.emote-store-screen {
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px 60px;
+}
+
+.emote-store-panel {
+  width: 100%;
+  max-width: 520px;
+}
+
+.emote-store-title {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 1.15rem;
+  margin: 4px 0 4px;
+  color: var(--gold);
+}
+
+.emote-store-balance {
+  text-align: center;
+  font-family: var(--font-mono);
+  color: var(--gold-bright);
+  font-size: 0.85rem;
+  margin: 0 0 22px;
+}
+
+.emote-store-section {
+  margin-bottom: 24px;
+}
+.emote-store-section h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  margin: 0 0 4px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.emote-store-price-range {
+  font-size: 0.68rem;
+  color: var(--cream-dim);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.emote-store-hint {
+  font-size: 0.72rem;
+  color: var(--cream-dim);
+  margin: 0 0 10px;
+}
+.emote-store-hint--locked {
+  color: #ff8a6a;
+}
+
+.emote-store-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  overflow: visible;
+  padding: 6px;
+}
+/* A card left alone in the final row (odd total count) stretches to
+   fill the row instead of leaving empty space next to it. */
+.emote-store-grid > *:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.emote-card {
+  --emote-glow: #d9b34d;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.25));
+  border: 1px solid color-mix(in srgb, var(--emote-glow) 45%, var(--panel-border));
+  box-shadow:
+    0 0 14px 2px color-mix(in srgb, var(--emote-glow) 55%, transparent),
+    0 0 34px 6px color-mix(in srgb, var(--emote-glow) 30%, transparent);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.emote-card--fire {
+  animation: emote-card-fire-shift 2s linear infinite;
+  background: linear-gradient(120deg, rgba(255, 106, 46, 0.15), rgba(0, 0, 0, 0.25), rgba(255, 106, 46, 0.15));
+  background-size: 200% 100%;
+}
+@keyframes emote-card-fire-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.emote-card__swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--emote-glow), transparent 72%);
+}
+
+.emote-card__name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cream);
+}
+
+.emote-card__price {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--gold-bright);
+}
+
+.emote-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.emote-card__preview,
+.emote-card__equip,
+.emote-card__buy {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--cream-dim);
+}
+
+.emote-card__buy {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+}
+.emote-card__buy:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--panel-border);
+  color: var(--cream-dim);
+  cursor: not-allowed;
+}
+.emote-card__buy--locked {
+  border-color: #ff8a6a;
+  color: #ff8a6a;
+}
+.emote-card--locked {
+  opacity: 0.6;
+}
+
+.emote-card__equip--active,
+.emote-card__equip:disabled {
+  background: color-mix(in srgb, var(--emote-glow) 30%, transparent);
+  border-color: var(--emote-glow);
+  color: var(--cream);
+}
+
+@media (max-width: 420px) {
+  .emote-store-grid {
+    gap: 12px;
+  }
+}

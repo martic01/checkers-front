@@ -24,6 +24,49 @@
   color: var(--gold);
 }
 
+.settings-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.settings-carousel-dot {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--cream-dim);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.settings-carousel-dot--active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.settings-carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+.settings-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-carousel-page {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  min-width: 100%;
+}
+.settings-carousel-page .settings-section:last-child {
+  border-bottom: none;
+}
+
 .settings-section {
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);

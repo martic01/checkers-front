@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import "./OnlineLobby.css";
 import { api } from "../api/client.js";
 import { toastSuccess } from "../store/uiStore.js";
-import { BET_TIERS, isTierUnlocked, getUnlockThreshold, formatCoins } from "../game/rank.js";
+import { BET_TIERS, isTierUnlocked, formatCoins } from "../game/rank.js";
 import { DEFAULT_AVATARS } from "../game/avatars.js";
 import { getTrophyLabel } from "../game/trophyCatalog.js";
-import { RankBadge } from "./RankBadge.jsx";
+import { RankBadge, MilestoneBadge } from "./RankBadge.jsx";
 import Avatar from "./Avatar.jsx";
+import BetTierGrid from "./BetTierGrid.jsx";
+import Carousel from "./Carousel.jsx";
+import { useIsOnline } from "../utils/network.js";
 
 export default function OnlineLobby({
   player,
@@ -46,7 +49,8 @@ export default function OnlineLobby({
     };
   }, []);
 
-  const busy = state.phase !== "idle";
+  const isOnline = useIsOnline();
+  const busy = state.phase !== "idle" || !isOnline;
 
   if (state.phase === "searching") {
     return (
@@ -54,6 +58,10 @@ export default function OnlineLobby({
         <div className="panel lobby-panel searching-panel">
           <h2 className="lobby-title">Finding an opponent…</h2>
           <p className="screen-subtitle">Betting {formatCoins(state.betAmount)} 🪙</p>
+
+          {!isOnline && (
+            <p className="lobby-offline-banner">📶 No internet connection — reconnecting…</p>
+          )}
 
           <div className="searching-row">
             <div className="searching-avatar">
@@ -95,7 +103,12 @@ export default function OnlineLobby({
               <Avatar avatar={state.opponent?.avatar} size={96} />
             </div>
             <div className="matched-name">{state.opponent?.name || "Opponent"}</div>
-            {typeof state.opponent?.rank === "number" && <RankBadge rank={state.opponent.rank} size="sm" />}
+            {typeof state.opponent?.rank === "number" && (
+              <>
+                <RankBadge rank={state.opponent.rank} size="sm" />
+                <MilestoneBadge rank={state.opponent.rank} />
+              </>
+            )}
           </div>
 
           <p className="lobby-waiting-text">Game starting…</p>
@@ -110,6 +123,9 @@ export default function OnlineLobby({
         <div className="panel lobby-panel">
           <h2 className="lobby-title">Room Created</h2>
           <p className="screen-subtitle">Share this code with a friend</p>
+          {!isOnline && (
+            <p className="lobby-offline-banner">📶 No internet connection — reconnecting…</p>
+          )}
           <div className="room-code-row">
             <div className="room-code-display">{state.roomCode}</div>
             <button
@@ -132,50 +148,46 @@ export default function OnlineLobby({
     );
   }
 
-  return (
-    <div className="lobby-screen">
-      <div className="panel lobby-panel">
-        <button className="lobby-back" onClick={onBack}>
-          ← Back
-        </button>
-        <h2 className="lobby-title">🌐 Online Match</h2>
-
-        <div className="bet-picker">
-          <div className="bet-picker__label">Bet Amount</div>
-          <div className="bet-grid">
-            {BET_TIERS.map((tier, i) => {
-              const unlocked = isTierUnlocked(tier, player.totalEarnings || 0);
-              const canAfford = (player.coins || 0) >= tier;
-              return (
-                <button
-                  key={tier}
-                  className={`bet-chip ${selectedBet === tier ? "bet-chip--selected" : ""} ${!unlocked ? "bet-chip--locked" : ""}`}
-                  disabled={!unlocked || !canAfford}
-                  onClick={() => setSelectedBet(tier)}
-                  title={!unlocked ? `Unlocks at ${formatCoins(getUnlockThreshold(i))} lifetime earnings` : !canAfford ? "Not enough coins" : ""}
-                >
-                  {!unlocked && <span className="bet-chip__lock">🔒</span>}
-                  {formatCoins(tier)}
-                </button>
-              );
-            })}
+  const slides = [
+    {
+      key: "quick-match",
+      label: "Quick Match",
+      content: (
+        <>
+          <div className="bet-picker">
+            <div className="bet-picker__label">Bet Amount</div>
+            <BetTierGrid
+              tiers={BET_TIERS}
+              selected={selectedBet}
+              onSelect={setSelectedBet}
+              isLocked={(tier) => !isTierUnlocked(tier, player.totalEarnings || 0) || (player.coins || 0) < tier}
+            />
+            <div className="bet-picker__balance">Your balance: {formatCoins(player.coins || 0)} 🪙</div>
           </div>
-          <div className="bet-picker__balance">Your balance: {formatCoins(player.coins || 0)} 🪙</div>
-        </div>
 
-        <button className="lobby-quick" onClick={() => onQuickMatch(selectedBet)} disabled={busy}>
-          Quick Match — Bet {formatCoins(selectedBet)} 🪙
-        </button>
-
-        <div className="lobby-divider">OR</div>
-
+          <button className="lobby-quick" onClick={() => onQuickMatch(selectedBet)} disabled={busy}>
+            {!isOnline ? "📶 Offline" : `Quick Match — Bet ${formatCoins(selectedBet)} 🪙`}
+          </button>
+        </>
+      ),
+    },
+    {
+      key: "create-room",
+      label: "Create Room",
+      content: (
         <div className="lobby-section">
           <h3>Create Room</h3>
+          <p className="lobby-waiting-text">Generate a code and share it with a friend to play privately.</p>
           <button className="lobby-btn" onClick={() => onCreateRoom(selectedBet)} disabled={busy}>
-            🔑 Generate Room Code
+            {!isOnline ? "📶 Offline" : "🔑 Generate Room Code"}
           </button>
         </div>
-
+      ),
+    },
+    {
+      key: "join-room",
+      label: "Join Room",
+      content: (
         <div className="lobby-section">
           <h3>Join Room</h3>
           <div className="lobby-join-row">
@@ -187,10 +199,29 @@ export default function OnlineLobby({
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
             />
             <button className="lobby-btn lobby-btn--gold" onClick={() => onJoinRoom(joinCode)} disabled={!joinCode || busy}>
-              ➜ Join
+              {!isOnline ? "📶" : "➜ Join"}
             </button>
           </div>
         </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="lobby-screen">
+      <div className="panel lobby-panel">
+        <button className="lobby-back" onClick={onBack}>
+          ← Back
+        </button>
+        <h2 className="lobby-title">🌐 Online Match</h2>
+
+        {!isOnline && (
+          <p className="lobby-offline-banner">
+            📶 No internet connection — you need to be online to search for or join a match.
+          </p>
+        )}
+
+        <Carousel slides={slides} />
 
         <div className="lobby-status">
           <span>Players Online: {lobby.playersOnline}</span>

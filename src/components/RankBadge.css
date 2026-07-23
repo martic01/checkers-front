@@ -32,6 +32,52 @@
   opacity: 0.75;
 }
 
+.rank-badge--fire {
+  background: linear-gradient(90deg, rgba(255, 106, 46, 0.22), rgba(255, 178, 71, 0.3), rgba(255, 106, 46, 0.22));
+  background-size: 200% 100%;
+  border-color: #ff8a3d;
+  animation: fire-badge-shift 1.8s linear infinite, fire-badge-glow 1.4s ease-in-out infinite;
+}
+.rank-badge__flame {
+  animation: fire-flicker 0.9s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 140, 0, 0.8));
+}
+
+@keyframes fire-badge-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes fire-badge-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 106, 46, 0.45); }
+  50% { box-shadow: 0 0 18px rgba(255, 140, 40, 0.85); }
+}
+@keyframes fire-flicker {
+  0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; }
+  50% { transform: scale(1.15) rotate(3deg); opacity: 0.85; }
+}
+
+.milestone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: color-mix(in srgb, var(--milestone-color) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--milestone-color) 55%, transparent);
+  color: var(--milestone-color);
+  white-space: nowrap;
+}
+.milestone-badge--sm {
+  font-size: 0.6rem;
+}
+.milestone-badge--md {
+  font-size: 0.72rem;
+}
+
 .coin-pill {
   display: inline-flex;
   align-items: center;

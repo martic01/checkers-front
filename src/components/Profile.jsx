@@ -3,8 +3,9 @@ import { api } from "../api/client.js";
 import Avatar from "./Avatar.jsx";
 import AvatarCarousel from "./AvatarCarousel.jsx";
 import TrophyCarousel from "./TrophyCarousel.jsx";
-import { RankBadge } from "./RankBadge.jsx";
+import { RankBadge, MilestoneBadge } from "./RankBadge.jsx";
 import { formatCoins } from "../game/rank.js";
+import { COUNTRIES, flagEmoji } from "../game/countries.js";
 import { toastError } from "../store/uiStore.js";
 import "./Profile.css";
 
@@ -62,9 +63,10 @@ export default function Profile({ target, viewerId, onAvatarChange, onEquipTitle
               <div className="profile-header__info">
                 <h2>{data.name}</h2>
                 <RankBadge rank={data.rank} />
+                <MilestoneBadge rank={data.rank} />
                 {(data.country || data.createdAt) && (
                   <div className="profile-meta">
-                    {data.country && <span>{data.country}</span>}
+                    {data.country && <span>{formatCountry(data.country)}</span>}
                     {data.createdAt && <span>Joined {formatJoinDate(data.createdAt)}</span>}
                   </div>
                 )}
@@ -156,6 +158,14 @@ export default function Profile({ target, viewerId, onAvatarChange, onEquipTitle
       </div>
     </div>
   );
+}
+
+function formatCountry(country) {
+  if (/^[A-Z]{2}$/.test(country)) {
+    const name = COUNTRIES.find(([code]) => code === country)?.[1] || country;
+    return `${flagEmoji(country)} ${name}`;
+  }
+  return country;
 }
 
 function Stat({ label, value }) {

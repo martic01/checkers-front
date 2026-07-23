@@ -217,6 +217,49 @@ export const usePlayerStore = create((set, get) => ({
     }
   },
 
+  completeOnboarding: async ({ country, dateOfBirth, agreedToTerms }) => {
+    const { player, offline } = get();
+    if (offline) {
+      set({ player: { ...player, country, dateOfBirth, agreedToTermsAt: new Date().toISOString() } });
+      return { ok: true };
+    }
+    try {
+      const updated = await api.completeOnboarding(player.id, { country, dateOfBirth, agreedToTerms });
+      set({ player: updated });
+      return { ok: true };
+    } catch (err) {
+      toastError(err.message || "Couldn't save — please try again.");
+      return { ok: false, error: err.message };
+    }
+  },
+
+  purchaseEmote: async (emoteId) => {
+    const { player, offline } = get();
+    if (offline) return { ok: false, error: "Sign in to buy emotes" };
+    try {
+      const updated = await api.purchaseEmote(player.id, emoteId);
+      set({ player: updated });
+      toastSuccess("Emote purchased!");
+      return { ok: true };
+    } catch (err) {
+      toastError(err.message || "Couldn't buy that emote");
+      return { ok: false, error: err.message };
+    }
+  },
+
+  equipEmote: async (emoteId) => {
+    const { player, offline } = get();
+    if (offline) return;
+    const prev = player.equippedEmoteId;
+    set({ player: { ...player, equippedEmoteId: emoteId } });
+    try {
+      await api.equipEmote(player.id, emoteId);
+    } catch (err) {
+      set({ player: { ...player, equippedEmoteId: prev } });
+      toastError(err.message || "Couldn't equip that emote");
+    }
+  },
+
   equipTitle: async (trophyId) => {
     const { player, offline } = get();
     if (offline) return;

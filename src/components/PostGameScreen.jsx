@@ -3,8 +3,10 @@ import Avatar from "./Avatar.jsx";
 import Button from "./Button.jsx";
 import { RankBadge } from "./RankBadge.jsx";
 import { getTrophyLabel } from "../game/trophyCatalog.js";
-import { BET_TIERS, isTierUnlocked, formatCoins, formatCoinsFull } from "../game/rank.js";
+import { BET_TIERS, isTierUnlocked, formatCoinsFull } from "../game/rank.js";
+import BetTierGrid from "./BetTierGrid.jsx";
 import { aiRandomDecision } from "../game/ai.js";
+import { fmjdReasonMessage } from "../game/checkersLogic.js";
 import { api } from "../api/client.js";
 import { toastError, toastSuccess, toastInfo, openProfile } from "../store/uiStore.js";
 import "./PostGameScreen.css";
@@ -158,9 +160,8 @@ export default function PostGameScreen({
         : `-${formatCoinsFull(matchResult.betAmount)} 🪙`
       : null;
 
-  const affordableTiers = BET_TIERS.filter(
-    (tier) => isTierUnlocked(tier, totalEarnings) && tier <= Math.max(playerCoins, matchResult.betAmount || 0)
-  );
+  const maxAffordable = vsBot ? Math.min(playerCoins, opponent?.totalEarnings ?? Infinity) : playerCoins;
+  const affordableTiers = BET_TIERS.filter((tier) => isTierUnlocked(tier, totalEarnings) && tier <= maxAffordable);
 
   return (
     <div className="postgame-screen">
@@ -169,6 +170,9 @@ export default function PostGameScreen({
           {resultTitle}
         </h2>
         {betDelta && <p className="postgame-bet">{betDelta}</p>}
+        {matchResult.result === "draw" && (
+          <p className="postgame-draw-reason">{fmjdReasonMessage(matchResult.reason)}</p>
+        )}
         {(myScore > 0 || oppScore > 0) && (
           <p className="postgame-score">
             Score: {myScore} — {oppScore}
@@ -210,15 +214,7 @@ export default function PostGameScreen({
             <div className="postgame-bank">
               <div className="postgame-bank__label">🏦 Rematch bet</div>
               <div className="postgame-bank__chips">
-                {affordableTiers.map((tier) => (
-                  <button
-                    key={tier}
-                    className={`bet-chip ${rematchBetChoice === tier ? "bet-chip--selected" : ""}`}
-                    onClick={() => setRematchBetChoice(tier)}
-                  >
-                    {formatCoins(tier)}
-                  </button>
-                ))}
+                <BetTierGrid tiers={affordableTiers} selected={rematchBetChoice} onSelect={setRematchBetChoice} />
               </div>
               <div className="postgame-actions">
                 <Button variant="gold" onClick={() => offerRematch(rematchBetChoice)}>

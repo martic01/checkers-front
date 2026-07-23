@@ -6,6 +6,7 @@ import Avatar from "./Avatar.jsx";
 import { RankBadge } from "./RankBadge.jsx";
 import Button from "./Button.jsx";
 import { BET_TIERS, isTierUnlocked, formatCoins } from "../game/rank.js";
+import BetTierGrid from "./BetTierGrid.jsx";
 import "./Friends.css";
 
 export default function Friends({ player, onBack, onChallengeSent }) {
@@ -189,24 +190,16 @@ export default function Friends({ player, onBack, onChallengeSent }) {
               Your balance: {formatCoins(player.coins)} 🪙 · Their balance:{" "}
               {challengeTarget.coins != null ? formatCoins(challengeTarget.coins) : "?"} 🪙
             </p>
-            <div className="friends-bet-grid">
-              {BET_TIERS.slice(0, 8).map((tier) => {
+            <BetTierGrid
+              tiers={BET_TIERS}
+              selected={betAmount}
+              onSelect={setBetAmount}
+              isLocked={(tier) => {
                 const theyCanAfford = challengeTarget.coins == null || challengeTarget.coins >= tier;
                 const iCanAfford = player.coins >= tier;
-                const locked = !isTierUnlocked(tier, player.totalEarnings) || !theyCanAfford || !iCanAfford;
-                return (
-                  <button
-                    key={tier}
-                    className={`bet-chip ${betAmount === tier ? "bet-chip--selected" : ""} ${locked ? "bet-chip--locked" : ""}`}
-                    disabled={locked}
-                    title={!theyCanAfford ? `${challengeTarget.name} can't afford this bet` : ""}
-                    onClick={() => setBetAmount(tier)}
-                  >
-                    {formatCoins(tier)}
-                  </button>
-                );
-              })}
-            </div>
+                return !isTierUnlocked(tier, player.totalEarnings) || !theyCanAfford || !iCanAfford;
+              }}
+            />
             <div className="modal-actions">
               <Button variant="ghost" full onClick={() => setChallengeTarget(null)}>
                 Cancel

@@ -22,6 +22,8 @@ import Admin from "./components/Admin.jsx";
 import Inbox from "./components/Inbox.jsx";
 import OnlineLobby from "./components/OnlineLobby.jsx";
 import PostGameScreen from "./components/PostGameScreen.jsx";
+import OnboardingModal from "./components/OnboardingModal.jsx";
+import EmoteStore from "./components/EmoteStore.jsx";
 import GameScreen from "./components/GameScreen.jsx";
 import MusicPlayer from "./components/MusicPlayer.jsx";
 import UIOverlay from "./components/UIOverlay.jsx";
@@ -77,6 +79,7 @@ function AppRouter() {
   const claimInboxReward = usePlayerStore((s) => s.claimInboxReward);
   const markInboxRead = usePlayerStore((s) => s.markInboxRead);
   const refreshPlayer = usePlayerStore((s) => s.refreshPlayer);
+  const completeOnboarding = usePlayerStore((s) => s.completeOnboarding);
 
   const [screen, setScreen] = useState("home");
   const [aiDifficulty, setAiDifficulty] = useState(() => localStorage.getItem("checkers.aiDifficulty") || "medium");
@@ -206,6 +209,10 @@ function AppRouter() {
 
   // --- Online lobby handlers ---
   const handleQuickMatch = (betAmount) => {
+    if (!navigator.onLine) {
+      toastError("You're offline — connect to the internet to play online.");
+      return;
+    }
     setOnline({ ...IDLE_ONLINE_STATE, phase: "searching", betAmount });
     const socket = connectSocket();
 
@@ -225,6 +232,10 @@ function AppRouter() {
   };
 
   const handleCreateRoom = (betAmount) => {
+    if (!navigator.onLine) {
+      toastError("You're offline — connect to the internet to play online.");
+      return;
+    }
     setOnline({ ...IDLE_ONLINE_STATE, phase: "waiting-code", betAmount });
     const socket = connectSocket();
 
@@ -242,7 +253,7 @@ function AppRouter() {
           phase: "matched",
           betAmount: room.betAmount,
           roomCode: res.code,
-          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar, rank: opp?.rank, equippedTitle: opp?.equippedTitle },
+          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar, rank: opp?.rank, equippedTitle: opp?.equippedTitle, equippedEmoteId: opp?.equippedEmoteId },
           playerColor: "white",
         });
         setTimeout(() => setScreen("online-game"), 5000);
@@ -251,6 +262,10 @@ function AppRouter() {
   };
 
   const handleJoinRoom = (code) => {
+    if (!navigator.onLine) {
+      toastError("You're offline — connect to the internet to play online.");
+      return;
+    }
     setOnline({ ...IDLE_ONLINE_STATE, phase: "waiting-code", roomCode: code });
     const socket = connectSocket();
 
@@ -266,7 +281,7 @@ function AppRouter() {
           phase: "matched",
           betAmount: room.betAmount,
           roomCode: code,
-          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar, rank: opp?.rank, equippedTitle: opp?.equippedTitle },
+          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar, rank: opp?.rank, equippedTitle: opp?.equippedTitle, equippedEmoteId: opp?.equippedEmoteId },
           playerColor: "black",
         });
         setTimeout(() => setScreen("online-game"), 5000);
@@ -290,6 +305,7 @@ function AppRouter() {
 
   return (
     <>
+      {!player.agreedToTermsAt && <OnboardingModal onComplete={completeOnboarding} />}
       {settings && <MusicPlayer settings={settings} playlist={playlist} />}
       {!offline && <ChallengePopup player={player} soundsOn={soundsOn} onAccepted={() => {}} />}
 
@@ -342,6 +358,8 @@ function AppRouter() {
         return <Admin player={player} onBack={() => navigate("home")} />;
       case "friends":
         return <Friends player={player} onBack={() => navigate("home")} />;
+      case "emotes":
+        return <EmoteStore player={player} onBack={() => navigate("home")} />;
       case "online-lobby":
         return (
           <OnlineLobby
@@ -384,6 +402,8 @@ function AppRouter() {
             playerId={player.id}
             opponentId={online.opponent?.id}
             opponentProfile={online.vsBot ? online.opponent : null}
+            opponentEmoteInfo={online.opponent}
+            player={player}
             aiDifficulty={online.aiDifficulty}
             playerEquippedTitle={player.equippedTitle}
             opponentEquippedTitle={online.opponent?.equippedTitle}

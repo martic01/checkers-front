@@ -65,14 +65,6 @@
   flex-shrink: 0;
 }
 
-.friends-bet-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-  margin: 14px 0;
-}
-
 .friends-tag {
   font-size: 0.68rem;
   color: var(--cream-dim);

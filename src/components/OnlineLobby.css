@@ -119,40 +119,6 @@
   margin-bottom: 8px;
 }
 
-.bet-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  max-height: 140px;
-  overflow-y: auto;
-  padding-right: 2px;
-}
-
-.bet-chip {
-  position: relative;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--panel-border);
-  color: var(--cream);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-}
-
-.bet-chip--selected {
-  background: var(--gold);
-  color: var(--ink);
-  border-color: var(--gold);
-  font-weight: 700;
-}
-
-.bet-chip--locked {
-  opacity: 0.4;
-}
-.bet-chip__lock {
-  margin-right: 4px;
-}
-
 .bet-picker__balance {
   margin-top: 8px;
   font-size: 0.72rem;
@@ -297,6 +263,17 @@
   text-align: center;
   color: var(--cream-dim);
   font-size: 0.8rem;
+}
+
+.lobby-offline-banner {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #ff8a6a;
+  background: rgba(255, 106, 46, 0.12);
+  border: 1px solid rgba(255, 106, 46, 0.35);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  margin: 0 0 12px;
 }
 
 /* ---------- Overflow safety + icon button ---------- */

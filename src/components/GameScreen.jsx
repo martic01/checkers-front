@@ -9,13 +9,19 @@ import {
   getAllMoves,
   applyMove,
   getWinner,
-  canProposeDraw,
+  createFmjdTracker,
+  updateFmjdTracker,
+  fmjdReasonMessage,
   BOARD_SIZE,
   WHITE,
   BLACK,
 } from "../game/checkersLogic.js";
 import { getAiMove, aiRandomDecision } from "../game/ai.js";
 import { detectChatSituations, maybeGetBotLine, BOT_CHAT_COOLDOWN_MOVES } from "../game/botChat.js";
+import { resolveEquippedEmote } from "../game/emoteCatalog.js";
+import { api } from "../api/client.js";
+import { usePlayerStore } from "../store/playerStore.js";
+import EntryEmoteOverlay from "./EntryEmoteOverlay.jsx";
 import { playSound, isSoundEnabled } from "../utils/sound.js";
 import { confirmDialog, toastError, toastInfo } from "../store/uiStore.js";
 import { formatCoinsFull } from "../game/rank.js";
@@ -28,6 +34,13 @@ const MOVE_ANIMATION_MS = 620;
 // deserves room to breathe so players can actually watch it land, without
 // slowing down ordinary non-capturing slides.
 const CAPTURE_ANIMATION_MS = 950;
+
+function formatNetworkCountdown(deadline) {
+  const remaining = Math.max(0, deadline - Date.now());
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+  return `${mins}:${String(secs).padStart(2, "0")}`;
+}
 
 export default function GameScreen({
   mode, // 'ai' | 'local' | 'online'
@@ -42,6 +55,8 @@ export default function GameScreen({
   playerId,
   opponentId,
   opponentProfile,
+  opponentEmoteInfo,
+  player,
   playerEquippedTitle,
   opponentEquippedTitle,
   betAmount: initialBetAmount = 0,
@@ -66,16 +81,109 @@ export default function GameScreen({
   const [reviewingBoard, setReviewingBoard] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [connStatus, setConnStatus] = useState({ player: "connected", opponent: "connecting" });
+  // Network-loss handling: networkPaused = MY OWN socket dropped;
+  // opponentNetworkLost = the other side's did. Either pauses the match —
+  // moves aren't safe to make (or receive) mid-drop — until it's restored
+  // or the server's grace period times out and voids the match.
+  const [networkPaused, setNetworkPaused] = useState(false);
+  const [opponentNetworkLost, setOpponentNetworkLost] = useState(false);
+  const [networkDeadline, setNetworkDeadline] = useState(null);
+  const [, setNetworkTick] = useState(0);
+  useEffect(() => {
+    if (!networkPaused && !opponentNetworkLost) return;
+    const id = setInterval(() => setNetworkTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [networkPaused, opponentNetworkLost]);
 
   const [betAmount, setBetAmount] = useState(initialBetAmount);
   const [scores, setScores] = useState({});
 
-  // Mid-game draw proposal (only ever offered, never automatic — see
-  // finishDraw/proposeDraw below). { from: 'me' | 'them' } | null
+  // Mid-game draw proposal — mutual-agreement offers (online only), separate
+  // from the automatic FMJD rules tracked below. { from: 'me' | 'them' } | null
   const [drawOffer, setDrawOffer] = useState(null);
+
+  // Entry emotes — built once when the match starts, played over the board.
+  // Fetches the opponent's full public profile first (real opponents only —
+  // bot profiles already come with everything) so milestone emotes based on
+  // lifetime earnings, and the wins/streak/quote fields, have real data.
+  //
+  // emoteQueueReady guards against a real bug: emoteQueue starts as [], and
+  // EntryEmoteOverlay treats an empty queue as "nothing to play" and calls
+  // onDone immediately. Without this flag, the overlay would dismiss itself
+  // before the async fetch below ever populated the real queue — so no
+  // emote ever appeared to play, for either side.
+  const [emoteQueue, setEmoteQueue] = useState([]);
+  const [emoteQueueReady, setEmoteQueueReady] = useState(false);
+  const [emotesShowing, setEmotesShowing] = useState(mode === "online");
+  useEffect(() => {
+    if (mode !== "online") return;
+    let cancelled = false;
+    (async () => {
+      const items = [];
+      if (player) {
+        const mine = resolveEquippedEmote({
+          equippedEmoteId: player.equippedEmoteId,
+          rank: player.rank,
+          totalEarnings: player.totalEarnings ?? totalEarnings,
+        });
+        if (mine) {
+          items.push({
+            emote: mine,
+            info: {
+              name: playerName,
+              avatar: player.avatar,
+              rank: player.rank,
+              wins: player.stats?.wins,
+              streak: player.stats?.bestWinStreak,
+              quote: player.bio,
+            },
+          });
+        }
+      }
+      if (opponentEmoteInfo) {
+        let oppInfo = opponentEmoteInfo;
+        if (!vsBot && opponentEmoteInfo.id) {
+          try {
+            const full = await api.getPublicProfile(opponentEmoteInfo.id);
+            oppInfo = { ...opponentEmoteInfo, ...full };
+          } catch {
+            // Offline or profile fetch failed — fall back to the thin info
+            // we already have from the match-found payload.
+          }
+        }
+        const theirs = resolveEquippedEmote({
+          equippedEmoteId: oppInfo.equippedEmoteId,
+          rank: oppInfo.rank,
+          totalEarnings: oppInfo.totalEarnings ?? 0,
+        });
+        if (theirs) {
+          items.push({
+            emote: theirs,
+            info: {
+              name: oppInfo.name || opponentName,
+              avatar: oppInfo.avatar,
+              rank: oppInfo.rank,
+              wins: oppInfo.stats?.wins,
+              streak: oppInfo.stats?.bestWinStreak,
+              quote: oppInfo.bio,
+            },
+          });
+        }
+      }
+      if (!cancelled) {
+        setEmoteQueue(items);
+        setEmoteQueueReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const soundsOn = isSoundEnabled(settings);
   const animTimer = useRef(null);
+  const fmjdTracker = useRef(createFmjdTracker());
   useEffect(() => () => clearTimeout(animTimer.current), []);
 
   // ---------- AI chat (#3) ----------
@@ -142,7 +250,8 @@ export default function GameScreen({
     [mode, legalMoves, turn, playerColor]
   );
 
-  const isDisabled = isAnimating || gameOver !== null || interactiveMoves.length === 0;
+  const networkTrouble = mode === "online" && (networkPaused || opponentNetworkLost);
+  const isDisabled = isAnimating || gameOver !== null || interactiveMoves.length === 0 || networkTrouble;
 
   function finishGame(winner) {
     let result;
@@ -165,8 +274,8 @@ export default function GameScreen({
     }
   }
 
-  function finishDraw() {
-    setGameOver({ winner: null, result: "draw", forfeit: false });
+  function finishDraw(reason = "agreement") {
+    setGameOver({ winner: null, result: "draw", forfeit: false, reason });
     setDrawOffer(null);
     playSound("notify", soundsOn);
 
@@ -177,9 +286,10 @@ export default function GameScreen({
     }
   }
 
-  // Draws are opt-in: propose one, and either the other player or (vs. a
-  // bot) a random decision has to agree before anything actually ends.
-  // Declining just clears the offer and the match continues untouched.
+  // Mutual-agreement draw offer — online matches only, available at any
+  // point in the match (not gated by board state). Separate from the
+  // automatic FMJD rules, which end the match on their own with no
+  // confirmation needed from either side.
   function proposeDraw() {
     if (!socket) return;
     socket.emit("draw:offer", { code: roomCode });
@@ -309,6 +419,20 @@ export default function GameScreen({
           return;
         }
 
+        const movedPiece = board[move.from.row][move.from.col];
+        const { tracker, reason } = updateFmjdTracker(fmjdTracker.current, {
+          hadCapture: move.captures.length > 0,
+          pieceWasKing: !!movedPiece?.king,
+          promoted: kingedUp,
+          nextBoard,
+          nextTurn,
+        });
+        fmjdTracker.current = tracker;
+        if (reason) {
+          finishDraw(reason);
+          return;
+        }
+
         if (mode === "online" && vsBot) {
           const situations = detectChatSituations({
             move,
@@ -346,7 +470,7 @@ export default function GameScreen({
   }, [onlineAiDifficulty]);
   useEffect(() => {
     const isBotTurn = mode === "ai" || (mode === "online" && vsBot);
-    if (!isBotTurn || gameOver || isAnimating) return;
+    if (!isBotTurn || gameOver || isAnimating || networkTrouble) return;
     if (turn !== aiColor) return;
     const effectiveDifficulty = mode === "online" ? botDifficultyRef.current : difficulty;
     const timer = setTimeout(() => {
@@ -354,20 +478,71 @@ export default function GameScreen({
       if (move) commitMove(move);
     }, 500);
     return () => clearTimeout(timer);
-  }, [mode, vsBot, turn, aiColor, board, difficulty, mandatoryJumps, gameOver, isAnimating, commitMove]);
+  }, [mode, vsBot, turn, aiColor, board, difficulty, mandatoryJumps, gameOver, isAnimating, networkTrouble, commitMove]);
 
-  // Online: listen for opponent moves.
+  // Online: listen for opponent moves, plus connection health for both sides.
   useEffect(() => {
     if (mode !== "online" || !socket) return;
+    const NETWORK_GRACE_MS = 7 * 60 * 1000;
+
     const handler = ({ move }) => commitMove(move);
+
+    const onOpponentLeft = () => setConnStatus((c) => ({ ...c, opponent: "reconnecting" }));
+
+    // My own connection dropped (network loss, tab backgrounded, etc.).
+    const onDisconnect = (reason) => {
+      if (reason === "io client disconnect") return; // we disconnected on purpose (e.g. leaving)
+      setNetworkPaused(true);
+      setNetworkDeadline(Date.now() + NETWORK_GRACE_MS);
+    };
+    // Socket.io auto-reconnected — try to reclaim our seat in the room.
+    const onConnect = () => {
+      if (!roomCode || !playerId) return;
+      socket.emit("room:rejoin", { code: roomCode, playerId }, (res) => {
+        if (res?.ok) {
+          setNetworkPaused(false);
+          setNetworkDeadline(null);
+          toastInfo("Back online — resuming your match.");
+        } else {
+          usePlayerStore.getState().refreshPlayer?.();
+          toastError("This match ended while you were offline — your bet was refunded.");
+          onExit?.(null, null, "home");
+        }
+      });
+    };
+    const onOpponentNetworkLost = () => {
+      setOpponentNetworkLost(true);
+      setNetworkDeadline((d) => d ?? Date.now() + NETWORK_GRACE_MS);
+    };
+    const onOpponentNetworkRestored = () => {
+      setOpponentNetworkLost(false);
+      setNetworkDeadline(null);
+    };
+    const onNetworkTimeout = () => {
+      usePlayerStore.getState().refreshPlayer?.();
+      toastError("Match ended — connection couldn't be restored in time. Bets were refunded.");
+      onExit?.(null, null, "home");
+    };
+
     socket.on("game:move", handler);
-    socket.on("opponent:left", () => setConnStatus((c) => ({ ...c, opponent: "reconnecting" })));
+    socket.on("opponent:left", onOpponentLeft);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect", onConnect);
+    socket.on("opponent:network-lost", onOpponentNetworkLost);
+    socket.on("opponent:network-restored", onOpponentNetworkRestored);
+    socket.on("match:network-timeout", onNetworkTimeout);
     setConnStatus({ player: "connected", opponent: "connected" });
     return () => {
       socket.off("game:move", handler);
-      socket.off("opponent:left");
+      socket.off("opponent:left", onOpponentLeft);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect", onConnect);
+      socket.off("opponent:network-lost", onOpponentNetworkLost);
+      socket.off("opponent:network-restored", onOpponentNetworkRestored);
+      socket.off("match:network-timeout", onNetworkTimeout);
     };
-  }, [mode, socket, commitMove]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, socket, commitMove, roomCode, playerId]);
 
   const handleUndo = () => {
     if (mode !== "local" && mode !== "ai") return;
@@ -393,7 +568,7 @@ export default function GameScreen({
     setGameOver(null);
     setIsAnimating(false);
     setDrawOffer(null);
-    setOpponentQuit(false);
+    fmjdTracker.current = createFmjdTracker();
     playSound("click", soundsOn);
   };
 
@@ -416,29 +591,6 @@ export default function GameScreen({
     if (mode === "online" && socket) socket.emit("room:leave");
     onExit(null, null, mode === "online" ? "lobby" : "home");
   };
-
-  // Non-online modes have no opponent to ask over the network — the "other
-  // side" is either the local AI (random decision, same as an online bot)
-  // or the second human sharing this device (a simple confirm).
-  const handleProposeDrawLocal = async () => {
-    if (mode === "ai") {
-      toastInfo("Proposing a draw…");
-      const delay = 800 + Math.random() * 1200;
-      setTimeout(() => {
-        if (aiRandomDecision()) finishDraw();
-        else toastInfo("The AI declined — game continues.");
-      }, delay);
-    } else if (mode === "local") {
-      const ok = await confirmDialog({
-        title: "Propose a draw?",
-        message: "Does the other player agree to end this game as a draw?",
-        confirmLabel: "They agree",
-        cancelLabel: "Continue playing",
-      });
-      if (ok) finishDraw();
-    }
-  };
-  const handleProposeDraw = mode === "online" ? proposeDraw : handleProposeDrawLocal;
 
   const myScore = scores[playerId] || 0;
   const oppScore = scores[opponentId] || 0;
@@ -468,7 +620,7 @@ export default function GameScreen({
         onUndo={mode !== "online" ? handleUndo : undefined}
         onHint={settings.helper !== "OFF" ? handleHint : undefined}
         onRestart={mode !== "online" ? handleRestart : undefined}
-        onProposeDraw={!gameOver && !drawOffer && canProposeDraw(board) ? handleProposeDraw : undefined}
+        onProposeDraw={mode === "online" && !gameOver && !drawOffer ? proposeDraw : undefined}
         onToggleChat={mode === "online" ? () => setChatOpen((o) => !o) : undefined}
         chatOpen={chatOpen}
         onLeave={handleLeave}
@@ -507,9 +659,24 @@ export default function GameScreen({
             playerColor={playerColor}
             forceOrientToPlayer={mode === "online"}
             helper={settings.helper !== "OFF"}
-            disabled={isDisabled}
+            disabled={isDisabled || emotesShowing}
             lastMove={lastMove}
           />
+          {emotesShowing && emoteQueueReady && (
+            <EntryEmoteOverlay queue={emoteQueue} onDone={() => setEmotesShowing(false)} soundsOn={soundsOn} />
+          )}
+          {networkTrouble && (
+            <div className="network-lost-banner">
+              <span className="network-lost-banner__icon">📶</span>
+              <div className="network-lost-banner__text">
+                <strong>{networkPaused ? "You're offline" : "Opponent lost connection"}</strong>
+                <span>
+                  {networkPaused ? "Reconnecting…" : "Waiting for them to reconnect…"}
+                  {networkDeadline ? ` (${formatNetworkCountdown(networkDeadline)} left)` : ""}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </GameHUD>
 
@@ -548,7 +715,7 @@ export default function GameScreen({
             <h3>{gameOver.result === "draw" ? "Draw" : gameOver.winner === playerColor || mode === "local" ? "Game Over" : "Defeat"}</h3>
             <p>
               {gameOver.result === "draw"
-                ? "Both players agreed to a draw."
+                ? fmjdReasonMessage(gameOver.reason)
                 : mode === "local"
                 ? `${gameOver.winner.toUpperCase()} wins!`
                 : gameOver.winner === playerColor

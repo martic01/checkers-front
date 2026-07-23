@@ -21,6 +21,42 @@
   z-index: 50;
 }
 
+.network-lost-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(20, 12, 8, 0.95);
+  border: 1px solid #ff8a6a;
+  box-shadow: 0 0 18px rgba(255, 106, 46, 0.35);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  max-width: min(320px, 90vw);
+}
+.network-lost-banner__icon {
+  font-size: 1.4rem;
+  animation: network-lost-blink 1.2s ease-in-out infinite;
+}
+@keyframes network-lost-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.network-lost-banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.75rem;
+  color: var(--cream);
+}
+.network-lost-banner__text strong {
+  color: #ff8a6a;
+  font-size: 0.8rem;
+}
+
 .game-over-card {
   background: var(--panel-bg);
   border: 1px solid var(--gold);
@@ -127,6 +163,7 @@
 
 /* ---------- Score rail (left of board, online rematches) ---------- */
 .board-with-rail {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;

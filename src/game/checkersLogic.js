@@ -249,25 +249,25 @@ export function getWinner(board, turn, mandatoryJumps = true) {
 }
 
 // ---------------------------------------------------------------------------
-// Draws are never automatic — they only ever happen when one player
-// proposes one and the other side (or, vs. an AI opponent, a coin-flip)
-// agrees. This just gates *when the option becomes available* so players
-// can't spam draw offers mid-game: once the board is down to its final few
-// pieces, either side may suggest calling it.
+// Official FMJD (World Draughts Federation) draw rules for International
+// 10x10 draughts. All three are fully automatic — detected from the move
+// sequence itself, no player action required. Mutual-agreement draws (an
+// "Offer Draw" button, online-only) are handled separately at the UI layer;
+// this module only covers the automatic rules.
 // ---------------------------------------------------------------------------
 
-export function totalPieceCount(board) {
-  let count = 0;
+// Breakdown of one side's remaining material.
+export function pieceBreakdown(board, color) {
+  let kings = 0;
+  let men = 0;
   for (const row of board) {
     for (const cell of row) {
-      if (cell) count++;
+      if (!cell || cell.color !== color) continue;
+      if (cell.king) kings += 1;
+      else men += 1;
     }
   }
-  return count;
-}
-
-export function canProposeDraw(board) {
-  return totalPieceCount(board) === 3;
+  return { kings, men, total: kings + men };
 }
 
 export function allPiecesAreKings(board) {
@@ -282,9 +282,9 @@ export function allPiecesAreKings(board) {
   return sawAny;
 }
 
-// Serializes a board + the color to move into a string key. Used by ai.js to
-// steer the AI away from a position it's already repeated, when an equally
-// good alternative move exists.
+// Serializes a board + the color to move into a string key — used for
+// threefold-repetition detection here, and by ai.js to steer the AI away
+// from a position it's already repeated when an equally good move exists.
 export function boardPositionKey(board, turn) {
   let key = turn === WHITE ? "W|" : "B|";
   for (let row = 0; row < BOARD_SIZE; row++) {
@@ -294,4 +294,91 @@ export function boardPositionKey(board, turn) {
     }
   }
   return key;
+}
+
+// A side "qualifies" for the material-advantage draw rules if it's down to
+// a single lone king with nothing else, and the opponent has one of the
+// listed weak-but-technically-ahead material configurations.
+function isLoneKing(side) {
+  return side.total === 1 && side.kings === 1;
+}
+// 3 Kings, 2 Kings + 1 Man, or 1 King + 2 Men.
+function isThreePieceEdge(side) {
+  return side.total === 3 && side.kings >= 1;
+}
+// 2 Kings, 1 King + 1 Man, 2 Men, 1 King, or 1 Man.
+function isTwoOrFewerEdge(side) {
+  return side.total >= 1 && side.total <= 2;
+}
+
+// Returns { strong, sig } if the position matches an FMJD material-advantage
+// endgame (16-move countdown applies), else null. `sig` is a signature of
+// the exact configuration — the countdown resets whenever this changes.
+function classifyMaterialEndgame(board) {
+  const white = pieceBreakdown(board, WHITE);
+  const black = pieceBreakdown(board, BLACK);
+  const sig = `${white.kings}k${white.men}m-${black.kings}k${black.men}m`;
+
+  if (isLoneKing(black) && (isThreePieceEdge(white) || isTwoOrFewerEdge(white))) return { strong: WHITE, sig };
+  if (isLoneKing(white) && (isThreePieceEdge(black) || isTwoOrFewerEdge(black))) return { strong: BLACK, sig };
+  return null;
+}
+
+export function createFmjdTracker() {
+  return {
+    kingsOnlyPlies: 0, // resets on any man-move or capture; draw at 50 (25 moves each)
+    positionCounts: {}, // for threefold repetition
+    material: { sig: null, movesLeft: 0 }, // 16-move material-advantage countdown
+  };
+}
+
+// Call once per committed move (human, AI, or relayed online move).
+// `pieceWasKing` — was the piece that just moved already a king *before*
+// this move (i.e. not a promotion, which counts as a man-move for rule 1).
+// Returns { tracker, reason } — reason is one of 'kings-only-25' |
+// 'repetition' | 'material-advantage' | null (null = match continues).
+export function updateFmjdTracker(tracker, { hadCapture, pieceWasKing, promoted, nextBoard, nextTurn }) {
+  // Rule 1: 25 moves by each side (50 plies) using only kings, no captures.
+  const resetsKingsOnly = hadCapture || promoted || !pieceWasKing;
+  const kingsOnlyPlies = resetsKingsOnly ? 0 : tracker.kingsOnlyPlies + 1;
+
+  // Rule 2: threefold repetition of the exact same position + side to move.
+  const key = boardPositionKey(nextBoard, nextTurn);
+  const positionCounts = { ...tracker.positionCounts, [key]: (tracker.positionCounts[key] || 0) + 1 };
+
+  // Rule 3: 16-move countdown once a lone-king-vs-weak-material endgame is
+  // reached; resets on any capture or change to the exact configuration.
+  const cls = classifyMaterialEndgame(nextBoard);
+  let material;
+  if (!cls) {
+    material = { sig: null, movesLeft: 0 };
+  } else if (cls.sig !== tracker.material.sig) {
+    material = { sig: cls.sig, movesLeft: 16 };
+  } else {
+    material = { sig: cls.sig, movesLeft: tracker.material.movesLeft - 1 };
+  }
+
+  const nextTracker = { kingsOnlyPlies, positionCounts, material };
+
+  let reason = null;
+  if (positionCounts[key] >= 3) reason = "repetition";
+  else if (kingsOnlyPlies >= 50) reason = "kings-only-25";
+  else if (cls && material.movesLeft <= 0) reason = "material-advantage";
+
+  return { tracker: nextTracker, reason };
+}
+
+export function fmjdReasonMessage(reason) {
+  switch (reason) {
+    case "kings-only-25":
+      return "25 moves by each side with only kings and no captures (FMJD Art. 25-move rule).";
+    case "repetition":
+      return "The same position occurred three times with the same side to move.";
+    case "material-advantage":
+      return "The stronger side failed to convert a won endgame within 16 moves (FMJD material-advantage rule).";
+    case "agreement":
+      return "Both players agreed to a draw.";
+    default:
+      return "Draw.";
+  }
 }

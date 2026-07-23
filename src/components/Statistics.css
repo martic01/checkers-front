@@ -69,8 +69,15 @@
 
 .trophy-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+}
+/* A trophy left alone in the final row stretches to fill it. */
+.trophy-grid > *:last-child:nth-child(3n + 1) {
+  grid-column: 1 / -1;
+}
+.trophy-grid > *:nth-last-child(2):nth-child(3n + 1) {
+  grid-column: span 2;
 }
 
 .trophy {

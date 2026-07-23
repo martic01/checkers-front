@@ -31,6 +31,7 @@ const MODE_CARDS = [
 const ICON_NAV = [
   { key: "friends", icon: "👥", label: "Friends" },
   { key: "season", icon: "🏆", label: "Season" },
+  { key: "emotes", icon: "✨", label: "Emotes" },
   { key: "rules", icon: "📖", label: "Rules" },
   { key: "settings", icon: "⚙️", label: "Settings" },
   { key: "stats", icon: "📊", label: "Stats" },
