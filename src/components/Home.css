@@ -1,42 +1,56 @@
+/* Home.css - Complete responsive fixes */
+
+* {
+  box-sizing: border-box;
+}
+
 .home {
   max-width: 760px;
+  width: 100%;
   margin: 0 auto;
   padding: 48px 20px 40px;
   display: flex;
   flex-direction: column;
   gap: 32px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .home-hero {
   text-align: center;
+  padding: 0 10px;
+  width: 100%;
 }
 
 .home-eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: clamp(0.6rem, 1.5vw, 0.72rem);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--gold);
+  cursor: pointer;
+  user-select: none;
+  display: inline-block;
 }
 
 .home-title {
-  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  font-size: clamp(2rem, 6vw, 3.4rem);
   margin: 8px 0 6px;
   background: linear-gradient(135deg, var(--cream), var(--maple-deep));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-
-.home-tagline {
-  color: var(--cream-dim);
-  font-size: 0.95rem;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .mode-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .mode-card {
@@ -52,7 +66,13 @@
   text-align: left;
   color: var(--cream);
   transition: transform 0.18s ease, border-color 0.18s ease;
+  min-height: 140px;
+  width: 100%;
+  max-width: 100%;
+  cursor: pointer;
+  overflow: hidden;
 }
+
 .mode-card:hover {
   transform: translateY(-4px);
   border-color: var(--gold);
@@ -66,39 +86,53 @@
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: clamp(0.5rem, 1.2vw, 0.6rem);
   color: var(--success);
   background: rgba(111, 174, 111, 0.12);
   border: 1px solid rgba(111, 174, 111, 0.4);
   padding: 3px 8px;
   border-radius: 999px;
+  white-space: nowrap;
+  max-width: calc(100% - 28px);
 }
+
 .mode-card__online-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--success);
   box-shadow: 0 0 5px var(--success);
+  flex-shrink: 0;
 }
 
 .mode-icon {
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  flex-shrink: 0;
 }
+
 .mode-title {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  word-break: break-word;
+  max-width: 100%;
 }
+
 .mode-desc {
-  font-size: 0.78rem;
+  font-size: clamp(0.7rem, 1.5vw, 0.78rem);
   color: var(--cream-dim);
   line-height: 1.4;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .icon-nav {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: clamp(6px, 1.5vw, 10px);
   flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 4px;
 }
 
 .icon-nav-item {
@@ -109,11 +143,15 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--panel-border);
   color: var(--cream-dim);
-  padding: 12px 16px;
+  padding: clamp(8px, 1.5vw, 12px) clamp(10px, 2vw, 16px);
   border-radius: var(--radius-md);
-  min-width: 72px;
+  min-width: clamp(52px, 10vw, 72px);
   transition: transform 0.16s ease, border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+  flex: 0 1 auto;
+  cursor: pointer;
+  max-width: 100%;
 }
+
 .icon-nav-item:hover {
   transform: translateY(-3px);
   border-color: var(--gold);
@@ -122,34 +160,33 @@
 }
 
 .icon-nav-item__icon {
-  font-size: 1.3rem;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  flex-shrink: 0;
 }
+
 .icon-nav-item__label {
-  font-size: 0.62rem;
+  font-size: clamp(0.5rem, 1.2vw, 0.62rem);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 600;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-@media (max-width: 640px) {
-  .mode-cards {
-    grid-template-columns: 1fr;
-  }
-  .icon-nav {
-    gap: 8px;
-  }
-  .icon-nav-item {
-    min-width: 60px;
-    padding: 10px 10px;
-  }
-}
-
+/* Topbar responsive fixes */
 .home-topbar {
   width: 100%;
+  max-width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   margin-bottom: 10px;
+  flex-wrap: nowrap;
+  min-height: 44px;
+  overflow: hidden;
 }
 
 .home-player {
@@ -159,16 +196,40 @@
   background: none;
   border: none;
   color: var(--cream);
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 4px 0;
+  cursor: pointer;
+  max-width: 70%;
+  overflow: hidden;
 }
+
 .home-player__name {
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 1.8vw, 0.85rem);
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1;
+  max-width: 100%;
 }
 
 .home-topbar__right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: clamp(4px, 1vw, 8px);
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+.home-topbar__right .coin-pill {
+  max-width: 100%;
+}
+
+.home-topbar__right .rank-badge {
+  max-width: 100%;
 }
 
 .home-inbox-btn {
@@ -176,8 +237,13 @@
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--panel-border);
   border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 0.9rem;
+  padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px);
+  font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .home-inbox-badge {
@@ -186,13 +252,350 @@
   right: -4px;
   background: #c85c4f;
   color: white;
-  font-size: 0.6rem;
+  font-size: clamp(0.5rem, 1.2vw, 0.6rem);
   border-radius: 999px;
   padding: 1px 5px;
   font-family: var(--font-mono);
+  min-width: 16px;
+  text-align: center;
+  pointer-events: none;
 }
 
 .icon-nav-item--admin {
   border-color: rgba(201, 162, 39, 0.5);
   color: var(--gold-bright);
 }
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .home {
+    padding: 32px 16px 30px;
+    gap: 24px;
+  }
+  
+  .mode-cards {
+    gap: 12px;
+  }
+  
+  .mode-card {
+    padding: 18px 14px;
+    min-height: 120px;
+  }
+  
+  .home-topbar__right {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home {
+    padding: 24px 12px 24px;
+    gap: 20px;
+  }
+  
+  .mode-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .icon-nav {
+    gap: 6px;
+    padding: 0 2px;
+  }
+  
+  .icon-nav-item {
+    min-width: 52px;
+    padding: 10px 8px;
+  }
+  
+  .home-player__name {
+    max-width: 30vw;
+  }
+  
+  .home-topbar__right .coin-pill,
+  .home-topbar__right .rank-badge {
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+  }
+  
+  .home-topbar {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home {
+    padding: 20px 10px 20px;
+    gap: 18px;
+  }
+  
+  .home-topbar {
+    gap: 4px;
+    margin-bottom: 6px;
+    min-height: 38px;
+  }
+  
+  .home-player {
+    gap: 5px;
+  }
+  
+  .home-topbar__right {
+    gap: 3px;
+  }
+  
+  .home-player__name {
+    max-width: 20vw;
+    font-size: 0.7rem;
+  }
+  
+  .mode-card {
+    padding: 14px 12px;
+    min-height: 100px;
+  }
+  
+  .mode-card__online-badge {
+    top: 10px;
+    right: 10px;
+    padding: 2px 6px;
+    font-size: 0.5rem;
+  }
+  
+  .icon-nav {
+    gap: 4px;
+    padding: 0 1px;
+  }
+  
+  .icon-nav-item {
+    min-width: 44px;
+    padding: 8px 6px;
+  }
+  
+  .icon-nav-item__label {
+    font-size: 0.45rem;
+  }
+  
+  .home-inbox-btn {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+  
+  .home-inbox-badge {
+    font-size: 0.45rem;
+    padding: 1px 4px;
+    min-width: 14px;
+  }
+  
+  .home-hero {
+    padding: 0 5px;
+  }
+}
+
+@media (max-width: 360px) {
+  .home {
+    padding: 16px 6px 16px;
+    gap: 14px;
+  }
+  
+  .home-topbar {
+    gap: 3px;
+    min-height: 34px;
+  }
+  
+  .home-player {
+    gap: 4px;
+  }
+  
+  .home-player__name {
+    max-width: 14vw;
+    font-size: 0.6rem;
+  }
+  
+  .home-title {
+    font-size: 1.6rem;
+  }
+  
+  .home-eyebrow {
+    font-size: 0.5rem;
+  }
+  
+  .mode-card {
+    padding: 12px 10px;
+    min-height: 80px;
+  }
+  
+  .mode-icon {
+    font-size: 1rem;
+  }
+  
+  .mode-title {
+    font-size: 0.8rem;
+  }
+  
+  .mode-desc {
+    font-size: 0.6rem;
+  }
+  
+  .icon-nav-item {
+    min-width: 36px;
+    padding: 6px 4px;
+  }
+  
+  .icon-nav-item__icon {
+    font-size: 0.8rem;
+  }
+  
+  .icon-nav-item__label {
+    font-size: 0.4rem;
+  }
+  
+  .home-inbox-btn {
+    padding: 3px 4px;
+    font-size: 0.65rem;
+  }
+  
+  .home-inbox-badge {
+    font-size: 0.4rem;
+    padding: 1px 3px;
+    min-width: 12px;
+    top: -3px;
+    right: -3px;
+  }
+  
+  .home-topbar__right .coin-pill,
+  .home-topbar__right .rank-badge {
+    font-size: 0.55rem;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
+
+/* Fix for very tall screens */
+@media (min-height: 800px) {
+  .home {
+    justify-content: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+}
+
+/* Fix for landscape mode on phones */
+@media (max-height: 500px) and (orientation: landscape) {
+  .home {
+    padding: 12px 20px 12px;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  
+  .home-hero {
+    margin-bottom: 0;
+    padding: 0 5px;
+  }
+  
+  .home-title {
+    font-size: 1.6rem;
+    margin: 2px 0;
+  }
+  
+  .home-eyebrow {
+    font-size: 0.5rem;
+  }
+  
+  .mode-card {
+    min-height: 70px;
+    padding: 10px 12px;
+  }
+  
+  .mode-desc {
+    display: none;
+  }
+  
+  .mode-title {
+    font-size: 0.8rem;
+  }
+  
+  .mode-icon {
+    font-size: 1rem;
+  }
+  
+  .icon-nav-item__label {
+    display: none;
+  }
+  
+  .icon-nav-item {
+    min-width: 40px;
+    padding: 6px;
+  }
+  
+  .icon-nav-item__icon {
+    font-size: 1rem;
+  }
+  
+  .icon-nav {
+    gap: 4px;
+    padding: 0 2px;
+  }
+  
+  .home-topbar {
+    min-height: 32px;
+    margin-bottom: 4px;
+  }
+  
+  .home-player__name {
+    font-size: 0.65rem;
+  }
+}
+
+/* Tablet specific */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .home {
+    padding: 40px 24px 36px;
+  }
+  
+  .mode-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1025px) {
+  .home {
+    padding: 48px 24px 40px;
+  }
+}
+
+/* Ensure all content respects container width */
+.home > * {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Fix for any overflowing elements */
+[class*="home"] {
+  box-sizing: border-box;
+}
+
+/* Ensure the avatar doesn't overflow */
+.home-player .avatar-token {
+  flex-shrink: 0;
+}
+
+/* Fix for the title marquee */
+.home-player .title-marquee {
+  max-width: 100%;
+  overflow: hidden;
+  flex-shrink: 1;
+}
+
+/* Ensure coin pill and rank badge don't overflow */
+.coin-pill,
+.rank-badge {
+  max-width: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+
+
+
+

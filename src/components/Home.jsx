@@ -44,7 +44,7 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
 
   useEffect(() => {
     let cancelled = false;
-    const poll = () => api.lobby().then((d) => !cancelled && setPlayersOnline(d.playersOnline)).catch(() => {});
+    const poll = () => api.lobby().then((d) => !cancelled && setPlayersOnline(d.playersOnline)).catch(() => { });
     poll();
     const id = setInterval(poll, 8000);
     return () => {
@@ -66,6 +66,9 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
 
   return (
     <div className="home">
+      <div className="badge">
+        <RankBadge rank={player.rank} size="sm" />
+      </div>
       <div className="home-topbar">
         <button className="home-player" onClick={() => openProfile(player)}>
           <Avatar avatar={player.avatar} size={36} />
@@ -76,7 +79,7 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
         </button>
         <div className="home-topbar__right">
           <CoinPill coins={player.coins} />
-          <RankBadge rank={player.rank} size="sm" />
+
           <button className="home-inbox-btn" onClick={onOpenInbox} aria-label="Inbox">
             📥{inboxCount > 0 && <span className="home-inbox-badge">{inboxCount}</span>}
           </button>
