@@ -1,57 +1,52 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./Carousel.css";
 
-// Generic slide carousel used to break up long stacked sections (emote
-// categories, stats/trophy room, lobby options, etc.) into swipeable
-// pages with arrows + dots, instead of one long scrolling page.
+// Generic slide carousel — mirrors the app's Settings carousel: a
+// horizontally swipeable, scroll-snapped track with labeled pill tabs
+// above it. Swipe or tap a tab to switch slides; no arrow buttons.
 export default function Carousel({ slides, className = "" }) {
-  const [index, setIndex] = useState(0);
-  const count = slides.length;
-  const safeIndex = Math.min(index, count - 1);
+  const trackRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const go = (dir) => setIndex((i) => (i + dir + count) % count);
+  if (slides.length === 0) return null;
 
-  if (count === 0) return null;
+  const goToSlide = (i) => {
+    const track = trackRef.current;
+    if (!track) return;
+    track.scrollTo({ left: i * track.clientWidth, behavior: "smooth" });
+    setActiveIndex(i);
+  };
+
+  const handleScroll = () => {
+    const track = trackRef.current;
+    if (!track || !track.clientWidth) return;
+    const page = Math.round(track.scrollLeft / track.clientWidth);
+    setActiveIndex(page);
+  };
 
   return (
     <div className={`carousel ${className}`}>
-      <div className="carousel__stage">
-        <button
-          className="carousel__arrow carousel__arrow--prev"
-          onClick={() => go(-1)}
-          disabled={count <= 1}
-          aria-label="Previous slide"
-        >
-          ‹
-        </button>
-
-        <div className="carousel__viewport">
-          {slides[safeIndex].label && <div className="carousel__label">{slides[safeIndex].label}</div>}
-          <div className="carousel__slide">{slides[safeIndex].content}</div>
-        </div>
-
-        <button
-          className="carousel__arrow carousel__arrow--next"
-          onClick={() => go(1)}
-          disabled={count <= 1}
-          aria-label="Next slide"
-        >
-          ›
-        </button>
-      </div>
-
-      {count > 1 && (
-        <div className="carousel__dots">
+      {slides.length > 1 && (
+        <div className="carousel-dots">
           {slides.map((s, i) => (
             <button
               key={s.key || i}
-              className={`carousel__dot ${i === safeIndex ? "carousel__dot--active" : ""}`}
-              onClick={() => setIndex(i)}
-              aria-label={s.label ? `Go to ${s.label}` : `Go to slide ${i + 1}`}
-            />
+              className={`carousel-dot ${activeIndex === i ? "carousel-dot--active" : ""}`}
+              onClick={() => goToSlide(i)}
+            >
+              {s.label || i + 1}
+            </button>
           ))}
         </div>
       )}
+
+      <div className="carousel-track" ref={trackRef} onScroll={handleScroll}>
+        {slides.map((s, i) => (
+          <div className="carousel-page" key={s.key || i}>
+            {s.content}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

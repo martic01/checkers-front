@@ -28,7 +28,21 @@ export default function MusicPlayer({ settings, playlist = [] }) {
     }
   }, [settings.music, track]);
 
-  const handleEnded = () => setTrackIndex((i) => (i + 1) % Math.max(playlist.length, 1));
+  const handleEnded = () => {
+    if (playlist.length <= 1) {
+      // With only one song, trackIndex wraps back to the same value and
+      // `track` is the exact same object reference — the play-effect above
+      // never re-runs because its dependency didn't change. Restart
+      // playback directly here instead, or the "loop" silently stops.
+      const audio = audioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+      return;
+    }
+    setTrackIndex((i) => (i + 1) % playlist.length);
+  };
 
   return <audio ref={audioRef} onEnded={handleEnded} hidden />;
 }

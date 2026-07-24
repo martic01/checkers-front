@@ -77,6 +77,8 @@ body,
 #root {
   height: 100%;
   margin: 0;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
@@ -148,6 +150,23 @@ h3 {
    flash over buttons, board squares, and pieces on every tap). */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* This is a game UI, not a document — selecting/highlighting text (names,
+   labels, board squares, etc.) on tap-and-drag is a mobile-web annoyance,
+   not a feature. Left on for actual editable fields and anything that
+   explicitly opts back in with .selectable. */
+html,
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+input,
+textarea,
+select,
+.selectable {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 @media (max-width: 640px) {

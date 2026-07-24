@@ -244,3 +244,112 @@
   color: var(--cream-dim);
   font-style: italic;
 }
+
+/* ---------- Draw-warning second-chance modal ---------- */
+.draw-warning-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 6, 4, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 52;
+  padding: 20px;
+}
+.draw-warning-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow: var(--panel-shadow);
+  max-width: 340px;
+}
+.draw-warning-card h3 {
+  color: var(--gold-bright);
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 1rem;
+}
+.draw-warning-card p {
+  color: var(--cream);
+  font-size: 0.85rem;
+  margin: 0 0 10px;
+}
+.draw-warning-note {
+  color: #ff8a6a !important;
+  font-size: 0.78rem !important;
+}
+.draw-warning-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.draw-warning-actions button {
+  flex: 1;
+}
+
+/* ---------- Dramatic game-end banner: big bold "3D" status text shown
+   on the board right when the match ends, before navigating away. ---------- */
+.game-end-banner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 46;
+  pointer-events: none;
+  background: rgba(6, 4, 3, 0.45);
+}
+.game-end-banner__text {
+  font-size: clamp(2.2rem, 12vw, 3.6rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  animation: game-end-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), game-end-glow 1.1s ease-in-out infinite 0.55s;
+}
+@keyframes game-end-pop {
+  0% { transform: scale(0.3) rotate(-4deg); opacity: 0; }
+  60% { transform: scale(1.12) rotate(1deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.game-end-banner--win .game-end-banner__text {
+  color: #ffd15c;
+  text-shadow:
+    0 1px 0 #a9761a,
+    0 2px 0 #8f6316,
+    0 3px 0 #755112,
+    0 4px 0 #5b3f0e,
+    0 6px 14px rgba(0, 0, 0, 0.65),
+    0 0 40px rgba(255, 200, 60, 0.65);
+}
+.game-end-banner--lose .game-end-banner__text {
+  color: #ff6a6a;
+  text-shadow:
+    0 1px 0 #7a1a1a,
+    0 2px 0 #661616,
+    0 3px 0 #521212,
+    0 4px 0 #3e0e0e,
+    0 6px 14px rgba(0, 0, 0, 0.65),
+    0 0 40px rgba(255, 70, 70, 0.55);
+}
+.game-end-banner--draw .game-end-banner__text {
+  color: #cfe0ff;
+  text-shadow:
+    0 1px 0 #4a5a7a,
+    0 2px 0 #3e4c66,
+    0 3px 0 #333f52,
+    0 4px 0 #27313e,
+    0 6px 14px rgba(0, 0, 0, 0.65),
+    0 0 40px rgba(160, 190, 255, 0.55);
+}
+@keyframes game-end-glow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-end-banner__text {
+    animation: none !important;
+  }
+}

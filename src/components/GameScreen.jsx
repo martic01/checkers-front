@@ -102,6 +102,14 @@ export default function GameScreen({
   // from the automatic FMJD rules tracked below. { from: 'me' | 'them' } | null
   const [drawOffer, setDrawOffer] = useState(null);
 
+  // Automatic FMJD draw rules get a second chance before ending the match:
+  // the first time a rule condition is hit, show a warning with a choice
+  // instead of ending immediately. If the same condition fires again after
+  // "Continue" was picked, it's final — drawGraceGiven tracks which reasons
+  // have already used up their one warning.
+  const [drawWarning, setDrawWarning] = useState(null); // reason string | null
+  const drawGraceGiven = useRef(new Set());
+
   // Entry emotes — built once when the match starts, played over the board.
   // Fetches the opponent's full public profile first (real opponents only —
   // bot profiles already come with everything) so milestone emotes based on
@@ -251,7 +259,7 @@ export default function GameScreen({
   );
 
   const networkTrouble = mode === "online" && (networkPaused || opponentNetworkLost);
-  const isDisabled = isAnimating || gameOver !== null || interactiveMoves.length === 0 || networkTrouble;
+  const isDisabled = isAnimating || gameOver !== null || interactiveMoves.length === 0 || networkTrouble || !!drawWarning;
 
   function finishGame(winner) {
     let result;
@@ -261,7 +269,7 @@ export default function GameScreen({
       result = `${winner} wins`;
     }
     setGameOver({ winner, result, forfeit: false });
-    playSound(mode !== "local" && winner !== playerColor ? "lose" : "win", soundsOn);
+    playSound(mode !== "local" && winner !== playerColor ? "gameEndLose" : "gameEndWin", soundsOn);
 
     if (mode === "online" && winner === playerColor && betAmount > 0) {
       setShowCoinBurst(true);
@@ -277,7 +285,8 @@ export default function GameScreen({
   function finishDraw(reason = "agreement") {
     setGameOver({ winner: null, result: "draw", forfeit: false, reason });
     setDrawOffer(null);
-    playSound("notify", soundsOn);
+    setDrawWarning(null);
+    playSound("gameEndDraw", soundsOn);
 
     // Server settles both sides' stats/coins for online draws; it's safe for
     // both clients to emit since the server no-ops once a room is settled.
@@ -313,9 +322,25 @@ export default function GameScreen({
     setDrawOffer(null);
   };
 
+  // Dramatic game-end banner — a bold status card shown on the board the
+  // instant the match ends. Online matches hand off to the rematch lobby
+  // only after it's had its ~3s moment; local/ai just reveal the normal
+  // game-over card once it clears.
+  const GAME_END_BANNER_MS = 3000;
+  const [showEndBanner, setShowEndBanner] = useState(false);
+  useEffect(() => {
+    if (!gameOver) return;
+    setShowEndBanner(true);
+    const t = setTimeout(() => setShowEndBanner(false), GAME_END_BANNER_MS);
+    return () => clearTimeout(t);
+  }, [gameOver]);
+
   useEffect(() => {
     if (mode === "online" && gameOver) {
-      onMatchEnd?.({ ...gameOver, betAmount, scores });
+      const t = setTimeout(() => {
+        onMatchEnd?.({ ...gameOver, betAmount, scores });
+      }, GAME_END_BANNER_MS);
+      return () => clearTimeout(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameOver]);
@@ -429,7 +454,16 @@ export default function GameScreen({
         });
         fmjdTracker.current = tracker;
         if (reason) {
-          finishDraw(reason);
+          if (drawGraceGiven.current.has(reason)) {
+            // Already warned once for this exact rule — it happened again,
+            // so it's final.
+            finishDraw(reason);
+          } else {
+            // First time this rule condition is hit — give both the
+            // explanation and a choice instead of ending immediately.
+            drawGraceGiven.current.add(reason);
+            setDrawWarning(reason);
+          }
           return;
         }
 
@@ -568,6 +602,8 @@ export default function GameScreen({
     setGameOver(null);
     setIsAnimating(false);
     setDrawOffer(null);
+    setDrawWarning(null);
+    drawGraceGiven.current = new Set();
     fmjdTracker.current = createFmjdTracker();
     playSound("click", soundsOn);
   };
@@ -677,6 +713,17 @@ export default function GameScreen({
               </div>
             </div>
           )}
+          {showEndBanner && gameOver && (
+            <div
+              className={`game-end-banner game-end-banner--${
+                gameOver.result === "draw" ? "draw" : mode === "local" ? "win" : gameOver.winner === playerColor ? "win" : "lose"
+              }`}
+            >
+              <div className="game-end-banner__text">
+                {gameOver.result === "draw" ? "Draw" : mode === "local" ? `${gameOver.winner.toUpperCase()} Wins` : gameOver.winner === playerColor ? "Victory" : "Defeat"}
+              </div>
+            </div>
+          )}
         </div>
       </GameHUD>
 
@@ -700,6 +747,26 @@ export default function GameScreen({
         </div>
       )}
 
+      {drawWarning && !gameOver && (
+        <div className="draw-warning-overlay">
+          <div className="draw-warning-card">
+            <h3>⚖️ Draw Condition Reached</h3>
+            <p>{fmjdReasonMessage(drawWarning)}</p>
+            <p className="draw-warning-note">
+              If this happens again, the game will automatically end in a draw.
+            </p>
+            <div className="draw-warning-actions">
+              <Button variant="ghost" onClick={() => finishDraw(drawWarning)}>
+                Agree to Draw
+              </Button>
+              <Button variant="gold" onClick={() => setDrawWarning(null)}>
+                Continue Playing
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {gameOver && reviewingBoard && (
         <div className="game-over-review-bar">
           <span>Reviewing the final board.</span>
@@ -709,7 +776,7 @@ export default function GameScreen({
         </div>
       )}
 
-      {gameOver && !reviewingBoard && mode !== "online" && (
+      {gameOver && !showEndBanner && !reviewingBoard && mode !== "online" && (
         <div className="game-over-overlay">
           <div className="game-over-card">
             <h3>{gameOver.result === "draw" ? "Draw" : gameOver.winner === playerColor || mode === "local" ? "Game Over" : "Defeat"}</h3>

@@ -2,64 +2,43 @@
   width: 100%;
 }
 
-.carousel__stage {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.carousel__viewport {
-  flex: 1;
-  min-width: 0;
-  overflow: visible;
-}
-
-.carousel__label {
-  text-align: center;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--cream-dim);
-  margin-bottom: 8px;
-}
-
-.carousel__slide {
-  min-height: 40px;
-}
-
-.carousel__arrow {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--panel-border);
-  color: var(--cream);
-  font-size: 1.15rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.carousel__arrow:disabled {
-  opacity: 0.25;
-}
-
-.carousel__dots {
+.carousel-dots {
   display: flex;
   justify-content: center;
   gap: 6px;
-  margin-top: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
 }
-.carousel__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  padding: 0;
+.carousel-dot {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--cream-dim);
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
-.carousel__dot--active {
+.carousel-dot--active {
   background: var(--gold);
-  box-shadow: 0 0 6px var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.carousel-track {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-page {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  min-width: 100%;
 }
