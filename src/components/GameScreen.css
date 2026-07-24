@@ -115,6 +115,8 @@
   bottom: 22px;
   transform: translateX(-50%);
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   background: var(--panel-bg);
@@ -125,6 +127,8 @@
   z-index: 50;
   font-size: 0.82rem;
   color: var(--cream-dim);
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
 }
 
 .game-over-review-bar button {
@@ -144,6 +148,8 @@
   top: 14px;
   transform: translateX(-50%);
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   background: var(--panel-bg);
@@ -154,10 +160,13 @@
   z-index: 60;
   font-size: 0.82rem;
   color: var(--cream);
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
 }
 
 .draw-offer-bar__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 

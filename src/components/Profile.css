@@ -34,6 +34,13 @@
   color: var(--cream);
   font-size: 0.8rem;
 }
+/* Invisible hit-area padding — meets the ~44px touch-target minimum
+   without changing the button's visible 30px size. */
+.profile-close::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+}
 
 .profile-loading,
 .profile-error {

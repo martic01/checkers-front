@@ -390,6 +390,13 @@
   line-height: 1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
+/* Invisible hit-area padding — meets the ~44px touch-target minimum
+   without changing the button's visible 26px size. */
+.entry-emote-skip::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .entry-emote-card,

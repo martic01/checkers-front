@@ -40,6 +40,7 @@
 }
 
 .challenge-popup__btn {
+  position: relative;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -47,6 +48,13 @@
   font-size: 0.8rem;
   font-weight: 700;
   flex-shrink: 0;
+}
+/* Invisible hit-area padding — meets the ~44px touch-target minimum
+   without changing the button's visible 26px size. */
+.challenge-popup__btn::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
 }
 .challenge-popup__btn--accept {
   background: var(--success);

@@ -80,6 +80,7 @@
 
 .lobby-input {
   flex: 1;
+  min-width: 0;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);

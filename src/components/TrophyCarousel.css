@@ -25,6 +25,7 @@
 }
 
 .trophy-carousel__arrow {
+  position: relative;
   width: 30px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
@@ -32,6 +33,13 @@
   color: var(--cream);
   font-size: 1.1rem;
   flex-shrink: 0;
+}
+/* Invisible hit-area padding — meets the ~44px touch-target minimum
+   without changing the button's visible 30px size. */
+.trophy-carousel__arrow::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
 }
 .trophy-carousel__arrow:disabled {
   opacity: 0.25;

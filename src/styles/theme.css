@@ -87,6 +87,23 @@ body {
   color: var(--cream);
 }
 
+/* Media never exceeds its container, regardless of intrinsic size. */
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Long unbroken strings (room codes, URLs, quotes) wrap instead of forcing
+   their container wider than the viewport. */
+body {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 button {
   font-family: inherit;
   color: inherit;
