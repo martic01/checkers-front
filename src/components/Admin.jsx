@@ -36,7 +36,7 @@ export default function Admin({ player, onBack }) {
   const [unlocked, setUnlocked] = useState(isSelfAdmin);
   const [players, setPlayers] = useState([]);
   const [targetId, setTargetId] = useState("all");
-  const [coins, setCoins] = useState(0);
+  const [coins, setCoins] = useState("");
   const [rankSet, setRankSet] = useState("");
   const [message, setMessage] = useState("");
   const [deleteMode, setDeleteMode] = useState("7d-any");
@@ -58,6 +58,11 @@ export default function Admin({ player, onBack }) {
     if (rankTest && !rankTest(p.rank)) return false;
     return true;
   });
+
+  // Statistics
+  const totalCoins = players.reduce((sum, p) => sum + p.coins, 0);
+  const avgRank = players.length > 0 ? Math.round(players.reduce((sum, p) => sum + p.rank, 0) / players.length) : 0;
+  const richestPlayer = players.length > 0 ? players.reduce((a, b) => a.coins > b.coins ? a : b) : null;
 
   useEffect(() => {
     if (!unlocked) return;
@@ -84,20 +89,21 @@ export default function Admin({ player, onBack }) {
         await api.adminMessage(auth, {
           playerId: "all",
           message: message || "You received a reward!",
-          rewardCoins: coins || undefined,
+          rewardCoins: coins ? Number(coins) : undefined,
           deleteMode,
         });
       } else {
         await api.adminGrant(auth, {
           playerId: targetId,
-          coins: coins || 0,
+          coins: coins ? Number(coins) : 0,
           rankSet: rankSet ? Number(rankSet) : undefined,
           message,
           deleteMode,
         });
       }
-      toastSuccess("Sent!");
-      setCoins(0);
+      toastSuccess("✅ Action completed successfully!");
+      setCoins("");
+      setRankSet("");
       setMessage("");
     } catch (err) {
       toastError(err.message);
@@ -108,7 +114,7 @@ export default function Admin({ player, onBack }) {
     if (!message.trim()) return toastError("Write a message first");
     try {
       await api.adminMessage(auth, { playerId: targetId, message, deleteMode });
-      toastSuccess("Message sent!");
+      toastSuccess("📨 Message sent successfully!");
       setMessage("");
     } catch (err) {
       toastError(err.message);
@@ -124,17 +130,17 @@ export default function Admin({ player, onBack }) {
           </button>
           <div className="admin-lock-icon">🛡️</div>
           <h2 className="admin-lock-title">Admin Access</h2>
-          <p className="admin-lock-sub">Enter the admin key to continue</p>
+          <p className="admin-lock-sub">Enter the admin key to manage the game</p>
           <input
             className="auth-input"
             type="password"
-            placeholder="Admin key"
+            placeholder="Enter admin key"
             value={adminKey}
             onChange={(e) => setAdminKey(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && tryUnlock()}
           />
           <Button variant="gold" full onClick={tryUnlock} className="admin-lock-btn">
-            Unlock
+            Unlock Dashboard
           </Button>
         </div>
       </div>
@@ -144,43 +150,73 @@ export default function Admin({ player, onBack }) {
   return (
     <div className="admin-dashboard">
       <div className="admin-header">
-        <button className="back-link back-link--light" onClick={onBack}>
-          ← Back
-        </button>
+        <div className="admin-header__top">
+          <button className="back-link back-link--light" onClick={onBack}>
+            ← Back to Game
+          </button>
+        </div>
+
         <div className="admin-header__title">
           <span className="admin-header__icon">🛡️</span>
-          <div>
-            <h1>Admin Dashboard</h1>
-            {isSelfAdmin && <p>Signed in as account admin — {player.name}</p>}
+          <div className="admin-header__title-content">
+            <h1>Admin Control Room</h1>
+            <p>{isSelfAdmin ? `👑 ${player.name} • Account Admin` : "🔑 Administrative Access"}</p>
+          </div>
+        </div>
+
+        <div className="admin-stats-bar">
+          <div className="admin-stat-item">
+            <div className="admin-stat-item__value">{players.length}</div>
+            <div className="admin-stat-item__label">Total Players</div>
+          </div>
+          <div className="admin-stat-item">
+            <div className="admin-stat-item__value">{player.coins.toLocaleString()}</div>
+            <div className="admin-stat-item__label">Total Coins</div>
+          </div>
+          <div className="admin-stat-item">
+            <div className="admin-stat-item__value">{avgRank}</div>
+            <div className="admin-stat-item__label">Avg Rank</div>
+          </div>
+          <div className="admin-stat-item">
+            <div className="admin-stat-item__value">{richestPlayer?.name || "-"}</div>
+            <div className="admin-stat-item__label">Richest Player</div>
           </div>
         </div>
       </div>
 
       <div className="admin-grid">
-        <div className="admin-card admin-card--players">
-          <h3>Players ({filteredPlayers.length} of {players.length})</h3>
+        {/* Player List */}
+        <div className="admin-card">
+          <div className="admin-card__header">
+            <h3>
+              👥 Players
+              <span className="admin-card__badge">{filteredPlayers.length} / {players.length}</span>
+            </h3>
+          </div>
 
-          <input
-            className="auth-input admin-search-input"
-            placeholder="Search by name, username, or ID…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <div className="admin-filter-row">
-            <select className="auth-input" value={wealthFilter} onChange={(e) => setWealthFilter(e.target.value)}>
-              {WEALTH_TIERS.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.label}
-                </option>
-              ))}
-            </select>
-            <select className="auth-input" value={rankFilter} onChange={(e) => setRankFilter(e.target.value)}>
-              {RANK_TIER_FILTERS.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+          <div className="admin-search-section">
+            <input
+              className="auth-input admin-search-input"
+              placeholder="🔍 Search players..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <div className="admin-filter-row">
+              <select value={wealthFilter} onChange={(e) => setWealthFilter(e.target.value)}>
+                {WEALTH_TIERS.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.label}
+                  </option>
+                ))}
+              </select>
+              <select value={rankFilter} onChange={(e) => setRankFilter(e.target.value)}>
+                {RANK_TIER_FILTERS.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="admin-player-list">
@@ -189,8 +225,16 @@ export default function Admin({ player, onBack }) {
               onClick={() => setTargetId("all")}
             >
               <span className="admin-player-row__avatar admin-player-row__avatar--all">🌐</span>
-              <span className="admin-player-row__name">Everyone</span>
+              <div className="admin-player-row__info">
+                <span className="admin-player-row__name">Send to Everyone</span>
+                <span className="admin-player-row__meta">
+                  <span style={{ fontSize: "0.6rem", color: "var(--cream-dim)" }}>
+                    Broadcast message to all players
+                  </span>
+                </span>
+              </div>
             </button>
+
             {filteredPlayers.map((p) => (
               <button
                 key={p.id}
@@ -198,60 +242,102 @@ export default function Admin({ player, onBack }) {
                 onClick={() => setTargetId(p.id)}
               >
                 <span className="admin-player-row__avatar">{p.name?.[0]?.toUpperCase() || "?"}</span>
-                <span className="admin-player-row__info">
+                <div className="admin-player-row__info">
                   <span className="admin-player-row__name">{p.name}</span>
                   <span className="admin-player-row__meta">
                     <CoinPill coins={p.coins} />
                     <RankBadge rank={p.rank} size="sm" />
                   </span>
-                </span>
+                </div>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="admin-card admin-card--form">
-          <h3>{targetId === "all" ? "Message Everyone" : `Manage ${target?.name || "Player"}`}</h3>
-
-          <div className="admin-field-row">
-            <div className="admin-field">
-              <label className="auth-label">Grant Coins</label>
-              <input className="auth-input" type="number" value={coins} onChange={(e) => setCoins(Number(e.target.value))} />
-            </div>
-            {targetId !== "all" && (
-              <div className="admin-field">
-                <label className="auth-label">Set Rank (1-1000)</label>
-                <input
-                  className="auth-input"
-                  type="number"
-                  min={1}
-                  max={1000}
-                  value={rankSet}
-                  onChange={(e) => setRankSet(e.target.value)}
-                />
-              </div>
-            )}
+        {/* Action Panel */}
+        <div className="admin-card">
+          <div className="admin-card__header">
+            <h3>🎮 Action Center</h3>
           </div>
 
-          <label className="auth-label">Message</label>
-          <textarea className="auth-input admin-textarea" value={message} onChange={(e) => setMessage(e.target.value)} rows={3} />
+          <div className="admin-form">
+            <div className="admin-form__target">
+              <span className="admin-form__target-label">Target:</span>
+              <span className="admin-form__target-name">
+                {targetId === "all" ? "🌐 Everyone" : target?.name || "Select a player"}
+              </span>
+            </div>
 
-          <label className="auth-label">Auto-delete this message</label>
-          <select className="auth-input" value={deleteMode} onChange={(e) => setDeleteMode(e.target.value)}>
-            {DELETE_MODES.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+            <div className="admin-form__field-group">
+              <div className="admin-field">
+                <label>Grant Coins</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Amount"
+                  value={coins}
+                  onChange={(e) => setCoins(e.target.value)}
+                />
+              </div>
+              {targetId !== "all" && (
+                <div className="admin-field">
+                  <label>Set Rank (1-1000)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    placeholder="Rank"
+                    value={rankSet}
+                    onChange={(e) => setRankSet(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
 
-          <div className="admin-actions">
-            <Button variant="gold" onClick={grant}>
-              🎁 Grant Reward
-            </Button>
-            <Button variant="ghost" onClick={sendMessageOnly}>
-              ✉️ Message Only
-            </Button>
+            <div className="admin-field admin-field--full">
+              <label>Message Content</label>
+              <textarea
+                placeholder="Type your message here..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows="3"
+              />
+            </div>
+
+            <div className="admin-field admin-field--full">
+              <label>Auto-delete After</label>
+              <select value={deleteMode} onChange={(e) => setDeleteMode(e.target.value)}>
+                {DELETE_MODES.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Message Preview */}
+            {(message || coins || rankSet) && (
+              <div className="admin-message-preview">
+                <div className="admin-message-preview__label">📋 Preview</div>
+                <div className="admin-message-preview__content">
+                  {message || (
+                    <span className="admin-message-preview__empty">
+                      {coins ? `💰 +${coins} coins` : ""}
+                      {rankSet ? ` 📈 Set rank to ${rankSet}` : ""}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="admin-actions">
+              <Button variant="gold" onClick={grant}>
+                🎁 Grant & Send
+              </Button>
+              <Button variant="ghost" onClick={sendMessageOnly}>
+                ✉️ Message Only
+              </Button>
+            </div>
           </div>
         </div>
       </div>

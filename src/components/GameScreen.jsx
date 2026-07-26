@@ -34,6 +34,10 @@ const MOVE_ANIMATION_MS = 620;
 // deserves room to breathe so players can actually watch it land, without
 // slowing down ordinary non-capturing slides.
 const CAPTURE_ANIMATION_MS = 950;
+// Per-hop travel time for a multi-jump capture sequence (2+ pieces in one
+// turn) — the piece pauses on each landing square before continuing to the
+// next jump, instead of sliding straight from start to final square.
+const HOP_ANIMATION_MS = 520;
 
 function formatNetworkCountdown(deadline) {
   const remaining = Math.max(0, deadline - Date.now());
@@ -193,6 +197,29 @@ export default function GameScreen({
   const animTimer = useRef(null);
   const fmjdTracker = useRef(createFmjdTracker());
   useEffect(() => () => clearTimeout(animTimer.current), []);
+
+  // Reaction emojis that pop up over a piece for a few seconds — fire on
+  // the capturing piece for a 3+ multi-capture, cool for exactly 2, scared
+  // on every surviving opponent piece for a 3+ capture. Keyed by piece id
+  // so it follows the piece through its hops instead of a fixed square.
+  // reactionTokens guards against a later reaction on the same piece being
+  // wiped early by an earlier one's own cleanup timer.
+  const [pieceReactions, setPieceReactions] = useState({});
+  const reactionTokens = useRef(new Map());
+  const triggerReaction = useCallback((pieceId, emoji, ms) => {
+    const token = (reactionTokens.current.get(pieceId) || 0) + 1;
+    reactionTokens.current.set(pieceId, token);
+    setPieceReactions((prev) => ({ ...prev, [pieceId]: emoji }));
+    setTimeout(() => {
+      if (reactionTokens.current.get(pieceId) !== token) return; // superseded by a newer reaction
+      setPieceReactions((prev) => {
+        if (!(pieceId in prev)) return prev;
+        const next = { ...prev };
+        delete next[pieceId];
+        return next;
+      });
+    }, ms);
+  }, []);
 
   // ---------- AI chat (#3) ----------
   // The bot has no real socket connection, so it "speaks" by having this
@@ -400,26 +427,20 @@ export default function GameScreen({
       setLastMove(move);
       setIsAnimating(true);
 
-      // Move the piece and flag any captured pieces so they can play their
-      // fade/shrink animation before actually leaving the board.
-      setPieces((prev) => {
-        const movingIndex = prev.findIndex(
-          (p) => !p.capturing && p.row === move.from.row && p.col === move.from.col
-        );
-        return prev.map((p, idx) => {
-          if (idx === movingIndex) {
-            const promoted =
-              !p.king && (p.color === WHITE ? move.to.row === 0 : move.to.row === BOARD_SIZE - 1);
-            return { ...p, row: move.to.row, col: move.to.col, king: p.king || promoted };
-          }
-          const wasCaptured = move.captures.some((c) => c.row === p.row && c.col === p.col);
-          return wasCaptured ? { ...p, capturing: true } : p;
-        });
-      });
-
       const nextBoard = applyMove(board, move);
       const nextTurn = turn === WHITE ? BLACK : WHITE;
-      const animMs = move.captures.length > 0 ? CAPTURE_ANIMATION_MS : MOVE_ANIMATION_MS;
+      const captureCount = move.captures.length;
+      // Every square the moving piece actually passes through, in order:
+      // its start, every intermediate landing spot from a multi-jump
+      // (move.chain), then the final square. For a simple move or a single
+      // capture this is just [from, to] — one hop, same as before.
+      const path = [move.from, ...(move.chain || []), move.to];
+      const hopCount = path.length - 1;
+
+      const movingPieceId = pieces.find(
+        (p) => !p.capturing && p.row === move.from.row && p.col === move.from.col
+      )?.id;
+      const moverColor = board[move.from.row][move.from.col]?.color ?? turn;
       const kingedUp = pieces.some(
         (p) =>
           p.row === move.from.row &&
@@ -427,12 +448,22 @@ export default function GameScreen({
           !p.king &&
           (p.color === WHITE ? move.to.row === 0 : move.to.row === BOARD_SIZE - 1)
       );
-      if (kingedUp) {
-        setTimeout(() => playSound("king", soundsOn), animMs * 0.5);
+
+      // Fire on the capturing piece + scared on every opponent piece still
+      // standing for a 3+ multi-capture; cool on the capturing piece alone
+      // for exactly 2. Fired once up front so they're visible through the
+      // whole hop sequence, not tied to any single hop's timing.
+      if (captureCount >= 3 && movingPieceId) {
+        triggerReaction(movingPieceId, "🔥", 5000);
+        const survivingOpponents = pieces.filter(
+          (p) => p.color !== moverColor && !p.capturing && !move.captures.some((c) => c.row === p.row && c.col === p.col)
+        );
+        for (const opp of survivingOpponents) triggerReaction(opp.id, "😱", 2000);
+      } else if (captureCount === 2 && movingPieceId) {
+        triggerReaction(movingPieceId, "😎", 3000);
       }
 
-      clearTimeout(animTimer.current);
-      animTimer.current = setTimeout(() => {
+      const finalize = () => {
         setPieces((prev) => prev.filter((p) => !p.capturing));
         setBoard(nextBoard);
         setTurn(nextTurn);
@@ -479,9 +510,54 @@ export default function GameScreen({
           });
           maybeBotChat(situations);
         }
-      }, animMs);
+      };
+
+      // Advance the piece one hop at a time along `path`, flagging that
+      // hop's captured piece (if any) as it lands, so a multi-jump visibly
+      // jumps over each piece in turn instead of sliding straight to the
+      // final square. A simple move or single capture is just hopCount===1,
+      // so this collapses back to the original one-shot behavior.
+      const doHop = (hopIndex) => {
+        const from = path[hopIndex];
+        const landing = path[hopIndex + 1];
+        const captureSquare = move.captures[hopIndex] || null;
+        const isLastHop = hopIndex === hopCount - 1;
+
+        setPieces((prev) => {
+          const movingIndex = prev.findIndex((p) => !p.capturing && p.row === from.row && p.col === from.col);
+          return prev.map((p, idx) => {
+            if (idx === movingIndex) {
+              const promoted =
+                isLastHop && !p.king && (p.color === WHITE ? move.to.row === 0 : move.to.row === BOARD_SIZE - 1);
+              return { ...p, row: landing.row, col: landing.col, king: p.king || promoted };
+            }
+            if (captureSquare && p.row === captureSquare.row && p.col === captureSquare.col) {
+              return { ...p, capturing: true };
+            }
+            return p;
+          });
+        });
+
+        // Simple move: MOVE_ANIMATION_MS. Any capture's final hop gets the
+        // longer CAPTURE_ANIMATION_MS so the last captured piece's
+        // fade/shrink has room to finish before the board state swaps.
+        // Non-final hops in a multi-jump use the brisker per-hop duration.
+        const delay = captureCount === 0 ? MOVE_ANIMATION_MS : isLastHop ? CAPTURE_ANIMATION_MS : HOP_ANIMATION_MS;
+
+        if (isLastHop && kingedUp) {
+          setTimeout(() => playSound("king", soundsOn), delay * 0.5);
+        }
+
+        clearTimeout(animTimer.current);
+        animTimer.current = setTimeout(() => {
+          if (isLastHop) finalize();
+          else doHop(hopIndex + 1);
+        }, delay);
+      };
+
+      doHop(0);
     },
-    [board, turn, pieces, mandatoryJumps, soundsOn] // eslint-disable-line react-hooks/exhaustive-deps
+    [board, turn, pieces, mandatoryJumps, soundsOn, triggerReaction] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // Player-initiated move (click on the board).
@@ -588,6 +664,7 @@ export default function GameScreen({
     setHistory((h) => h.slice(0, -1));
     setGameOver(null);
     setLastMove(null);
+    setPieceReactions({});
     playSound("click", soundsOn);
   };
 
@@ -603,6 +680,7 @@ export default function GameScreen({
     setIsAnimating(false);
     setDrawOffer(null);
     setDrawWarning(null);
+    setPieceReactions({});
     drawGraceGiven.current = new Set();
     fmjdTracker.current = createFmjdTracker();
     playSound("click", soundsOn);
@@ -697,6 +775,7 @@ export default function GameScreen({
             helper={settings.helper !== "OFF"}
             disabled={isDisabled || emotesShowing}
             lastMove={lastMove}
+            pieceReactions={pieceReactions}
           />
           {emotesShowing && emoteQueueReady && (
             <EntryEmoteOverlay queue={emoteQueue} onDone={() => setEmotesShowing(false)} soundsOn={soundsOn} />

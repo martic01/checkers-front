@@ -1,192 +1,881 @@
+/* Season.css - Full width, no border radius, 100% height, reduced text */
+
+* {
+  box-sizing: border-box;
+}
+
+.season-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
 .season-oven {
   width: 100%;
-  max-width: 720px;
-  border-radius: var(--radius-lg);
-  padding: 28px 20px 32px;
-  position: relative;
+  max-width: 100%;
+  height: 80vh;
+  max-height: 80vh;
   overflow: hidden;
-  /* "World Cup Oven": sharp, hot gradient — a nod to stadium-floodlight gold
-     bleeding into a fiery oven-orange/red base. */
+  padding: 12px 20px 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border-radius: 0 !important;
+  /* Premium gradient with depth */
   background:
-    radial-gradient(circle at 15% 0%, rgba(255, 214, 102, 0.35), transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(255, 87, 34, 0.35), transparent 60%),
-    linear-gradient(150deg, #3a0f0a 0%, #7a1f0f 32%, #c1531b 60%, #e8961f 85%, #ffcf5c 100%);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 210, 130, 0.25);
+    radial-gradient(circle at 20% 0%, rgba(255, 214, 102, 0.3), transparent 50%),
+    radial-gradient(circle at 80% 100%, rgba(255, 87, 34, 0.25), transparent 50%),
+    linear-gradient(160deg, #1a0805 0%, #4a1a0f 30%, #8a2f15 60%, #c9602a 80%, #ffcf5c 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 210, 130, 0.2);
+}
+
+/* Premium glow overlay */
+.season-oven::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 215, 0, 0.05), transparent 60%);
+  pointer-events: none;
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ---------- Desktop Full Width & Height ---------- */
+@media (min-width: 1024px) {
+  .season-oven {
+    height: 100vh;
+    max-height: 100vh;
+    padding: 14px 24px 18px;
+    border-radius: 0 !important;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .season-wrapper {
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 .season-panel--loading {
-  max-width: 480px;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
 }
+
+@media (min-width: 1024px) {
+  .season-panel--loading {
+    height: 100vh;
+  }
+}
+
 .season-loading {
   text-align: center;
-  color: var(--cream-dim);
-  padding: 30px 0;
+  color: rgba(255, 245, 230, 0.7);
+  font-size: 1rem;
+  position: relative;
+  z-index: 2;
 }
 
 .back-link--light {
-  color: rgba(255, 245, 230, 0.85);
+  color: rgba(255, 245, 230, 0.8);
+  position: relative;
+  z-index: 2;
+  font-size: clamp(0.7rem, 1vw, 0.8rem);
+  flex-shrink: 0;
+  padding: 3px 0;
 }
+
 .back-link--light:hover {
   color: #fff;
 }
 
+/* ---------- Hero Section - Reduced Text ---------- */
 .season-hero {
   text-align: center;
-  margin: 6px 0 22px;
+  margin: 1px 0 8px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
 }
+
 .season-hero__kicker {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.2em;
+  font-size: clamp(0.45rem, 0.9vw, 0.6rem);
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: rgba(255, 235, 200, 0.85);
+  color: rgba(255, 235, 200, 0.7);
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 215, 0, 0.15);
 }
+
 .season-hero__title {
-  font-size: clamp(1.5rem, 5vw, 2.1rem);
-  margin: 6px 0;
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  margin: 3px 0 1px;
   color: #fff8ec;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 200, 50, 0.1);
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
+
 .season-hero__sub {
-  color: rgba(255, 240, 220, 0.85);
-  font-size: 0.82rem;
-  margin: 0 0 10px;
+  color: rgba(255, 240, 220, 0.6);
+  font-size: clamp(0.5rem, 0.9vw, 0.65rem);
+  margin: 0 0 4px;
+  padding: 0 8px;
 }
+
 .season-hero__meta {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: 8px;
+  flex-wrap: wrap;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: clamp(0.5rem, 0.9vw, 0.65rem);
   color: #fff;
 }
+
 .season-hero__meta span {
-  background: rgba(0, 0, 0, 0.25);
-  padding: 4px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* ---------- Horizontal reward carousel ---------- */
-.season-carousel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 6px 6px 14px;
-  scroll-snap-type: x proximity;
+  align-items: center;
+  gap: 4px;
 }
 
-.season-slide {
-  scroll-snap-align: center;
-  flex: 0 0 140px;
-  background: rgba(10, 6, 4, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: var(--radius-md);
-  padding: 14px 10px;
+/* ---------- Horizontal Reward Track ---------- */
+.season-track-wrapper {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+  padding: 2px 0;
+  overflow: hidden;
+}
+
+.season-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 4px 12px;
+  height: 100%;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  align-items: stretch;
+}
+
+.season-track::-webkit-scrollbar {
+  height: 3px;
+}
+
+.season-track::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+}
+
+.season-track::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.4);
+  border-radius: 999px;
+}
+
+/* ---------- Responsive Card Sizing ---------- */
+.season-reward {
+  scroll-snap-align: start;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  opacity: 0.55;
-  backdrop-filter: blur(4px);
-  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  gap: 5px;
 }
 
-.season-slide--unlocked {
-  opacity: 1;
-  border-color: rgba(255, 214, 102, 0.7);
-  transform: translateY(-4px);
+/* Glass card shine effect */
+.season-reward::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: inherit;
 }
 
-.season-slide--claimed {
-  border-color: var(--success);
+.season-reward--unlocked {
+  border-color: rgba(255, 215, 0, 0.5);
+  background: rgba(255, 215, 0, 0.12);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  transform: scale(1.03);
+  box-shadow: 0 8px 48px rgba(255, 215, 0, 0.2);
 }
 
-.season-slide__badge {
-  width: 26px;
-  height: 26px;
+.season-reward--claimed {
+  border-color: rgba(100, 220, 100, 0.4);
+  background: rgba(100, 220, 100, 0.1);
+}
+
+/* ---------- Reduced Content Inside Cards ---------- */
+.season-reward__letter {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: #ffd666;
-  color: #3a0f0a;
-  font-weight: 800;
-  font-size: 0.78rem;
+  background: linear-gradient(135deg, #ffd666, #f5a623);
+  color: #1a0805;
+  font-weight: 900;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4);
+  margin-bottom: 2px;
 }
 
-.season-slide__icon {
-  font-size: 2rem;
+.season-reward__icon {
+  font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+  margin: 4px 0;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  line-height: 1;
+}
+
+.season-reward__label {
+  font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+  font-weight: 700;
+  color: #fff8ec;
+  margin: 2px 0 1px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.season-reward__mojo {
+  font-family: var(--font-mono);
+  font-size: clamp(0.6rem, 1vw, 0.75rem);
+  color: rgba(255, 240, 220, 0.6);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.season-reward__bar {
+  width: 75%;
+  max-width: 160px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin: 3px auto;
+}
+
+.season-reward__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd666, #ff8a3d);
+  transition: width 0.6s ease;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+}
+
+.season-reward__pct {
+  font-size: clamp(0.5rem, 0.9vw, 0.65rem);
+  color: rgba(255, 240, 220, 0.4);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.season-reward__action {
+  margin-top: 4px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.season-reward__claim {
+  background: linear-gradient(135deg, #ffd666, #f5a623);
+  color: #1a0805;
+  border: none;
+  padding: 8px 28px;
+  border-radius: 999px;
+  font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 90px;
+  min-height: 36px;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+  letter-spacing: 0.03em;
+  touch-action: manipulation;
+}
+
+.season-reward__claim:active {
+  transform: scale(0.95);
+}
+
+.season-reward__claim:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.season-reward__done {
+  color: #7ddf8a;
+  font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(100, 220, 100, 0.12);
+  padding: 8px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(100, 220, 100, 0.25);
+  min-height: 36px;
+}
+
+.season-reward__done::before {
+  content: '✓';
+  font-size: 1rem;
+}
+
+.season-reward__locked-icon {
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  opacity: 0.3;
   margin: 4px 0;
 }
 
-.season-slide__label {
-  font-size: 0.72rem;
-  color: #fff8ec;
-  text-align: center;
-  line-height: 1.25;
-  min-height: 34px;
-}
-
-.season-slide__req {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: rgba(255, 240, 220, 0.75);
-}
-
-.season-slide__bar {
-  width: 100%;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  overflow: hidden;
-  margin-top: 4px;
-}
-.season-slide__bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ffd666, #ff8a3d);
-  transition: width 0.4s ease;
-}
-
-.season-slide__claim {
-  margin-top: 6px;
-  background: #ffd666;
-  color: #3a0f0a;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 700;
-}
-
-.season-slide__done {
-  margin-top: 6px;
-  font-size: 0.68rem;
-  color: #a6f0b0;
-  font-weight: 700;
-}
-
-/* ---------- Overall season progress ---------- */
+/* ---------- Overall Progress - Reduced ---------- */
 .season-overall {
-  margin-top: 18px;
+  flex-shrink: 0;
+  margin-top: 6px;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1;
 }
+
 .season-overall__bar {
   width: 100%;
-  height: 10px;
+  height: 4px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .season-overall__fill {
   height: 100%;
   background: linear-gradient(90deg, #ff5722, #ffd666);
-  transition: width 0.5s ease;
+  transition: width 0.8s ease;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.3);
 }
+
 .season-overall__label {
   text-align: center;
-  margin-top: 8px;
+  margin-top: 4px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: #fff8ec;
+  font-size: clamp(0.5rem, 0.9vw, 0.65rem);
+  color: rgba(255, 248, 236, 0.7);
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.season-overall__label span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.season-overall__label .highlight {
+  color: #ffd666;
+  font-weight: 600;
+}
+
+/* ---------- Responsive Card Counts ---------- */
+
+/* Mobile: 2 cards per view */
+@media (max-width: 767px) {
+  .season-oven {
+    padding: 10px 12px 14px;
+    height: 80vh;
+    border-radius: 0 !important;
+  }
+  
+  .season-reward {
+    flex: 0 0 calc(50% - 8px);
+    min-width: 140px;
+    max-width: 100%;
+    border-radius: 10px;
+    padding: 14px 12px;
+  }
+  
+  .season-reward__icon {
+    font-size: 2.2rem;
+  }
+  
+  .season-reward__letter {
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Tablet: 3 cards per view */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .season-oven {
+    padding: 12px 20px 16px;
+    height: 80vh;
+    border-radius: 0 !important;
+  }
+  
+  .season-reward {
+    flex: 0 0 calc(33.333% - 11px);
+    min-width: 170px;
+    max-width: 100%;
+    padding: 16px 14px;
+    border-radius: 12px;
+  }
+  
+  .season-reward__icon {
+    font-size: 2.6rem;
+  }
+  
+  .season-reward__letter {
+    width: 38px;
+    height: 38px;
+    font-size: 0.95rem;
+  }
+  
+  .season-reward__label {
+    font-size: 0.85rem;
+  }
+}
+
+/* Desktop: Full width & height, 4 cards per view */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .season-oven {
+    padding: 14px 24px 18px;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0 !important;
+    width: 100%;
+  }
+  
+  .season-reward {
+    flex: 0 0 calc(25% - 12px);
+    min-width: 180px;
+    max-width: 100%;
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+  
+  .season-reward__icon {
+    font-size: 2.8rem;
+  }
+  
+  .season-reward__letter {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .season-reward__label {
+    font-size: 0.9rem;
+  }
+}
+
+/* Large Desktop: Full width & height, 5 cards per view */
+@media (min-width: 1280px) and (max-width: 1599px) {
+  .season-oven {
+    padding: 14px 28px 18px;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0 !important;
+    width: 100%;
+  }
+  
+  .season-reward {
+    flex: 0 0 calc(20% - 13px);
+    min-width: 180px;
+    max-width: 100%;
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+  
+  .season-reward__icon {
+    font-size: 3rem;
+  }
+  
+  .season-reward__letter {
+    width: 42px;
+    height: 42px;
+    font-size: 1.05rem;
+  }
+  
+  .season-reward__label {
+    font-size: 0.95rem;
+  }
+}
+
+/* Extra Large Desktop: Full width & height, 6 cards per view */
+@media (min-width: 1600px) {
+  .season-oven {
+    padding: 16px 32px 20px;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0 !important;
+    width: 100%;
+  }
+  
+  .season-reward {
+    flex: 0 0 calc(16.666% - 14px);
+    min-width: 180px;
+    max-width: 100%;
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+  
+  .season-reward__icon {
+    font-size: 3.2rem;
+  }
+  
+  .season-reward__letter {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+  
+  .season-reward__label {
+    font-size: 1rem;
+  }
+}
+
+/* ---------- Responsive Adjustments ---------- */
+@media (max-width: 480px) {
+  .season-wrapper {
+    padding: 0;
+  }
+  
+  .season-oven {
+    padding: 8px 8px 12px;
+    height: 80vh;
+    border-radius: 0 !important;
+  }
+
+  .season-hero {
+    margin: 0 0 4px;
+  }
+
+  .season-hero__meta {
+    gap: 4px;
+  }
+
+  .season-hero__meta span {
+    padding: 2px 8px;
+    font-size: 0.5rem;
+  }
+
+  .season-track {
+    gap: 10px;
+    padding: 4px 2px 8px;
+  }
+
+  .season-reward {
+    flex: 0 0 calc(50% - 5px);
+    min-width: 120px;
+    padding: 12px 10px;
+    border-radius: 8px;
+    gap: 3px;
+  }
+
+  .season-reward__letter {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
+
+  .season-reward__icon {
+    font-size: 1.8rem;
+    margin: 2px 0;
+  }
+
+  .season-reward__label {
+    font-size: 0.7rem;
+  }
+
+  .season-reward__mojo {
+    font-size: 0.5rem;
+    margin-bottom: 2px;
+  }
+
+  .season-reward__bar {
+    height: 3px;
+    width: 65%;
+  }
+
+  .season-reward__pct {
+    font-size: 0.45rem;
+  }
+
+  .season-reward__claim {
+    padding: 6px 18px;
+    font-size: 0.6rem;
+    min-width: 70px;
+    min-height: 30px;
+  }
+
+  .season-reward__done {
+    font-size: 0.6rem;
+    padding: 6px 14px;
+    min-height: 30px;
+  }
+
+  .season-reward__locked-icon {
+    font-size: 0.9rem;
+  }
+
+  .season-overall {
+    padding: 8px 12px;
+    margin-top: 4px;
+    border-radius: 8px;
+  }
+
+  .season-overall__bar {
+    height: 3px;
+  }
+
+  .season-overall__label {
+    font-size: 0.45rem;
+    gap: 8px;
+    margin-top: 3px;
+  }
+
+  .season-hero__title {
+    font-size: 1.1rem;
+  }
+
+  .season-hero__sub {
+    font-size: 0.5rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .season-wrapper {
+    padding: 0;
+  }
+  
+  .season-oven {
+    padding: 6px 4px 10px;
+    height: 80vh;
+    border-radius: 0 !important;
+  }
+
+  .season-track {
+    gap: 6px;
+  }
+
+  .season-reward {
+    flex: 0 0 calc(50% - 3px);
+    min-width: 100px;
+    padding: 10px 6px;
+    gap: 2px;
+    border-radius: 6px;
+  }
+
+  .season-reward__letter {
+    width: 26px;
+    height: 26px;
+    font-size: 0.65rem;
+  }
+
+  .season-reward__icon {
+    font-size: 1.4rem;
+    margin: 1px 0;
+  }
+
+  .season-reward__label {
+    font-size: 0.6rem;
+  }
+
+  .season-reward__mojo {
+    font-size: 0.45rem;
+  }
+
+  .season-reward__claim {
+    padding: 4px 12px;
+    font-size: 0.5rem;
+    min-width: 55px;
+    min-height: 24px;
+  }
+
+  .season-reward__done {
+    font-size: 0.5rem;
+    padding: 4px 10px;
+    min-height: 24px;
+  }
+
+  .season-hero__title {
+    font-size: 0.9rem;
+  }
+
+  .season-hero__meta span {
+    font-size: 0.4rem;
+    padding: 1px 6px;
+  }
+
+  .season-overall__label {
+    font-size: 0.4rem;
+    gap: 4px;
+  }
+}
+
+/* Landscape mode */
+@media (max-height: 500px) and (orientation: landscape) {
+  .season-wrapper {
+    padding: 0;
+  }
+  
+  .season-oven {
+    padding: 6px 16px 8px;
+    height: 85vh;
+    border-radius: 0 !important;
+  }
+
+  .season-hero {
+    margin: 0 0 2px;
+  }
+
+  .season-hero__title {
+    font-size: 0.9rem;
+    margin: 1px 0;
+  }
+
+  .season-hero__sub {
+    display: none;
+  }
+
+  .season-hero__meta span {
+    padding: 1px 8px;
+    font-size: 0.45rem;
+  }
+
+  .season-track {
+    gap: 8px;
+    padding: 2px 4px 6px;
+  }
+
+  .season-reward {
+    flex: 0 0 calc(50% - 4px);
+    min-width: 120px;
+    padding: 10px 10px;
+    gap: 2px;
+    border-radius: 8px;
+  }
+
+  .season-reward__letter {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+
+  .season-reward__icon {
+    font-size: 1.4rem;
+    margin: 1px 0;
+  }
+
+  .season-reward__label {
+    font-size: 0.65rem;
+  }
+
+  .season-reward__mojo {
+    font-size: 0.45rem;
+    margin-bottom: 1px;
+  }
+
+  .season-reward__bar {
+    height: 3px;
+    width: 60%;
+  }
+
+  .season-reward__pct {
+    font-size: 0.4rem;
+  }
+
+  .season-reward__claim {
+    padding: 4px 14px;
+    font-size: 0.5rem;
+    min-width: 60px;
+    min-height: 24px;
+  }
+
+  .season-reward__done {
+    font-size: 0.5rem;
+    padding: 4px 12px;
+    min-height: 24px;
+  }
+
+  .season-reward__locked-icon {
+    font-size: 0.8rem;
+  }
+
+  .season-overall {
+    padding: 4px 12px;
+    margin-top: 2px;
+    border-radius: 6px;
+  }
+
+  .season-overall__bar {
+    height: 3px;
+  }
+
+  .season-overall__label {
+    font-size: 0.4rem;
+    margin-top: 2px;
+    gap: 6px;
+  }
+}
+
+@media (hover: hover) {
+  .season-reward__claim:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 28px rgba(255, 215, 0, 0.5);
+  }
+
+  .season-reward--unlocked:hover {
+    transform: scale(1.05);
+    border-color: rgba(255, 215, 0, 0.7);
+  }
 }

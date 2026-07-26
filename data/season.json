@@ -1,0 +1,242 @@
+{
+  "id": "season-1784388313861",
+  "name": "World Cup Oven",
+  "startedAt": 1784388313861,
+  "endsAt": 1789572313861,
+  "rewardTrack": [
+    {
+      "id": "season-1784388313861-A",
+      "letter": "A",
+      "mojoRequired": 120,
+      "type": "coin",
+      "icon": "🪙",
+      "label": "250 Golden Coins",
+      "coinValue": 250
+    },
+    {
+      "id": "season-1784388313861-B",
+      "letter": "B",
+      "mojoRequired": 240,
+      "type": "avatar",
+      "icon": "🥇",
+      "label": "Champion Avatar Frame B",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-C",
+      "letter": "C",
+      "mojoRequired": 360,
+      "type": "emoji",
+      "icon": "⚽",
+      "label": "Fan Emoji Pack C",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-D",
+      "letter": "D",
+      "mojoRequired": 480,
+      "type": "theme",
+      "icon": "🏟️",
+      "label": "Stadium Board Theme D",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-E",
+      "letter": "E",
+      "mojoRequired": 600,
+      "type": "title",
+      "icon": "🎗️",
+      "label": "Title: \"Golden Boot E\"",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-F",
+      "letter": "F",
+      "mojoRequired": 720,
+      "type": "table",
+      "icon": "🏆",
+      "label": "Team Jersey Tag F",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-G",
+      "letter": "G",
+      "mojoRequired": 840,
+      "type": "coin",
+      "icon": "🪙",
+      "label": "1750 Golden Coins",
+      "coinValue": 1750
+    },
+    {
+      "id": "season-1784388313861-H",
+      "letter": "H",
+      "mojoRequired": 960,
+      "type": "avatar",
+      "icon": "🥇",
+      "label": "Champion Avatar Frame H",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-I",
+      "letter": "I",
+      "mojoRequired": 1080,
+      "type": "emoji",
+      "icon": "⚽",
+      "label": "Fan Emoji Pack I",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-J",
+      "letter": "J",
+      "mojoRequired": 1200,
+      "type": "theme",
+      "icon": "🏟️",
+      "label": "Stadium Board Theme J",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-K",
+      "letter": "K",
+      "mojoRequired": 1320,
+      "type": "title",
+      "icon": "🎗️",
+      "label": "Title: \"Golden Boot K\"",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-L",
+      "letter": "L",
+      "mojoRequired": 1440,
+      "type": "table",
+      "icon": "🏆",
+      "label": "Team Jersey Tag L",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-M",
+      "letter": "M",
+      "mojoRequired": 1560,
+      "type": "coin",
+      "icon": "🪙",
+      "label": "3250 Golden Coins",
+      "coinValue": 3250
+    },
+    {
+      "id": "season-1784388313861-N",
+      "letter": "N",
+      "mojoRequired": 1680,
+      "type": "avatar",
+      "icon": "🥇",
+      "label": "Champion Avatar Frame N",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-O",
+      "letter": "O",
+      "mojoRequired": 1800,
+      "type": "emoji",
+      "icon": "⚽",
+      "label": "Fan Emoji Pack O",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-P",
+      "letter": "P",
+      "mojoRequired": 1920,
+      "type": "theme",
+      "icon": "🏟️",
+      "label": "Stadium Board Theme P",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-Q",
+      "letter": "Q",
+      "mojoRequired": 2040,
+      "type": "title",
+      "icon": "🎗️",
+      "label": "Title: \"Golden Boot Q\"",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-R",
+      "letter": "R",
+      "mojoRequired": 2160,
+      "type": "table",
+      "icon": "🏆",
+      "label": "Team Jersey Tag R",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-S",
+      "letter": "S",
+      "mojoRequired": 2280,
+      "type": "coin",
+      "icon": "🪙",
+      "label": "4750 Golden Coins",
+      "coinValue": 4750
+    },
+    {
+      "id": "season-1784388313861-T",
+      "letter": "T",
+      "mojoRequired": 2400,
+      "type": "avatar",
+      "icon": "🥇",
+      "label": "Champion Avatar Frame T",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-U",
+      "letter": "U",
+      "mojoRequired": 2520,
+      "type": "emoji",
+      "icon": "⚽",
+      "label": "Fan Emoji Pack U",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-V",
+      "letter": "V",
+      "mojoRequired": 2640,
+      "type": "theme",
+      "icon": "🏟️",
+      "label": "Stadium Board Theme V",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-W",
+      "letter": "W",
+      "mojoRequired": 2760,
+      "type": "title",
+      "icon": "🎗️",
+      "label": "Title: \"Golden Boot W\"",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-X",
+      "letter": "X",
+      "mojoRequired": 2880,
+      "type": "table",
+      "icon": "🏆",
+      "label": "Team Jersey Tag X",
+      "coinValue": 0
+    },
+    {
+      "id": "season-1784388313861-Y",
+      "letter": "Y",
+      "mojoRequired": 3000,
+      "type": "coin",
+      "icon": "🪙",
+      "label": "6250 Golden Coins",
+      "coinValue": 6250
+    },
+    {
+      "id": "season-1784388313861-Z",
+      "letter": "Z",
+      "mojoRequired": 3120,
+      "type": "avatar",
+      "icon": "🥇",
+      "label": "Champion Avatar Frame Z",
+      "coinValue": 0
+    }
+  ]
+}

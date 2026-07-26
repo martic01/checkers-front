@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { memo, useMemo, useState, useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import "./Board.css";
 import { BOARD_SIZE, isDark } from "../game/checkersLogic.js";
 
@@ -17,6 +17,7 @@ function Board({
   helper = true,
   disabled = false,
   lastMove = null,
+  pieceReactions = {},
 }) {
   const [selected, setSelected] = useState(null);
   const [is3D, setIs3D] = useState(false);
@@ -42,6 +43,8 @@ function Board({
     lastTime: 0,
   });
   const inertiaRef = useRef(null);
+  const pieceRefs = useRef(new Map());
+  const pieceAnimTimer = useRef(null);
 
   const applyStageTransform = useCallback(
     (x, z) => {
@@ -106,6 +109,7 @@ function Board({
 
   const handleRotateStart = useCallback((clientX, clientY) => {
     if (inertiaRef.current) cancelAnimationFrame(inertiaRef.current);
+    stageRef.current?.classList.add("is-animating");
     dragRef.current = {
       dragging: true,
       startX: clientX,
@@ -161,6 +165,8 @@ function Board({
 
       if (Math.abs(dragRef.current.velX) > 0.04 || Math.abs(dragRef.current.velZ) > 0.04) {
         inertiaRef.current = requestAnimationFrame(applyInertia);
+      } else {
+        stageRef.current?.classList.remove("is-animating");
       }
     };
     inertiaRef.current = requestAnimationFrame(applyInertia);
@@ -168,6 +174,7 @@ function Board({
 
   const handleReset = () => {
     if (inertiaRef.current) cancelAnimationFrame(inertiaRef.current);
+    stageRef.current?.classList.remove("is-animating");
     rotationRef.current = { x: 0, z: 0 };
     applyStageTransform(0, 0);
     setHasRotated(false);
@@ -193,6 +200,28 @@ function Board({
     };
   }, [handleRotateMove, handleRotateEnd]);
 
+  const piecePosSignature = useMemo(() => pieces.map((p) => `${p.id}:${p.row},${p.col}`).join("|"), [pieces]);
+
+  // Mark pieces as animating only for the duration of their move transition,
+  // instead of promoting every piece on the board to its own permanent GPU
+  // compositing layer.
+  useLayoutEffect(() => {
+    const els = [];
+    for (const p of pieces) {
+      const el = pieceRefs.current.get(p.id);
+      if (el) {
+        el.classList.add("is-animating");
+        els.push(el);
+      }
+    }
+    clearTimeout(pieceAnimTimer.current);
+    // Fallback in case transitionend never fires (e.g. position unchanged).
+    pieceAnimTimer.current = setTimeout(() => {
+      for (const el of els) el.classList.remove("is-animating");
+    }, 550);
+    return () => clearTimeout(pieceAnimTimer.current);
+  }, [piecePosSignature, pieces]);
+
   const rows = [...Array(BOARD_SIZE).keys()];
   const cols = [...Array(BOARD_SIZE).keys()];
   const rowOrder = rotated ? [...rows].reverse() : rows;
@@ -205,21 +234,6 @@ function Board({
 
   return (
     <div className={`board-wrap ${view === "VERT" ? "board-wrap--vert" : "board-wrap--horiz"} ${is3D ? "mode-3d" : ""}`}>
-      <svg className="grain-defs" width="0" height="0">
-        <defs>
-          <filter id="wood-grain-hq" x="0%" y="0%" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.05" numOctaves="4" seed="42" result="noise" />
-            <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.16 0" result="grain"/>
-            <feTurbulence type="turbulence" baseFrequency="0.04" numOctaves="2" seed="15" result="pores" />
-            <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.09 0" result="poresLight"/>
-            <feMerge>
-              <feMergeNode in="grain" />
-              <feMergeNode in="poresLight" />
-            </feMerge>
-          </filter>
-        </defs>
-      </svg>
-
       <div className="board-coords board-coords--top">
         {colOrder.map((c) => <span key={c}>{COLS[c]}</span>)}
       </div>
@@ -288,6 +302,10 @@ function Board({
                   return (
                     <div
                       key={p.id}
+                      ref={(el) => {
+                        if (el) pieceRefs.current.set(p.id, el);
+                        else pieceRefs.current.delete(p.id);
+                      }}
                       className={[
                         "piece-token",
                         `piece-token--${p.color}`,
@@ -298,6 +316,9 @@ function Board({
                         .filter(Boolean)
                         .join(" ")}
                       style={{ transform: `translate3d(${dCol * 100}%, ${dRow * 100}%, 0)` }}
+                      onTransitionEnd={(e) => {
+                        if (e.propertyName === "transform") e.currentTarget.classList.remove("is-animating");
+                      }}
                     >
                       <div className="piece-shadow-container"></div>
                       <div className="piece-body-3d">
@@ -316,6 +337,11 @@ function Board({
                           </div>
                         </div>
                       </div>
+                      {pieceReactions[p.id] && (
+                        <span key={pieceReactions[p.id]} className="piece-reaction-emoji">
+                          {pieceReactions[p.id]}
+                        </span>
+                      )}
                     </div>
                   );
                 })}

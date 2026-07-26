@@ -1,0 +1,409 @@
+{
+  "players": {
+    "GS4Yfto4ZB": {
+      "id": "GS4Yfto4ZB",
+      "username": null,
+      "passwordHash": null,
+      "clerkId": "user_3GGaVLhuTB8ASTCpwbypi4SaC3l",
+      "googleId": null,
+      "email": "aboyadematthew@gmail.com",
+      "isAdmin": true,
+      "name": "Aboyade Matthew",
+      "avatar": {
+        "type": "custom",
+        "value": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18zR0dhVkdSS2tvQmpESEFOd05JQVVVWnp3c3UifQ"
+      },
+      "createdAt": "2026-07-19T17:52:11.367Z",
+      "coins": 999997297579300400000,
+      "totalEarnings": 1.0000021000000021e+21,
+      "exp": 14991,
+      "rank": 1,
+      "lastDailyClaim": "Sat Jul 25 2026",
+      "seasonProgress": {
+        "seasonId": "season-1784388313861",
+        "mojo": 147,
+        "claimed": [
+          "season-1784388313861-A"
+        ]
+      },
+      "stats": {
+        "wins": 5,
+        "losses": 29,
+        "draws": 2,
+        "gamesPlayed": 36,
+        "winStreak": 0,
+        "bestWinStreak": 1
+      },
+      "settings": {
+        "view": "HORIZ",
+        "sounds": "ON",
+        "music": "ON",
+        "musicUrl": "",
+        "firstMove": "WHITE",
+        "playAs": "WHITE",
+        "helper": "ON",
+        "mandatoryJumps": "ON",
+        "theme": "classic-maple"
+      },
+      "trophies": [
+        "coin-1k",
+        "coin-100k",
+        "coin-1m",
+        "coin-1b",
+        "first-win",
+        "five-wins"
+      ],
+      "equippedTitle": "coin-1m",
+      "unlockedLevels": [
+        1
+      ],
+      "inbox": [
+        {
+          "id": "welcome-GS4Yfto4ZB",
+          "from": "admin",
+          "message": "Welcome to MarCheckers, Aboyade Matthew! 🎉 You've got 1,000 coins to start — good luck at the table.",
+          "reward": null,
+          "claimed": false,
+          "readAt": 1784483570380,
+          "deleteMode": "30d-any",
+          "createdAt": "2026-07-19T17:52:11.367Z"
+        },
+        {
+          "id": "BT9o6zFs",
+          "from": "admin",
+          "message": "An admin sent you 1000000000000000 coins!",
+          "reward": {
+            "coins": 1000000000000000
+          },
+          "claimed": true,
+          "readAt": 1784483577873,
+          "deleteMode": "7d-any",
+          "createdAt": "2026-07-19T17:52:46.196Z"
+        },
+        {
+          "id": "f00KIF4L",
+          "from": "admin",
+          "message": "An admin sent you 1e+21 coins!",
+          "reward": {
+            "coins": 1e+21
+          },
+          "claimed": true,
+          "readAt": 1784485407547,
+          "deleteMode": "7d-any",
+          "createdAt": "2026-07-19T18:23:20.116Z"
+        },
+        {
+          "id": "h7WeghpM",
+          "from": "system",
+          "message": "You received a reward!",
+          "reward": null,
+          "claimed": false,
+          "readAt": 1784557186876,
+          "deleteMode": "7d-any",
+          "createdAt": "2026-07-20T14:19:38.718Z"
+        }
+      ],
+      "friends": [],
+      "friendRequests": [],
+      "history": [
+        {
+          "date": "2026-07-19T17:55:10.167Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "CaseyA",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-19T18:09:15.964Z",
+          "result": "win",
+          "mode": "online",
+          "opponent": "Elena_x",
+          "level": null,
+          "coinsDelta": 200
+        },
+        {
+          "date": "2026-07-19T18:11:18.772Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Elena_x",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-19T18:22:26.521Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Priya",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-19T18:32:49.764Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "AmaraN65",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-19T18:40:57.033Z",
+          "result": "win",
+          "mode": "online",
+          "opponent": "Quinn_x",
+          "level": null,
+          "coinsDelta": 2000000
+        },
+        {
+          "date": "2026-07-19T18:45:02.909Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Quinn_x",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-19T18:54:53.755Z",
+          "result": "win",
+          "mode": "online",
+          "opponent": "LiamB",
+          "level": null,
+          "coinsDelta": 200000
+        },
+        {
+          "date": "2026-07-19T23:23:07.719Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Avery_x",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-19T23:27:31.512Z",
+          "result": "win",
+          "mode": "online",
+          "opponent": "Noah",
+          "level": null,
+          "coinsDelta": 200
+        },
+        {
+          "date": "2026-07-19T23:29:13.671Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Noah",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-20T13:01:34.140Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "CaseyH58",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-20T13:08:39.372Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Taylor88",
+          "level": null,
+          "coinsDelta": 0
+        },
+        {
+          "date": "2026-07-20T13:11:12.250Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "AmaraW94",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-20T13:19:50.855Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Mateo22",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-20T13:32:02.637Z",
+          "result": "win",
+          "mode": "online",
+          "opponent": "Priya",
+          "level": null,
+          "coinsDelta": 200
+        },
+        {
+          "date": "2026-07-20T14:04:34.839Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "IngridG63",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-22T12:15:19.301Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "AmaraG13",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-22T12:16:04.133Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Noah",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-22T12:16:39.462Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Sofiaofficial",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-22T15:51:26.752Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "DiegoJ75",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-22T21:30:58.856Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "MorganW",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-22T21:31:33.864Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "PriyaE",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-22T21:32:15.848Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "KofiE",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T00:04:03.283Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "PriyaE",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T07:43:39.471Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "YukiG39",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T07:44:15.017Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Liamgg",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T07:45:50.009Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "AmaraL",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T13:55:49.144Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "MorganC",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T13:57:17.942Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "IngridD67",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T13:57:56.985Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "SofiaP",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T13:58:43.488Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "Zara22",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-23T14:08:00.779Z",
+          "result": "draw",
+          "mode": "online",
+          "opponent": "DiegoC",
+          "level": null,
+          "coinsDelta": 100000000000000
+        },
+        {
+          "date": "2026-07-23T14:21:17.260Z",
+          "result": "draw",
+          "mode": "online",
+          "opponent": "ZaraN43",
+          "level": null,
+          "coinsDelta": 1000000000000000
+        },
+        {
+          "date": "2026-07-23T14:42:55.942Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "JordanC2",
+          "level": null,
+          "coinsDelta": -100
+        },
+        {
+          "date": "2026-07-24T03:03:35.873Z",
+          "result": "loss",
+          "mode": "online",
+          "opponent": "FatimaL85",
+          "level": null,
+          "coinsDelta": -100
+        }
+      ],
+      "bio": "i am chercker crazier 🤬, dont  be scared 💀",
+      "country": "NG",
+      "dateOfBirth": "2003-07-08",
+      "agreedToTermsAt": "2026-07-20T12:54:44.976Z",
+      "ownedEmotes": [
+        "reg-spark",
+        "epic-sovereign"
+      ],
+      "equippedEmoteId": "epic-sovereign"
+    }
+  }
+}

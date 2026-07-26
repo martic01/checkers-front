@@ -1,50 +1,187 @@
-.friends-panel {
-  max-width: 480px;
+/* Friends.css - Complete redesign */
+
+* {
+  box-sizing: border-box;
 }
 
-.friends-section {
-  margin-bottom: 22px;
+.friends-panel {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px 32px;
+  width: 100%;
 }
+
+.friends-panel .back-link {
+  margin-bottom: 12px;
+}
+
+.friends-panel .screen-title {
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  margin-bottom: 20px;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ---------- Sections ---------- */
+.friends-section {
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 1px solid var(--panel-border);
+}
+
 .friends-section h3 {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--gold);
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.friends-section h3 .badge {
+  background: rgba(201, 162, 39, 0.15);
+  color: var(--gold-bright);
+  font-size: 0.6rem;
+  padding: 1px 10px;
+  border-radius: 999px;
+  font-weight: 600;
 }
 
 .friends-empty {
   color: var(--cream-dim);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 20px 0;
+  opacity: 0.6;
 }
 
+/* ---------- Search Section ---------- */
+.friends-search {
+  position: relative;
+}
+
+.friends-search .auth-input {
+  padding-left: 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  color: var(--cream);
+  font-size: 0.85rem;
+  padding: 10px 12px 10px 36px;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.friends-search .auth-input:focus {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.friends-search .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cream-dim);
+  font-size: 0.9rem;
+  opacity: 0.5;
+}
+
+.friends-search .search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--cream-dim);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.friends-search .search-clear:hover {
+  opacity: 1;
+}
+
+.friends-search-results {
+  margin-top: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.friends-search-results::-webkit-scrollbar {
+  width: 3px;
+}
+
+.friends-search-results::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+}
+
+.friends-search-results::-webkit-scrollbar-thumb {
+  background: rgba(201, 162, 39, 0.3);
+  border-radius: 999px;
+}
+
+.friends-search-loading {
+  text-align: center;
+  color: var(--cream-dim);
+  font-size: 0.8rem;
+  padding: 16px 0;
+}
+
+/* ---------- Friend Row ---------- */
 .friend-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
+  gap: 12px;
+  padding: 10px 12px;
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--panel-border);
   margin-bottom: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.friend-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .friend-row__presence {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .friend-row__presence--online {
-  background: var(--success);
-  box-shadow: 0 0 6px var(--success);
+  background: #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.friend-row__avatar {
+  flex-shrink: 0;
 }
 
 .friend-row__info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   flex: 1;
   min-width: 0;
 }
@@ -52,24 +189,403 @@
 .friend-row__name {
   font-size: 0.85rem;
   font-weight: 600;
-  flex: 1;
-  min-width: 0;
+  color: var(--cream);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.friend-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.friend-row__meta .rank-badge {
+  font-size: 0.55rem;
+}
+
+.friend-row__status {
+  font-size: 0.6rem;
+  color: var(--cream-dim);
+  font-family: var(--font-mono);
+  opacity: 0.6;
 }
 
 .friend-row__actions {
   display: flex;
   gap: 6px;
   flex-shrink: 0;
+  align-items: center;
+}
+
+.friend-row__actions .btn {
+  min-height: 32px;
+  font-size: 0.7rem;
+  padding: 4px 14px;
 }
 
 .friends-tag {
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   color: var(--cream-dim);
   font-family: var(--font-mono);
-  padding: 4px 10px;
+  padding: 4px 12px;
   border: 1px solid var(--panel-border);
   border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  white-space: nowrap;
+}
+
+.friends-tag--friends {
+  color: var(--gold-bright);
+  border-color: rgba(201, 162, 39, 0.3);
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.friends-tag--sent {
+  color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Friend Row Animation ---------- */
+.friend-row-enter {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ---------- Request Row ---------- */
+.friend-row--request {
+  border-color: rgba(201, 162, 39, 0.2);
+  background: rgba(201, 162, 39, 0.05);
+}
+
+.friend-row--request .friend-row__name {
+  color: var(--gold-bright);
+}
+
+/* ---------- Modal Override ---------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  max-width: 440px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-card h3 {
+  font-size: 1.1rem;
+  color: var(--cream);
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.modal-card .modal-sub {
+  color: var(--cream-dim);
+  font-size: 0.8rem;
+  text-align: center;
+  margin: 0 0 16px;
+}
+
+.modal-card .modal-balance {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 0.75rem;
+  color: var(--cream-dim);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.modal-card .modal-balance span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.modal-card .modal-balance .highlight {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+  min-height: 40px;
+}
+
+/* ---------- Bet Tier Grid ---------- */
+.bet-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.bet-tier-btn {
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--cream);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-height: 44px;
+}
+
+.bet-tier-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(201, 162, 39, 0.08);
+}
+
+.bet-tier-btn--selected {
+  border-color: var(--gold);
+  background: rgba(201, 162, 39, 0.15);
+  color: var(--gold-bright);
+}
+
+.bet-tier-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.bet-tier-btn .tier-label {
+  display: block;
+  font-size: 0.55rem;
+  color: var(--cream-dim);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .friends-panel {
+    padding: 16px 12px 24px;
+  }
+
+  .friends-section {
+    padding: 12px;
+  }
+
+  .friend-row {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+
+  .friend-row__name {
+    font-size: 0.8rem;
+  }
+
+  .friend-row__actions .btn {
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    min-height: 28px;
+  }
+
+  .modal-card {
+    padding: 18px;
+    margin: 8px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .bet-tier-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .friends-panel {
+    padding: 12px 8px 20px;
+  }
+
+  .friends-section {
+    padding: 10px 8px;
+  }
+
+  .friend-row {
+    padding: 6px 8px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .friend-row__info {
+    flex: 1 1 100%;
+    order: 2;
+  }
+
+  .friend-row__presence {
+    order: 0;
+  }
+
+  .friend-row__avatar {
+    order: 1;
+  }
+
+  .friend-row__actions {
+    order: 3;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .friend-row__actions .btn {
+    font-size: 0.6rem;
+    padding: 3px 8px;
+    min-height: 24px;
+  }
+
+  .friends-tag {
+    font-size: 0.55rem;
+    padding: 2px 8px;
+  }
+
+  .modal-card {
+    padding: 14px;
+  }
+
+  .modal-card h3 {
+    font-size: 1rem;
+  }
+
+  .bet-tier-grid {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 6px;
+  }
+
+  .bet-tier-btn {
+    font-size: 0.6rem;
+    padding: 6px 2px;
+    min-height: 36px;
+  }
+
+  .bet-tier-btn .tier-label {
+    font-size: 0.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .friends-panel {
+    padding: 8px 4px 16px;
+  }
+
+  .friends-section {
+    padding: 8px 6px;
+  }
+
+  .friend-row {
+    padding: 5px 6px;
+    gap: 6px;
+  }
+
+  .friend-row__name {
+    font-size: 0.7rem;
+  }
+
+  .friend-row__actions .btn {
+    font-size: 0.55rem;
+    padding: 2px 6px;
+    min-height: 20px;
+  }
+
+  .modal-card {
+    padding: 12px;
+  }
+
+  .bet-tier-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------- Scrollbar Styling ---------- */
+.friends-search-results::-webkit-scrollbar,
+.modal-card::-webkit-scrollbar {
+  width: 3px;
+}
+
+.friends-search-results::-webkit-scrollbar-track,
+.modal-card::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+}
+
+.friends-search-results::-webkit-scrollbar-thumb,
+.modal-card::-webkit-scrollbar-thumb {
+  background: rgba(201, 162, 39, 0.3);
+  border-radius: 999px;
+}
+
+/* ---------- Utility ---------- */
+.text-center {
+  text-align: center;
+}
+
+.mt-8 {
+  margin-top: 8px;
+}
+
+.mb-8 {
+  margin-bottom: 8px;
 }
