@@ -32,6 +32,9 @@ import ReconnectPrompt from "./components/ReconnectPrompt.jsx";
 import RotateHint from "./components/RotateHint.jsx";
 import Friends from "./components/Friends.jsx";
 import ChallengePopup from "./components/ChallengePopup.jsx";
+import ChessLevels from "./components/ChessLevels.jsx";
+import ChessScreen from "./components/ChessScreen.jsx";
+import ChessOnlineLobby from "./components/ChessOnlineLobby.jsx";
 
 const IDLE_ONLINE_STATE = { phase: "idle", betAmount: 0, roomCode: null, opponent: null, playerColor: "white" };
 const CLERK_ENABLED = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -88,9 +91,11 @@ function AppRouter() {
     return saved ? Number(saved) : null;
   });
   const [online, setOnline] = useState(IDLE_ONLINE_STATE);
+  const [chessOnline, setChessOnline] = useState(IDLE_ONLINE_STATE);
   const [matchResult, setMatchResult] = useState(null);
   const [showInbox, setShowInbox] = useState(false);
   const [playlist, setPlaylist] = useState([]);
+  const [chessAiDifficulty, setChessAiDifficulty] = useState("intermediate");
   const dailyClaimedRef = useRef(false);
 
   const settings = player?.settings;
@@ -118,7 +123,7 @@ function AppRouter() {
   // server's response as-is (never write local state back over it), so this
   // can only pull in newer data, never overwrite it with something older.
   // Paused during an active match so it can't interrupt gameplay.
-  const inActiveMatch = screen === "ai-game" || screen === "local-game" || screen === "online-game";
+  const inActiveMatch = screen === "ai-game" || screen === "local-game" || screen === "online-game" || screen === "chess-local-game" || screen === "chess-ai-game" || screen === "chess-online-game";
   useEffect(() => {
     if (!player || offline) return;
     const onVisible = () => {
@@ -151,7 +156,17 @@ function AppRouter() {
       setTimeout(() => setScreen("online-game"), 5000);
     };
     socket.on("match:found", onFound);
-    return () => socket.off("match:found", onFound);
+
+    const onChessFound = ({ code, color, opponent, betAmount: bet }) => {
+      setChessOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color });
+      setTimeout(() => setScreen("chess-online-game"), 2000);
+    };
+    socket.on("chess:match:found", onChessFound);
+
+    return () => {
+      socket.off("match:found", onFound);
+      socket.off("chess:match:found", onChessFound);
+    };
   }, [player, offline]);
 
   const navigate = useCallback((next) => setScreen(next), []);
@@ -159,12 +174,14 @@ function AppRouter() {
   const handleModeSelect = (mode) => {
     if (mode === "ai") setScreen("levels");
     else if (mode === "local") setScreen("local-game");
-    else if (mode === "online") {
+    else if (mode === "chess-ai") setScreen("chess-levels");
+    else if (mode === "chess-local") setScreen("chess-local-game");
+    else if (mode === "online" || mode === "chess-online") {
       if (offline) {
         toastError("Online play needs an internet connection and an account — log in to play online.");
         return;
       }
-      setScreen("online-lobby");
+      setScreen(mode === "online" ? "online-lobby" : "chess-online-lobby");
     } else setScreen(mode);
   };
 
@@ -289,6 +306,91 @@ function AppRouter() {
     });
   };
 
+  // --- Chess online lobby handlers (mirrors the Checkers ones above,
+  // against the chess: event namespace / chessOnline state instead) ---
+  const handleChessQuickMatch = (betAmount) => {
+    if (!navigator.onLine) {
+      toastError("You're offline — connect to the internet to play online.");
+      return;
+    }
+    setChessOnline({ ...IDLE_ONLINE_STATE, phase: "searching", betAmount });
+    const socket = connectSocket();
+    socket.emit("chess:quickmatch:join", { playerId: player.id, betAmount, name: player.name, avatar: player.avatar }, (res) => {
+      if (!res?.ok) {
+        toastError(res?.error || "Could not start matchmaking");
+        setChessOnline(IDLE_ONLINE_STATE);
+      }
+    });
+  };
+
+  const handleChessCancelSearch = (betAmount) => {
+    const socket = getSocket();
+    socket.emit("chess:quickmatch:cancel", { betAmount });
+    socket.emit("chess:room:leave");
+    setChessOnline(IDLE_ONLINE_STATE);
+  };
+
+  const handleChessCreateRoom = (betAmount) => {
+    if (!navigator.onLine) {
+      toastError("You're offline — connect to the internet to play online.");
+      return;
+    }
+    setChessOnline({ ...IDLE_ONLINE_STATE, phase: "waiting-code", betAmount });
+    const socket = connectSocket();
+    socket.emit("chess:room:create", { playerId: player.id, name: player.name, avatar: player.avatar, betAmount }, (res) => {
+      if (!res?.ok) {
+        toastError(res?.error || "Could not create room");
+        setChessOnline(IDLE_ONLINE_STATE);
+        return;
+      }
+      setChessOnline({ phase: "waiting-code", betAmount, roomCode: res.code, opponent: null, playerColor: "w" });
+      socket.once("chess:room:ready", (room) => {
+        const opp = room.players.find((p) => p.playerId !== player.id);
+        setChessOnline({
+          phase: "matched",
+          betAmount: room.betAmount,
+          roomCode: res.code,
+          opponent: { id: opp?.playerId, name: opp?.name, avatar: opp?.avatar },
+          playerColor: "w",
+        });
+        setTimeout(() => setScreen("chess-online-game"), 2000);
+      });
+    });
+  };
+
+  const handleChessJoinRoom = (code) => {
+    if (!navigator.onLine) {
+      toastError("You're offline — connect to the internet to play online.");
+      return;
+    }
+    setChessOnline({ ...IDLE_ONLINE_STATE, phase: "waiting-code", roomCode: code });
+    const socket = connectSocket();
+    socket.emit("chess:room:join", { code, playerId: player.id, name: player.name, avatar: player.avatar }, (res) => {
+      if (!res?.ok) {
+        toastError(res?.error || "Could not join room");
+        setChessOnline(IDLE_ONLINE_STATE);
+        return;
+      }
+      socket.once("chess:room:ready", (room) => {
+        const opp = room.players.find((p) => p.playerId !== player.id);
+        setChessOnline({
+          phase: "matched",
+          betAmount: room.betAmount,
+          roomCode: code,
+          opponent: opp ? { id: opp.playerId, name: opp.name, avatar: opp.avatar } : null,
+          playerColor: "b",
+        });
+        setTimeout(() => setScreen("chess-online-game"), 2000);
+      });
+    });
+  };
+
+  const handleChessOnlineExit = () => {
+    getSocket()?.emit("chess:room:leave");
+    setChessOnline(IDLE_ONLINE_STATE);
+    setScreen("chess-online-lobby");
+  };
+
   if (loading || !player) {
     if (needsAuth) {
       // Wait for backend confirmation before committing to the Clerk flow —
@@ -312,7 +414,7 @@ function AppRouter() {
       {showInbox && (
         <Inbox messages={player.inbox} onClaim={claimInboxReward} onMarkRead={markInboxRead} onClose={() => setShowInbox(false)} />
       )}
-      {screen.endsWith("-game") && <RotateHint />}
+      {(screen === "ai-game" || screen === "local-game" || screen === "online-game") && <RotateHint />}
 
       {renderScreen()}
     </>
@@ -374,6 +476,43 @@ function AppRouter() {
         );
       case "local-game":
         return <GameScreen mode="local" settings={settings} playerName="White" opponentName="Black" onExit={handleGameExit} />;
+      case "chess-levels":
+        return (
+          <ChessLevels
+            onSelect={(diff) => {
+              setChessAiDifficulty(diff);
+              setScreen("chess-ai-game");
+            }}
+            onBack={() => navigate("home")}
+          />
+        );
+      case "chess-local-game":
+        return <ChessScreen mode="local" onExit={() => navigate("home")} />;
+      case "chess-ai-game":
+        return <ChessScreen mode="ai" difficulty={chessAiDifficulty} onExit={() => navigate("home")} />;
+      case "chess-online-lobby":
+        return (
+          <ChessOnlineLobby
+            player={player}
+            state={chessOnline}
+            onQuickMatch={handleChessQuickMatch}
+            onCancelSearch={handleChessCancelSearch}
+            onCreateRoom={handleChessCreateRoom}
+            onJoinRoom={handleChessJoinRoom}
+            onBack={() => navigate("home")}
+          />
+        );
+      case "chess-online-game":
+        return (
+          <ChessScreen
+            mode="online"
+            socket={getSocket()}
+            roomCode={chessOnline.roomCode}
+            playerColor={chessOnline.playerColor}
+            opponentInfo={{ ...chessOnline.opponent, myPlayerId: player.id }}
+            onExit={handleChessOnlineExit}
+          />
+        );
       case "ai-game":
         return (
           <GameScreen

@@ -7,7 +7,7 @@ import { api } from "../api/client.js";
 import TitleMarquee from "./TitleMarquee.jsx";
 import { TROPHY_CATALOG } from "../game/trophyCatalog.js";
 
-const MODE_CARDS = [
+const CHECKERS_MODE_CARDS = [
   {
     key: "online",
     icon: "🌐",
@@ -28,6 +28,27 @@ const MODE_CARDS = [
   },
 ];
 
+const CHESS_MODE_CARDS = [
+  {
+    key: "chess-online",
+    icon: "🌐",
+    title: "Online",
+    desc: "Bet coins and challenge players anywhere with live matches.",
+  },
+  {
+    key: "chess-local",
+    icon: "🪑",
+    title: "Local Multiplayer",
+    desc: "Two players, one board, no internet required.",
+  },
+  {
+    key: "chess-ai",
+    icon: "♞",
+    title: "Play vs AI",
+    desc: "Five levels, from Beginner to Expert.",
+  },
+];
+
 const ICON_NAV = [
   { key: "friends", icon: "👥", label: "Friends" },
   { key: "season", icon: "🏆", label: "Season" },
@@ -41,6 +62,7 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
   const tapCount = useRef(0);
   const tapTimer = useRef(null);
   const [playersOnline, setPlayersOnline] = useState(null);
+  const [activeGame, setActiveGame] = useState("checkers"); // "checkers" | "chess"
 
   useEffect(() => {
     let cancelled = false;
@@ -91,20 +113,55 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
         <h1 className="home-title">MarCheckers</h1>
       </div>
 
-      <div className="mode-cards">
-        {MODE_CARDS.map((card) => (
-          <button key={card.key} className="mode-card" onClick={() => onNavigate(card.key)}>
-            <span className="mode-icon">{card.icon}</span>
-            <span className="mode-title">{card.title}</span>
-            <span className="mode-desc">{card.desc}</span>
-            {card.key === "online" && playersOnline !== null && (
-              <span className="mode-card__online-badge">
-                <span className="mode-card__online-dot" />
-                {playersOnline} online
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="game-tabs" role="tablist" aria-label="Game">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeGame === "checkers"}
+          className={`game-tabs__btn ${activeGame === "checkers" ? "game-tabs__btn--active" : ""}`}
+          onClick={() => setActiveGame("checkers")}
+        >
+          Checkers
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeGame === "chess"}
+          className={`game-tabs__btn ${activeGame === "chess" ? "game-tabs__btn--active" : ""}`}
+          onClick={() => setActiveGame("chess")}
+        >
+          Chess
+        </button>
+        <span className={`game-tabs__indicator ${activeGame === "chess" ? "game-tabs__indicator--right" : ""}`} />
+      </div>
+
+      <div className="mode-cards-viewport">
+        <div className={`mode-cards-slider ${activeGame === "chess" ? "mode-cards-slider--chess" : ""}`}>
+          <div className="mode-cards">
+            {CHECKERS_MODE_CARDS.map((card) => (
+              <button key={card.key} className="mode-card" onClick={() => onNavigate(card.key)}>
+                <span className="mode-icon">{card.icon}</span>
+                <span className="mode-title">{card.title}</span>
+                <span className="mode-desc">{card.desc}</span>
+                {card.key === "online" && playersOnline !== null && (
+                  <span className="mode-card__online-badge">
+                    <span className="mode-card__online-dot" />
+                    {playersOnline} online
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="mode-cards">
+            {CHESS_MODE_CARDS.map((card) => (
+              <button key={card.key} className="mode-card" onClick={() => onNavigate(card.key)}>
+                <span className="mode-icon">{card.icon}</span>
+                <span className="mode-title">{card.title}</span>
+                <span className="mode-desc">{card.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <nav className="icon-nav">

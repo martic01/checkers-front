@@ -4,6 +4,15 @@ import { BOARD_SIZE, isDark } from "../game/checkersLogic.js";
 
 const COLS = "ABCDEFGHIJ".split("");
 
+// Capture-reaction emoji, keyed by the type stored in GameScreen's
+// pieceReactions state — see the CSS for the per-type animation (each gets
+// its own entrance/float-or-shake/fade treatment).
+const REACTION_EMOJI = {
+  fire: "🔥",
+  cool: "😎",
+  scared: "😨",
+};
+
 function Board({
   board,
   pieces = [],
@@ -299,6 +308,7 @@ function Board({
                 {pieces.map((p) => {
                   const { dRow, dCol } = displayPos(p.row, p.col);
                   const isSelected = selected && selected.row === p.row && selected.col === p.col && !p.capturing;
+                  const hasReaction = !!pieceReactions[p.id];
                   return (
                     <div
                       key={p.id}
@@ -312,6 +322,7 @@ function Board({
                         p.king ? "piece-token--king" : "",
                         p.capturing ? "piece-token--capturing" : "",
                         isSelected ? "piece-token--selected" : "",
+                        hasReaction ? "piece-token--reacting" : "",
                       ]
                         .filter(Boolean)
                         .join(" ")}
@@ -338,8 +349,11 @@ function Board({
                         </div>
                       </div>
                       {pieceReactions[p.id] && (
-                        <span key={pieceReactions[p.id]} className="piece-reaction-emoji">
-                          {pieceReactions[p.id]}
+                        <span
+                          key={p.id + pieceReactions[p.id]}
+                          className={`piece-reaction-emoji piece-reaction-emoji--${pieceReactions[p.id]}`}
+                        >
+                          {REACTION_EMOJI[pieceReactions[p.id]]}
                         </span>
                       )}
                     </div>

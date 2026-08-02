@@ -1,0 +1,206 @@
+.chess-board-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.chess-coords {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 800;
+  font-size: 11px;
+  color: var(--cream-dim, rgba(235, 211, 166, 0.55));
+  width: 100%;
+  user-select: none;
+}
+.chess-coords--top, .chess-coords--bottom { padding: 4px 0; }
+.chess-coords--top span, .chess-coords--bottom span { text-align: center; }
+
+.chess-board-middle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+.chess-coords--left, .chess-coords--right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 0 6px;
+  width: 18px;
+  flex-shrink: 0;
+}
+.chess-coords--left span, .chess-coords--right span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+/* ---- Flat 2D board: the deliberately simple fallback. No perspective,
+   no rotation, no extruded walls — that's what the 3D mode is for now. ---- */
+.chess-grid-flat {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  width: min(92vw, calc(88vh - 160px), 560px);
+  height: min(92vw, calc(88vh - 160px), 560px);
+  border: 5px solid #2b1a10;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
+}
+
+.chess-square-flat {
+  position: relative;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chess-square-flat:disabled { cursor: default; }
+.chess-square-flat--light { background: #e8d3a6; }
+.chess-square-flat--dark { background: #4a2f1c; }
+.chess-square-flat--selected { box-shadow: inset 0 0 0 3px var(--gold-bright, #ffdf33); }
+.chess-square-flat--last-move { box-shadow: inset 0 0 0 999px rgba(255, 120, 0, 0.2); }
+.chess-square-flat--check {
+  box-shadow: inset 0 0 0 999px rgba(200, 92, 79, 0.45);
+  animation: chess-flat-check-pulse 1s ease-in-out infinite;
+}
+@keyframes chess-flat-check-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 999px rgba(200, 92, 79, 0.3); }
+  50% { box-shadow: inset 0 0 0 999px rgba(200, 92, 79, 0.55); }
+}
+
+.chess-glyph {
+  font-size: clamp(1.4rem, 6.5vw, 2.6rem);
+  line-height: 1;
+  user-select: none;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.32, 1);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+}
+.chess-glyph--w { color: #f5efe6; -webkit-text-stroke: 1px rgba(20, 15, 12, 0.5); }
+.chess-glyph--b { color: #201510; -webkit-text-stroke: 1px rgba(232, 194, 92, 0.2); }
+
+.chess-move-dot-flat {
+  position: absolute;
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: rgba(255, 223, 51, 0.75);
+  pointer-events: none;
+}
+.chess-capture-ring-flat {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  border: 4px solid rgba(200, 92, 79, 0.7);
+  pointer-events: none;
+}
+
+/* ---- HUD controls (shared by both 2D and 3D modes) ---- */
+.chess-3d-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.chess-3d-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(to bottom, #2b2b32, #1b1b20);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ebd3a6;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  user-select: none;
+}
+.chess-3d-toggle:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--gold-bright, #ffdf33); }
+.chess-3d-toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+.chess-3d-toggle--active {
+  border-color: var(--gold-bright, #ffdf33);
+  background: linear-gradient(to bottom, #423414, #211905);
+  color: #fff;
+}
+.chess-btn-icon { display: inline-block; font-size: 0.9rem; }
+.chess-btn-text { display: inline-block; }
+
+/* ---- Promotion modal (shared by both modes) ---- */
+.chess-promotion-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 7, 5, 0.65);
+  border-radius: 10px;
+  z-index: 40;
+}
+.chess-promotion-modal {
+  background: #16110c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px 24px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+.chess-promotion-title {
+  font-family: var(--font-display, serif);
+  color: #ebd3a6;
+  margin: 0 0 14px;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+.chess-promotion-choices { display: flex; gap: 10px; }
+.chess-promotion-choice {
+  width: 56px;
+  height: 56px;
+  font-size: 2rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(245, 239, 230, 0.08);
+  color: #ebd3a6;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.chess-promotion-choice:hover {
+  background: rgba(232, 194, 92, 0.18);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+  .chess-grid-flat {
+    width: min(100vw - 36px, calc(86vh - 90px));
+    height: min(100vw - 36px, calc(86vh - 90px));
+  }
+  .chess-coords--left, .chess-coords--right { width: 12px; padding: 0 3px; font-size: 9px; }
+  .chess-coords--top, .chess-coords--bottom { font-size: 9px; padding: 2px 0; }
+  .chess-3d-controls { gap: 8px; margin-top: 8px; }
+  .chess-3d-toggle { padding: 7px 12px; font-size: 0.75rem; }
+  .chess-promotion-choice { width: 46px; height: 46px; font-size: 1.6rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chess-glyph, .chess-square-flat--check {
+    transition: none !important;
+    animation: none !important;
+  }
+}

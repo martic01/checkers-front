@@ -18,6 +18,7 @@ import {
 } from "../game/checkersLogic.js";
 import { getAiMove, aiRandomDecision } from "../game/ai.js";
 import { detectChatSituations, maybeGetBotLine, BOT_CHAT_COOLDOWN_MOVES } from "../game/botChat.js";
+import { useCaptureReactions } from "../hooks/useCaptureReactions.js";
 import { resolveEquippedEmote } from "../game/emoteCatalog.js";
 import { api } from "../api/client.js";
 import { usePlayerStore } from "../store/playerStore.js";
@@ -198,28 +199,10 @@ export default function GameScreen({
   const fmjdTracker = useRef(createFmjdTracker());
   useEffect(() => () => clearTimeout(animTimer.current), []);
 
-  // Reaction emojis that pop up over a piece for a few seconds — fire on
-  // the capturing piece for a 3+ multi-capture, cool for exactly 2, scared
-  // on every surviving opponent piece for a 3+ capture. Keyed by piece id
-  // so it follows the piece through its hops instead of a fixed square.
-  // reactionTokens guards against a later reaction on the same piece being
-  // wiped early by an earlier one's own cleanup timer.
-  const [pieceReactions, setPieceReactions] = useState({});
-  const reactionTokens = useRef(new Map());
-  const triggerReaction = useCallback((pieceId, emoji, ms) => {
-    const token = (reactionTokens.current.get(pieceId) || 0) + 1;
-    reactionTokens.current.set(pieceId, token);
-    setPieceReactions((prev) => ({ ...prev, [pieceId]: emoji }));
-    setTimeout(() => {
-      if (reactionTokens.current.get(pieceId) !== token) return; // superseded by a newer reaction
-      setPieceReactions((prev) => {
-        if (!(pieceId in prev)) return prev;
-        const next = { ...prev };
-        delete next[pieceId];
-        return next;
-      });
-    }, ms);
-  }, []);
+  // Capture-reaction emote overlay (🔥 / 😎 / 😨) — entirely owned by its
+  // own hook, kept deliberately separate from board/pieces/turn/king state.
+  // See hooks/useCaptureReactions.js and game/captureReactions.js.
+  const { pieceReactions, recordCapture, resetReactions } = useCaptureReactions();
 
   // ---------- AI chat (#3) ----------
   // The bot has no real socket connection, so it "speaks" by having this
@@ -449,20 +432,6 @@ export default function GameScreen({
           (p.color === WHITE ? move.to.row === 0 : move.to.row === BOARD_SIZE - 1)
       );
 
-      // Fire on the capturing piece + scared on every opponent piece still
-      // standing for a 3+ multi-capture; cool on the capturing piece alone
-      // for exactly 2. Fired once up front so they're visible through the
-      // whole hop sequence, not tied to any single hop's timing.
-      if (captureCount >= 3 && movingPieceId) {
-        triggerReaction(movingPieceId, "🔥", 5000);
-        const survivingOpponents = pieces.filter(
-          (p) => p.color !== moverColor && !p.capturing && !move.captures.some((c) => c.row === p.row && c.col === p.col)
-        );
-        for (const opp of survivingOpponents) triggerReaction(opp.id, "😱", 2000);
-      } else if (captureCount === 2 && movingPieceId) {
-        triggerReaction(movingPieceId, "😎", 3000);
-      }
-
       const finalize = () => {
         setPieces((prev) => prev.filter((p) => !p.capturing));
         setBoard(nextBoard);
@@ -538,6 +507,24 @@ export default function GameScreen({
           });
         });
 
+        // Report the capture to the reaction system: exactly one call per
+        // hop that actually captured a piece, carrying only the piece id
+        // and the running count for this sequence. What (if anything) to
+        // show is entirely decided inside useCaptureReactions/
+        // decideCaptureReaction — nothing about king status is passed in
+        // here, so it's structurally impossible for promotion to gate this.
+        // kingedUp (computed above) is used only for the promotion sound
+        // and the FMJD draw tracker later in this function — a completely
+        // separate concern that happens to be computed nearby.
+        if (captureSquare && movingPieceId) {
+          const capturesSoFar = hopIndex + 1;
+          const capturedSoFar = move.captures.slice(0, capturesSoFar);
+          const survivingOpponentIds = pieces
+            .filter((p) => p.color !== moverColor && !capturedSoFar.some((c) => c.row === p.row && c.col === p.col))
+            .map((p) => p.id);
+          recordCapture(movingPieceId, capturesSoFar, survivingOpponentIds);
+        }
+
         // Simple move: MOVE_ANIMATION_MS. Any capture's final hop gets the
         // longer CAPTURE_ANIMATION_MS so the last captured piece's
         // fade/shrink has room to finish before the board state swaps.
@@ -557,7 +544,7 @@ export default function GameScreen({
 
       doHop(0);
     },
-    [board, turn, pieces, mandatoryJumps, soundsOn, triggerReaction] // eslint-disable-line react-hooks/exhaustive-deps
+    [board, turn, pieces, mandatoryJumps, soundsOn, recordCapture] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // Player-initiated move (click on the board).
@@ -664,7 +651,7 @@ export default function GameScreen({
     setHistory((h) => h.slice(0, -1));
     setGameOver(null);
     setLastMove(null);
-    setPieceReactions({});
+    resetReactions();
     playSound("click", soundsOn);
   };
 
@@ -680,7 +667,7 @@ export default function GameScreen({
     setIsAnimating(false);
     setDrawOffer(null);
     setDrawWarning(null);
-    setPieceReactions({});
+    resetReactions();
     drawGraceGiven.current = new Set();
     fmjdTracker.current = createFmjdTracker();
     playSound("click", soundsOn);
