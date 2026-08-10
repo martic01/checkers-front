@@ -24,15 +24,14 @@
 
 .chess-board-middle {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   width: 100%;
   min-height: 0;
 }
 .chess-coords--left, .chess-coords--right {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
+  display: grid;
+  grid-template-rows: repeat(8, minmax(0, 1fr));
   padding: 0 6px;
   width: 18px;
   flex-shrink: 0;
@@ -41,7 +40,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
 }
 
 /* ---- Flat 2D board: the deliberately simple fallback. No perspective,
@@ -52,7 +50,7 @@
   grid-template-rows: repeat(8, minmax(0, 1fr));
   width: min(92vw, calc(88vh - 160px), 560px);
   height: min(92vw, calc(88vh - 160px), 560px);
-  border: 5px solid #2b1a10;
+  border: 5px solid var(--board-border, #2c1810);
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
@@ -69,8 +67,8 @@
   justify-content: center;
 }
 .chess-square-flat:disabled { cursor: default; }
-.chess-square-flat--light { background: #e8d3a6; }
-.chess-square-flat--dark { background: #4a2f1c; }
+.chess-square-flat--light { background: linear-gradient(140deg, var(--sq-light-a, #eccfa0), var(--sq-light-b, #dfb787)); }
+.chess-square-flat--dark { background: linear-gradient(140deg, var(--sq-dark-a, #5b3722), var(--sq-dark-b, #43271a)); }
 .chess-square-flat--selected { box-shadow: inset 0 0 0 3px var(--gold-bright, #ffdf33); }
 .chess-square-flat--last-move { box-shadow: inset 0 0 0 999px rgba(255, 120, 0, 0.2); }
 .chess-square-flat--check {
@@ -83,14 +81,53 @@
 }
 
 .chess-glyph {
-  font-size: clamp(1.4rem, 6.5vw, 2.6rem);
+  position: relative;
+  font-size: clamp(1.5rem, 6.8vw, 2.75rem);
   line-height: 1;
   user-select: none;
   transition: transform 0.3s cubic-bezier(0.25, 1, 0.32, 1);
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+  transform: translateY(-2%);
 }
-.chess-glyph--w { color: #f5efe6; -webkit-text-stroke: 1px rgba(20, 15, 12, 0.5); }
-.chess-glyph--b { color: #201510; -webkit-text-stroke: 1px rgba(232, 194, 92, 0.2); }
+/* A stack of offset shadows (rather than one soft blur) reads as
+   physical extrusion — each layer nudges further down/right, building a
+   sense of thickness instead of the glyph looking pasted flat onto the
+   square. */
+.chess-glyph--w {
+  color: #fbf6ec;
+  -webkit-text-stroke: 1px rgba(20, 15, 12, 0.55);
+  text-shadow:
+    0 1px 0 #d8c6a8,
+    0 2px 0 #c2ab84,
+    0 3px 1px rgba(0, 0, 0, 0.35),
+    0 6px 8px rgba(0, 0, 0, 0.45);
+}
+.chess-glyph--b {
+  color: #2a1c15;
+  -webkit-text-stroke: 1px rgba(232, 194, 92, 0.22);
+  text-shadow:
+    0 1px 0 #4a3324,
+    0 2px 0 #33231a,
+    0 3px 1px rgba(0, 0, 0, 0.5),
+    0 6px 8px rgba(0, 0, 0, 0.55);
+}
+/* Ground-contact shadow — a blurred ellipse the piece appears to be
+   standing on, the single biggest cue that separates "sticker on a
+   square" from "object sitting on a board." Rendered explicitly in JSX
+   only for occupied squares (see .chess-piece-shadow-flat), not via a
+   :has() selector, to avoid depending on that being supported. */
+.chess-piece-shadow-flat {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  width: 46%;
+  height: 16%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.4) 0%, transparent 72%);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.chess-square-flat--selected .chess-glyph {
+  transform: translateY(-10%) scale(1.08);
+}
 
 .chess-move-dot-flat {
   position: absolute;

@@ -26,6 +26,7 @@ export default function ChessBoard({
   // needed — never blocks loading the (always-available) 2D board.
   const [webglChecked, setWebglChecked] = useState(false);
   const [webglOk, setWebglOk] = useState(true);
+  const [softwareRendered, setSoftwareRendered] = useState(false);
   const [threeDFailed, setThreeDFailed] = useState(false);
   const orbitControlsRef = useRef(null);
 
@@ -77,6 +78,7 @@ export default function ChessBoard({
   };
 
   const handleToggle3D = () => {
+    console.info("[Chess3D] 3D toggle clicked. Currently 3D:", is3D);
     if (is3D) {
       setIs3D(false);
       return;
@@ -84,11 +86,13 @@ export default function ChessBoard({
     // Checked lazily (not on mount) so the 2D board never waits on this,
     // and a device that will never use 3D never pays for the check.
     if (!webglChecked) {
-      const ok = detectWebGLSupport();
+      const { supported, softwareRendered: sw } = detectWebGLSupport();
       setWebglChecked(true);
-      setWebglOk(ok);
-      if (!ok) return; // stay on 2D — see the disabled-button title for why
+      setWebglOk(supported);
+      setSoftwareRendered(sw);
+      if (!supported) return; // stay on 2D — console already explains why
     } else if (!webglOk) {
+      console.info("[Chess3D] WebGL was already checked and found unavailable — staying on 2D.");
       return;
     }
     setThreeDFailed(false);
@@ -121,6 +125,7 @@ export default function ChessBoard({
           checkedKing={checkedKing}
           onSquareClick={handleSquareClick}
           controlsRef={orbitControlsRef}
+          forceLowQuality={softwareRendered}
           onFatalError={() => {
             // WebGL/Three.js broke mid-session — never let that take Chess
             // down with it, just drop back to the always-working 2D board.
@@ -173,6 +178,7 @@ export default function ChessBoard({
                       disabled={disabled}
                       aria-label={algebraic(row, col)}
                     >
+                      {cell && <span className="chess-piece-shadow-flat" />}
                       {cell && <span className={`chess-glyph chess-glyph--${cell.color}`}>{PIECE_GLYPH[cell.color][cell.type]}</span>}
                       {isLegalDest && !cell && <span className="chess-move-dot-flat" />}
                       {isCaptureDest && <span className="chess-capture-ring-flat" />}

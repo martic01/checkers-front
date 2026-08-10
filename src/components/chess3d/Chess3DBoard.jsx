@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { getBoardMaterials } from "./materials.js";
+import { getBoardMaterials, refreshBoardMaterialsFromTheme } from "./materials.js";
 import { getWorldPosition, SQUARE_SIZE } from "./coords.js";
 
 const SQUARE_HEIGHT = 0.12;
@@ -11,6 +11,10 @@ const FRAME_HEIGHT = 0.22;
 // instance, the geometry never does) — built once per board mount, not
 // once per square.
 export default function Chess3DBoard({ orientation, onSquareClick, squareState }) {
+  useEffect(() => {
+    refreshBoardMaterialsFromTheme();
+  }, []);
+
   const materials = getBoardMaterials();
   const squareGeometry = useMemo(() => new THREE.BoxGeometry(SQUARE_SIZE * 0.98, SQUARE_HEIGHT, SQUARE_SIZE * 0.98), []);
 

@@ -4,7 +4,7 @@
   max-width: 640px;
   aspect-ratio: 1 / 1;
   margin: 0 auto;
-  border-radius: 14px;
+  border-radius: 6px;
   overflow: hidden;
   background: #0a0a0c;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85);
@@ -37,7 +37,7 @@
 
 @media (max-width: 600px) {
   .chess3d-container {
-    border-radius: 10px;
+    border-radius: 4px;
   }
 }
 

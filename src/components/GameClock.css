@@ -1,0 +1,143 @@
+.game-clock-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 8px;
+}
+
+.game-clock {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--panel-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.game-clock__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cream-dim);
+}
+
+.game-clock__time {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--cream);
+}
+
+.game-clock--active {
+  background: rgba(232, 194, 92, 0.16);
+  border-color: rgba(232, 194, 92, 0.5);
+}
+.game-clock--active .game-clock__time {
+  color: var(--gold);
+}
+
+.game-clock--low .game-clock__time {
+  color: #ff6b6b;
+}
+.game-clock--low.game-clock--active {
+  animation: game-clock-pulse 1s ease-in-out infinite;
+}
+@keyframes game-clock-pulse {
+  0%, 100% { border-color: rgba(255, 107, 107, 0.5); }
+  50% { border-color: rgba(255, 107, 107, 0.9); }
+}
+
+.chess-time-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 30px 16px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+}
+.chess-time-picker h2 {
+  font-family: var(--font-display);
+  color: var(--cream);
+  font-size: 1.2rem;
+  margin: 0;
+}
+.chess-time-picker p {
+  color: var(--cream-dim);
+  font-size: 0.85rem;
+  margin: 0 0 6px;
+}
+.chess-time-picker__names {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.chess-time-picker__names input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--panel-border);
+  color: var(--cream);
+  font-size: 0.9rem;
+}
+.chess-time-picker__names input::placeholder {
+  color: var(--cream-dim);
+}
+
+.chess-time-picker__options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.chess-time-picker__option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--cream);
+  cursor: pointer;
+  text-align: left;
+}
+.chess-time-picker__option:hover {
+  border-color: var(--gold);
+}
+.chess-time-picker__option strong {
+  font-family: var(--font-display);
+  color: var(--gold);
+  font-size: 1rem;
+}
+.chess-time-picker__option span {
+  font-size: 0.78rem;
+  color: var(--cream-dim);
+}
+
+.time-picker-cancel {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--cream-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.time-picker-cancel:hover {
+  border-color: var(--cream-dim);
+  color: var(--cream);
+}

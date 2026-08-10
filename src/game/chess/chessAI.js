@@ -63,7 +63,7 @@ function pstValue(type, color, row, col) {
 }
 
 // Positive = good for `color`.
-function evaluate(board, color) {
+export function evaluate(board, color) {
   let score = 0;
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {

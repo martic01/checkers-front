@@ -16,8 +16,7 @@
 // geometry per piece.
 import * as THREE from "three";
 
-const LATHE_SEGMENTS = 24; // smooth enough to read as turned wood, not so
-// dense that 32 on-screen pieces cost anything on a weak mobile GPU.
+const LATHE_SEGMENTS = 28; // smoother turned-wood curves; still cheap at 32 on-screen pieces
 
 function lathe(points) {
   const vec2s = points.map(([r, y]) => new THREE.Vector2(r, y));
@@ -25,15 +24,18 @@ function lathe(points) {
 }
 
 // Shared base+collar silhouette every piece starts from (radius, height),
-// scaled per piece by the caller. Keeping this shape consistent is what
-// makes a full set read as "one matching family" rather than six unrelated
-// shapes.
+// scaled per piece by the caller. Widened and given a more pronounced
+// collar step than the first pass — a confident, chunky base is what
+// makes turned-wood Staunton pieces read as "real objects" rather than
+// thin/spindly shapes.
 function baseProfile(scale = 1) {
   return [
-    [0.34, 0.0],
-    [0.34, 0.035],
-    [0.22, 0.075],
-    [0.16, 0.095],
+    [0.38, 0.0],
+    [0.38, 0.045],
+    [0.3, 0.07],
+    [0.28, 0.085],
+    [0.28, 0.098],
+    [0.18, 0.108],
   ].map(([r, y]) => [r * scale, y * scale]);
 }
 

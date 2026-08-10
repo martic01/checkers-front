@@ -11,19 +11,6 @@
   box-sizing: border-box;
 }
 
-.chess-screen__top {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.chess-screen__title {
-  font-family: var(--font-display);
-  color: var(--cream);
-  font-size: 1rem;
-  letter-spacing: 0.03em;
-}
-
 .chess-turn-banner {
   color: var(--cream);
   font-family: var(--font-body);
@@ -112,4 +99,44 @@
     padding: 9px 14px;
     font-size: 0.9rem;
   }
+}
+
+/* ---------- Draw offer bar (matches Checkers' inline pattern instead of
+   a full-screen modal — doesn't block the board, and distinguishes
+   "waiting for a response" from "you need to respond") ---------- */
+.draw-offer-bar {
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 10px 16px;
+  box-shadow: var(--panel-shadow);
+  z-index: 60;
+  font-size: 0.82rem;
+  color: var(--cream);
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+}
+
+.draw-offer-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- Anchor for the end-of-game banner overlay — matches the
+   board's own footprint so the banner covers exactly the board area ---------- */
+.chess-board-overlay-anchor {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }

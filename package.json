@@ -22,9 +22,5 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
     "vite": "^5.4.0"
-  },
-  "allowScripts": {
-    "@clerk/shared@3.47.8": true,
-    "esbuild@0.21.5": true
   }
 }

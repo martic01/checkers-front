@@ -90,8 +90,8 @@
 }
 
 .player-chip .avatar {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid var(--gold);
   flex-shrink: 0;
@@ -103,6 +103,72 @@
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
+}
+
+.player-chip__avatar-wrap {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-chip__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg); /* start the drain at 12 o'clock */
+  pointer-events: none;
+}
+
+.player-chip__ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 3;
+}
+
+.player-chip__ring-progress {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.25s linear, stroke 0.2s ease;
+}
+
+.player-chip__ring--active .player-chip__ring-progress {
+  stroke: var(--gold-bright, var(--gold));
+}
+
+.player-chip__ring--low .player-chip__ring-progress {
+  stroke: #e0453f;
+}
+
+.player-chip__ring--low.player-chip__ring--active .player-chip__ring-progress {
+  animation: player-chip-ring-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes player-chip-ring-pulse {
+  0%, 100% {
+    stroke: #e0453f;
+    opacity: 1;
+  }
+  50% {
+    stroke: #ff6b63;
+    opacity: 0.65;
+  }
+}
+
+.player-chip__clock-text {
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cream-dim, #cfc3ac);
+  letter-spacing: 0.02em;
+}
+
+.player-chip__clock-text--low {
+  color: #ff6b63;
 }
 
 .player-chip__tag {
@@ -225,9 +291,11 @@
   flex: 1;
   width: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 0;
+  gap: 10px;
 }
 
 /* ---------- Mobile landscape: form an "angle" — players/controls hug the

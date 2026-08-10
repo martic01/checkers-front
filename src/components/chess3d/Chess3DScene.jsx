@@ -1,11 +1,12 @@
-import { Component, Suspense, useCallback, useMemo, useRef } from "react";
+import { Component, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
 import Chess3DBoard from "./Chess3DBoard.jsx";
 import Chess3DPieces from "./Chess3DPieces.jsx";
 import { getMarkerMaterials } from "./materials.js";
 import { getQualitySettings } from "./webglSupport.js";
+import { getWorldPosition } from "./coords.js";
 import "./chess3d.css";
 
 // Real React errors (a WebGL context lost mid-session, a driver-specific
@@ -39,6 +40,37 @@ function LoadingOverlay() {
   );
 }
 
+// File (a-h) and rank (1-8) labels sitting on the board frame — these were
+// missing from the 3D scene entirely before (2D mode has always had them),
+// which was part of why the board read as visually incomplete. Reuses
+// getWorldPosition for placement rather than computing positions
+// separately, same as every other piece/marker in this scene.
+function BoardCoordinates({ orientation }) {
+  const EDGE = 4.18;
+  const LABEL_Y = 0.09;
+  const files = "abcdefgh".split("");
+  return (
+    <group>
+      {files.map((f, col) => {
+        const { x } = getWorldPosition(0, col, orientation);
+        return (
+          <Text key={`f-${f}`} position={[x, LABEL_Y, EDGE]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.24} color="#EBD3A6" anchorX="center" anchorY="middle">
+            {f}
+          </Text>
+        );
+      })}
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((row) => {
+        const { z } = getWorldPosition(row, 0, orientation);
+        return (
+          <Text key={`r-${row}`} position={[-EDGE, LABEL_Y, z]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.24} color="#EBD3A6" anchorX="center" anchorY="middle">
+            {8 - row}
+          </Text>
+        );
+      })}
+    </group>
+  );
+}
+
 export default function Chess3DScene({
   board,
   gameState,
@@ -49,11 +81,41 @@ export default function Chess3DScene({
   checkedKing,
   onSquareClick,
   qualityOverride,
+  forceLowQuality = false,
   onFatalError,
   controlsRef,
 }) {
-  const quality = useMemo(() => getQualitySettings(qualityOverride), [qualityOverride]);
+  const quality = useMemo(() => getQualitySettings(qualityOverride, forceLowQuality), [qualityOverride, forceLowQuality]);
   const markers = getMarkerMaterials();
+
+  // .chess3d-container is sized via CSS aspect-ratio, which derives its
+  // height from its own width — but on some mobile WebViews, when this
+  // whole subtree mounts fresh (i.e. right when the user toggles 2D->3D),
+  // the browser hasn't finished resolving that aspect-ratio yet at the
+  // moment react-three-fiber's <Canvas> takes its first size measurement,
+  // and the canvas gets stuck rendering into a tiny/stale surface with no
+  // further resize event to correct it. Measuring the PARENT's width
+  // directly (ordinary flex/block layout, not aspect-ratio-derived) and
+  // setting an explicit pixel box sidesteps that timing gap entirely.
+  const containerRef = useRef(null);
+  const [boxPx, setBoxPx] = useState(null);
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    const parent = el?.parentElement;
+    if (!parent) return undefined;
+    const measure = () => {
+      const w = parent.clientWidth;
+      if (w > 0) setBoxPx(Math.max(240, Math.min(w, 640)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(parent);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    console.info("[Chess3D] Scene mounted.", { qualityTier: quality.tier, shadows: quality.shadows, dprCap: quality.dprCap });
+  }, [quality]);
 
   // Distinguishes a tap (select) from a drag (orbit) — a small movement
   // threshold, tracked on the raw pointer events (not per-mesh raycasts),
@@ -104,14 +166,20 @@ export default function Chess3DScene({
   );
 
   return (
-    <div className="chess3d-container" onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}>
+    <div
+      ref={containerRef}
+      className="chess3d-container"
+      style={boxPx ? { width: boxPx, height: boxPx } : undefined}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+    >
       <Chess3DErrorBoundary onFatalError={onFatalError}>
         <Suspense fallback={<LoadingOverlay />}>
           <Canvas
             shadows={quality.shadows}
             dpr={[1, quality.dprCap]}
             gl={{ antialias: quality.antialias, powerPreference: "high-performance" }}
-            camera={{ position: [0, 7.2, 7.6], fov: 42, near: 0.1, far: 50 }}
+            camera={{ position: [0, 7.6, 8.1], fov: 48, near: 0.1, far: 50 }}
           >
             <color attach="background" args={["#0a0a0c"]} />
             <ambientLight intensity={0.55} />
@@ -130,6 +198,7 @@ export default function Chess3DScene({
 
             <Chess3DBoard orientation={orientation} onSquareClick={guardedSquareClick} squareState={squareState} />
             <Chess3DPieces board={board} lastMove={lastMove} orientation={orientation} selected={selected} onSelect={guardedSquareClick} />
+            <BoardCoordinates orientation={orientation} />
 
             <OrbitControls
               ref={controlsRef}

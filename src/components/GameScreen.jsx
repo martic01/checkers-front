@@ -3,6 +3,7 @@ import Board from "./Board.jsx";
 import GameHUD from "./GameHUD.jsx";
 import ChatPanel from "./ChatPanel.jsx";
 import CoinBurst from "./CoinBurst.jsx";
+import GameEndBanner from "./GameEndBanner.jsx";
 import {
   createInitialBoard,
   boardToPieces,
@@ -27,6 +28,7 @@ import { playSound, isSoundEnabled } from "../utils/sound.js";
 import { confirmDialog, toastError, toastInfo } from "../store/uiStore.js";
 import { formatCoinsFull } from "../game/rank.js";
 import Button from "./Button.jsx";
+import { getTimeControlForBet, TIME_CONTROLS } from "../game/timeControl.js";
 import "./GameScreen.css";
 
 // How long the slide animation takes before the turn actually advances.
@@ -94,6 +96,68 @@ export default function GameScreen({
   const [opponentNetworkLost, setOpponentNetworkLost] = useState(false);
   const [networkDeadline, setNetworkDeadline] = useState(null);
   const [, setNetworkTick] = useState(0);
+
+  // Clock: local and online only, not AI. Checkers' online mode has no
+  // server-side move validation (moves are a pure client relay, and
+  // match results are self-reported by the winner's client) — so unlike
+  // Chess, the clock here is client-computed and self-reported too,
+  // consistent with that existing trust model rather than introducing a
+  // new one. A timeout is detected locally and reported through the same
+  // existing game:result path already used for every other outcome.
+  const hasClock = mode === "local" || mode === "online";
+  const [localTimeControl, setLocalTimeControl] = useState(null); // local mode only, chosen before play starts
+  const [localNames, setLocalNames] = useState({ white: "", black: "" }); // local mode only
+  const [clock, setClock] = useState(null); // { whiteMs, blackMs, turnStartedAt, incrementMs } | null
+  const clockTimeoutRef = useRef(null);
+
+  // Local: starts once the time control is picked (see the picker screen
+  // below). Online: derived immediately from the bet amount via the same
+  // shared function both games use, so the display is correct before any
+  // move/sync has happened — each side computes this independently, which
+  // is fine since both should reach the same tier from the same bet.
+  useEffect(() => {
+    if (clock) return;
+    if (mode === "local" && localTimeControl) {
+      setClock({
+        whiteMs: localTimeControl.baseSeconds * 1000,
+        blackMs: localTimeControl.baseSeconds * 1000,
+        turnStartedAt: Date.now(),
+        incrementMs: localTimeControl.incrementSeconds * 1000,
+        totalMs: localTimeControl.baseSeconds * 1000,
+      });
+    } else if (mode === "online") {
+      const tc = getTimeControlForBet("checkers", initialBetAmount);
+      setClock({
+        whiteMs: tc.baseSeconds * 1000,
+        blackMs: tc.baseSeconds * 1000,
+        turnStartedAt: Date.now(),
+        incrementMs: tc.incrementSeconds * 1000,
+        totalMs: tc.baseSeconds * 1000,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, localTimeControl, initialBetAmount, clock]);
+
+  // Timeout watcher. Local: ends the game directly. Online: no server
+  // authority here (see the comment above), so each client independently
+  // watches both clocks and whichever side notices first reports it
+  // through the existing finishGame -> game:result path; the server's
+  // existing "first result wins, settled rooms no-op" guard already
+  // handles both clients potentially detecting it near-simultaneously.
+  useEffect(() => {
+    clearTimeout(clockTimeoutRef.current);
+    if (!hasClock || !clock || gameOver) return undefined;
+    const moverColor = turn;
+    const remaining = (moverColor === WHITE ? clock.whiteMs : clock.blackMs) - (Date.now() - clock.turnStartedAt);
+    const declareTimeout = () => finishGame(moverColor === WHITE ? BLACK : WHITE);
+    if (remaining <= 0) {
+      declareTimeout();
+      return undefined;
+    }
+    clockTimeoutRef.current = setTimeout(declareTimeout, remaining);
+    return () => clearTimeout(clockTimeoutRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasClock, clock, turn, gameOver]);
   useEffect(() => {
     if (!networkPaused && !opponentNetworkLost) return;
     const id = setInterval(() => setNetworkTick((t) => t + 1), 1000);
@@ -552,11 +616,31 @@ export default function GameScreen({
     (move) => {
       if (isDisabled) return;
       commitMove(move);
+
+      let nextClock = clock;
+      if (hasClock && clock) {
+        const now = Date.now();
+        const moverColor = turn; // whose turn it was before this move
+        const remaining = Math.max(0, (moverColor === WHITE ? clock.whiteMs : clock.blackMs) - (now - clock.turnStartedAt)) + clock.incrementMs;
+        nextClock = {
+          ...clock,
+          whiteMs: moverColor === WHITE ? remaining : clock.whiteMs,
+          blackMs: moverColor === BLACK ? remaining : clock.blackMs,
+          turnStartedAt: now,
+        };
+        setClock(nextClock);
+      }
+
       if (mode === "online" && socket) {
-        socket.emit("game:move", { code: roomCode, move, turn });
+        socket.emit("game:move", {
+          code: roomCode,
+          move,
+          turn,
+          ...(nextClock ? { whiteMs: nextClock.whiteMs, blackMs: nextClock.blackMs, turnStartedAt: nextClock.turnStartedAt } : {}),
+        });
       }
     },
-    [commitMove, isDisabled, mode, roomCode, socket, turn]
+    [commitMove, isDisabled, mode, roomCode, socket, turn, hasClock, clock]
   );
 
   // AI turn — either a real "vs AI" game, or an online quickmatch that
@@ -572,7 +656,17 @@ export default function GameScreen({
     const effectiveDifficulty = mode === "online" ? botDifficultyRef.current : difficulty;
     const timer = setTimeout(() => {
       const move = getAiMove(board, aiColor, effectiveDifficulty, mandatoryJumps);
-      if (move) commitMove(move);
+      if (move) {
+        commitMove(move);
+        if (mode === "online" && vsBot) {
+          setClock((c) => {
+            if (!c) return c;
+            const now = Date.now();
+            const remaining = Math.max(0, (aiColor === WHITE ? c.whiteMs : c.blackMs) - (now - c.turnStartedAt)) + c.incrementMs;
+            return { ...c, whiteMs: aiColor === WHITE ? remaining : c.whiteMs, blackMs: aiColor === BLACK ? remaining : c.blackMs, turnStartedAt: now };
+          });
+        }
+      }
     }, 500);
     return () => clearTimeout(timer);
   }, [mode, vsBot, turn, aiColor, board, difficulty, mandatoryJumps, gameOver, isAnimating, networkTrouble, commitMove]);
@@ -582,7 +676,12 @@ export default function GameScreen({
     if (mode !== "online" || !socket) return;
     const NETWORK_GRACE_MS = 7 * 60 * 1000;
 
-    const handler = ({ move }) => commitMove(move);
+    const handler = ({ move, whiteMs, blackMs, turnStartedAt }) => {
+      commitMove(move);
+      if (typeof whiteMs === "number") {
+        setClock((c) => ({ whiteMs, blackMs, turnStartedAt, incrementMs: c?.incrementMs ?? 0, totalMs: c?.totalMs }));
+      }
+    };
 
     const onOpponentLeft = () => setConnStatus((c) => ({ ...c, opponent: "reconnecting" }));
 
@@ -671,6 +770,15 @@ export default function GameScreen({
     drawGraceGiven.current = new Set();
     fmjdTracker.current = createFmjdTracker();
     playSound("click", soundsOn);
+    if (mode === "local" && localTimeControl) {
+      setClock({
+        whiteMs: localTimeControl.baseSeconds * 1000,
+        blackMs: localTimeControl.baseSeconds * 1000,
+        turnStartedAt: Date.now(),
+        incrementMs: localTimeControl.incrementSeconds * 1000,
+        totalMs: localTimeControl.baseSeconds * 1000,
+      });
+    }
   };
 
   const handleHint = () => {
@@ -697,16 +805,81 @@ export default function GameScreen({
   const oppScore = scores[opponentId] || 0;
   const showScoreRail = mode === "online" && (myScore > 0 || oppScore > 0 || gameOver);
 
+  // Translates checkers' own gameOver shape (result/forfeit/reason) into
+  // the shared banner's simpler outcome/icon/subtitle vocabulary.
+  const endBannerOutcome = gameOver
+    ? gameOver.result === "draw"
+      ? "draw"
+      : mode === "local"
+      ? "win"
+      : gameOver.winner === playerColor
+      ? "win"
+      : "lose"
+    : null;
+  const endBannerTitle = gameOver
+    ? gameOver.result === "draw"
+      ? "Draw"
+      : mode === "local"
+      ? `${gameOver.winner === WHITE ? localNames.white.trim() || "White" : localNames.black.trim() || "Black"} Wins`
+      : gameOver.winner === playerColor
+      ? "Victory"
+      : "Defeat"
+    : null;
+  const endBannerIcon = gameOver ? (gameOver.result === "draw" ? "🤝" : gameOver.forfeit ? "🏳️" : endBannerOutcome === "win" ? "👑" : "💔") : null;
+  const endBannerSubtitle = gameOver ? (gameOver.result === "draw" ? fmjdReasonMessage(gameOver.reason) : gameOver.forfeit ? "by forfeit" : null) : null;
+
+  // Local hot-seat games have no bet amount to derive a time control from,
+  // so the players pick one up front instead — same pattern as Chess.
+  if (mode === "local" && !localTimeControl) {
+    return (
+      <div className="game-screen">
+        <div className="chess-time-picker">
+          <h2>Set up your game</h2>
+          <div className="chess-time-picker__names">
+            <input
+              type="text"
+              placeholder="White player name"
+              maxLength={20}
+              value={localNames.white}
+              onChange={(e) => setLocalNames((n) => ({ ...n, white: e.target.value }))}
+            />
+            <input
+              type="text"
+              placeholder="Black player name"
+              maxLength={20}
+              value={localNames.black}
+              onChange={(e) => setLocalNames((n) => ({ ...n, black: e.target.value }))}
+            />
+          </div>
+          <p>Choose a time control — both players share the same clock, chess-clock style.</p>
+          <div className="chess-time-picker__options">
+            {Object.values(TIME_CONTROLS.checkers).map((tc) => (
+              <button key={tc.key} type="button" className="chess-time-picker__option" onClick={() => setLocalTimeControl(tc)}>
+                <strong>{tc.label}</strong>
+                <span>
+                  {Math.round(tc.baseSeconds / 60)} min + {tc.incrementSeconds}s per move
+                </span>
+              </button>
+            ))}
+          </div>
+          <button type="button" className="time-picker-cancel" onClick={() => onExit(null, null, "home")}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="game-screen">
       <CoinBurst active={showCoinBurst} />
 
       <GameHUD
-        playerName={playerName}
+        playerName={mode === "local" ? localNames.white.trim() || "White" : playerName}
         playerAvatar={playerAvatar}
-        opponentName={opponentName}
+        opponentName={mode === "local" ? localNames.black.trim() || "Black" : opponentName}
         opponentAvatar={opponentAvatar}
-        playerColor={playerColor}
+        playerColor={mode === "local" ? WHITE : playerColor}
         playerId={mode === "online" ? playerId : null}
         opponentId={mode === "online" ? opponentId : null}
         opponentProfile={opponentProfile}
@@ -736,6 +909,27 @@ export default function GameScreen({
               onClose={() => setChatOpen(false)}
             />
           ) : null
+        }
+        soundsOn={soundsOn}
+        playerClock={
+          hasClock && clock
+            ? {
+                msAtSync: mode === "local" ? clock.whiteMs : playerColor === WHITE ? clock.whiteMs : clock.blackMs,
+                syncedAt: clock.turnStartedAt,
+                isActive: !gameOver && (mode === "local" ? turn === WHITE : turn === playerColor),
+                totalMs: clock.totalMs,
+              }
+            : null
+        }
+        opponentClock={
+          hasClock && clock
+            ? {
+                msAtSync: mode === "local" ? clock.blackMs : playerColor === WHITE ? clock.blackMs : clock.whiteMs,
+                syncedAt: clock.turnStartedAt,
+                isActive: !gameOver && (mode === "local" ? turn === BLACK : turn !== playerColor),
+                totalMs: clock.totalMs,
+              }
+            : null
         }
       >
         <div className="board-with-rail">
@@ -780,15 +974,7 @@ export default function GameScreen({
             </div>
           )}
           {showEndBanner && gameOver && (
-            <div
-              className={`game-end-banner game-end-banner--${
-                gameOver.result === "draw" ? "draw" : mode === "local" ? "win" : gameOver.winner === playerColor ? "win" : "lose"
-              }`}
-            >
-              <div className="game-end-banner__text">
-                {gameOver.result === "draw" ? "Draw" : mode === "local" ? `${gameOver.winner.toUpperCase()} Wins` : gameOver.winner === playerColor ? "Victory" : "Defeat"}
-              </div>
-            </div>
+            <GameEndBanner outcome={endBannerOutcome} title={endBannerTitle} icon={endBannerIcon} subtitle={endBannerSubtitle} />
           )}
         </div>
       </GameHUD>
@@ -850,7 +1036,7 @@ export default function GameScreen({
               {gameOver.result === "draw"
                 ? fmjdReasonMessage(gameOver.reason)
                 : mode === "local"
-                ? `${gameOver.winner.toUpperCase()} wins!`
+                ? `${gameOver.winner === WHITE ? localNames.white.trim() || "White" : localNames.black.trim() || "Black"} wins!`
                 : gameOver.winner === playerColor
                 ? "You win! 🎉"
                 : "You lose. Try again?"}

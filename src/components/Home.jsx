@@ -158,6 +158,12 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
                 <span className="mode-icon">{card.icon}</span>
                 <span className="mode-title">{card.title}</span>
                 <span className="mode-desc">{card.desc}</span>
+                {card.key === "chess-online" && playersOnline !== null && (
+                  <span className="mode-card__online-badge">
+                    <span className="mode-card__online-dot" />
+                    {playersOnline} online
+                  </span>
+                )}
               </button>
             ))}
           </div>

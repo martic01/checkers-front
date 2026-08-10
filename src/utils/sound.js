@@ -118,6 +118,13 @@ const RECIPES = {
     tone(ctx, { freq: 440, duration: 0.34, type: "sine", volume: 0.22, delay: 0.42 });
   },
   notify: (ctx) => tone(ctx, { freq: 600, freqEnd: 900, duration: 0.13, type: "sine", volume: 0.22 }),
+  // A short, urgent double-blip for the chess-clock low-time warning —
+  // deliberately sharper/higher than `notify` so it reads as "hurry up"
+  // rather than a generic ping.
+  lowTime: (ctx) => {
+    tone(ctx, { freq: 1046.5, duration: 0.07, type: "square", volume: 0.16 });
+    tone(ctx, { freq: 1046.5, duration: 0.07, type: "square", volume: 0.16, delay: 0.11 });
+  },
   // Epic-tier entry emote: a short cinematic riser, then a bold double
   // sub-bass boom with a tight noise crack on each hit, and a low rumble
   // tail. Purely percussive/impact — no melody or arpeggio — so it reads

@@ -1,22 +1,40 @@
 // Shared materials, built once and reused across every piece/board mesh —
-// never created per-instance. Colors follow the ranges from the design
-// brief: warm ivory/cream for white, deep ebony-with-brown-undertone for
-// black (never flat pure black, so edges/highlights still read).
+// never created per-instance.
+//
+// Using MeshPhongMaterial rather than MeshStandardMaterial: Phong still
+// gives real specular highlights (the glossy look chess sets typically
+// have — flat MeshLambertMaterial has none, and that flatness was part of
+// why the first pass looked "bad"/lifeless), but unlike the PBR
+// MeshStandardMaterial pipeline, Phong doesn't lean on environment/IBL
+// lighting to look right and is dramatically friendlier to older or
+// software-rendered GPUs — the same reasoning that made simplifying to
+// Lambert/Phong-family materials work on old Intel integrated graphics
+// elsewhere. Phong is the middle ground: gloss without the PBR cost.
 import * as THREE from "three";
+
+function readThemeColor(varName, fallback) {
+  try {
+    const el = document.querySelector(".app-shell") || document.documentElement;
+    const val = getComputedStyle(el).getPropertyValue(varName).trim();
+    return val || fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 let pieceMaterials = null;
 export function getPieceMaterial(color) {
   if (!pieceMaterials) {
     pieceMaterials = {
-      w: new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#EDDCC0"),
-        roughness: 0.42,
-        metalness: 0.06,
+      w: new THREE.MeshPhongMaterial({
+        color: new THREE.Color("#F5E9D3"),
+        specular: new THREE.Color("#FFFDF7"),
+        shininess: 55,
       }),
-      b: new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#1C130E"),
-        roughness: 0.38,
-        metalness: 0.08,
+      b: new THREE.MeshPhongMaterial({
+        color: new THREE.Color("#241812"),
+        specular: new THREE.Color("#7A6650"),
+        shininess: 65,
       }),
     };
   }
@@ -30,34 +48,48 @@ let slitMaterials = null;
 export function getSlitMaterial(color) {
   if (!slitMaterials) {
     slitMaterials = {
-      w: new THREE.MeshStandardMaterial({ color: new THREE.Color("#8A7454"), roughness: 0.5 }),
-      b: new THREE.MeshStandardMaterial({ color: new THREE.Color("#000000"), roughness: 0.5 }),
+      w: new THREE.MeshPhongMaterial({ color: new THREE.Color("#8A7454"), shininess: 20 }),
+      b: new THREE.MeshPhongMaterial({ color: new THREE.Color("#000000"), shininess: 20 }),
     };
   }
   return slitMaterials[color];
 }
 
+// Board colors are read from the SAME CSS custom properties Checkers'
+// board themes define (--sq-light-a, --sq-dark-a, --board-border — see
+// styles/theme.css), so picking a theme in Settings affects both boards.
+// Cached like everything else here, but refreshBoardMaterialsFromTheme()
+// (called on every Chess3DBoard mount) updates the existing materials'
+// colors in place rather than recreating them, in case the theme changed
+// since they were first built.
 let boardMaterials = null;
 export function getBoardMaterials() {
   if (!boardMaterials) {
     boardMaterials = {
-      light: new THREE.MeshStandardMaterial({ color: new THREE.Color("#E8D3A6"), roughness: 0.55, metalness: 0.03 }),
-      dark: new THREE.MeshStandardMaterial({ color: new THREE.Color("#4A2F1C"), roughness: 0.5, metalness: 0.03 }),
-      frame: new THREE.MeshStandardMaterial({ color: new THREE.Color("#2B1A10"), roughness: 0.6, metalness: 0.04 }),
+      light: new THREE.MeshPhongMaterial({ color: new THREE.Color(readThemeColor("--sq-light-a", "#E8D3A6")), shininess: 25 }),
+      dark: new THREE.MeshPhongMaterial({ color: new THREE.Color(readThemeColor("--sq-dark-a", "#4A2F1C")), shininess: 25 }),
+      frame: new THREE.MeshPhongMaterial({ color: new THREE.Color(readThemeColor("--board-border", "#2B1A10")), shininess: 15 }),
     };
   }
   return boardMaterials;
+}
+
+export function refreshBoardMaterialsFromTheme() {
+  if (!boardMaterials) return; // nothing built yet — getBoardMaterials() will read fresh values on first call
+  boardMaterials.light.color.set(readThemeColor("--sq-light-a", "#E8D3A6"));
+  boardMaterials.dark.color.set(readThemeColor("--sq-dark-a", "#4A2F1C"));
+  boardMaterials.frame.color.set(readThemeColor("--board-border", "#2B1A10"));
 }
 
 let markerMaterials = null;
 export function getMarkerMaterials() {
   if (!markerMaterials) {
     markerMaterials = {
-      moveDot: new THREE.MeshStandardMaterial({ color: new THREE.Color("#FFDF33"), emissive: new THREE.Color("#FFDF33"), emissiveIntensity: 0.6, roughness: 0.4 }),
-      captureRing: new THREE.MeshStandardMaterial({ color: new THREE.Color("#C85C4F"), emissive: new THREE.Color("#C85C4F"), emissiveIntensity: 0.5, roughness: 0.4 }),
-      selectedRing: new THREE.MeshStandardMaterial({ color: new THREE.Color("#FFDF33"), emissive: new THREE.Color("#FFDF33"), emissiveIntensity: 0.8, roughness: 0.3 }),
-      lastMove: new THREE.MeshStandardMaterial({ color: new THREE.Color("#FF7800"), emissive: new THREE.Color("#FF7800"), emissiveIntensity: 0.35, roughness: 0.5, transparent: true, opacity: 0.55 }),
-      check: new THREE.MeshStandardMaterial({ color: new THREE.Color("#C85C4F"), emissive: new THREE.Color("#C85C4F"), emissiveIntensity: 0.9, roughness: 0.4, transparent: true, opacity: 0.7 }),
+      moveDot: new THREE.MeshPhongMaterial({ color: new THREE.Color("#FFDF33"), emissive: new THREE.Color("#FFDF33"), emissiveIntensity: 0.6 }),
+      captureRing: new THREE.MeshPhongMaterial({ color: new THREE.Color("#C85C4F"), emissive: new THREE.Color("#C85C4F"), emissiveIntensity: 0.5 }),
+      selectedRing: new THREE.MeshPhongMaterial({ color: new THREE.Color("#FFDF33"), emissive: new THREE.Color("#FFDF33"), emissiveIntensity: 0.8 }),
+      lastMove: new THREE.MeshPhongMaterial({ color: new THREE.Color("#FF7800"), emissive: new THREE.Color("#FF7800"), emissiveIntensity: 0.35, transparent: true, opacity: 0.55 }),
+      check: new THREE.MeshPhongMaterial({ color: new THREE.Color("#C85C4F"), emissive: new THREE.Color("#C85C4F"), emissiveIntensity: 0.9, transparent: true, opacity: 0.7 }),
     };
   }
   return markerMaterials;

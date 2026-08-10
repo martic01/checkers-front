@@ -34,7 +34,7 @@ import Friends from "./components/Friends.jsx";
 import ChallengePopup from "./components/ChallengePopup.jsx";
 import ChessLevels from "./components/ChessLevels.jsx";
 import ChessScreen from "./components/ChessScreen.jsx";
-import ChessOnlineLobby from "./components/ChessOnlineLobby.jsx";
+import ChessPostGameScreen from "./components/ChessPostGameScreen.jsx";
 
 const IDLE_ONLINE_STATE = { phase: "idle", betAmount: 0, roomCode: null, opponent: null, playerColor: "white" };
 const CLERK_ENABLED = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -93,6 +93,7 @@ function AppRouter() {
   const [online, setOnline] = useState(IDLE_ONLINE_STATE);
   const [chessOnline, setChessOnline] = useState(IDLE_ONLINE_STATE);
   const [matchResult, setMatchResult] = useState(null);
+  const [chessMatchResult, setChessMatchResult] = useState(null);
   const [showInbox, setShowInbox] = useState(false);
   const [playlist, setPlaylist] = useState([]);
   const [chessAiDifficulty, setChessAiDifficulty] = useState("intermediate");
@@ -157,8 +158,8 @@ function AppRouter() {
     };
     socket.on("match:found", onFound);
 
-    const onChessFound = ({ code, color, opponent, betAmount: bet }) => {
-      setChessOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color });
+    const onChessFound = ({ code, color, opponent, betAmount: bet, vsBot }) => {
+      setChessOnline({ phase: "matched", betAmount: bet, roomCode: code, opponent, playerColor: color, vsBot: !!vsBot });
       setTimeout(() => setScreen("chess-online-game"), 2000);
     };
     socket.on("chess:match:found", onChessFound);
@@ -189,6 +190,10 @@ function AppRouter() {
     if (screen === "post-game" && !matchResult) setScreen("online-lobby");
   }, [screen, matchResult]);
 
+  useEffect(() => {
+    if (screen === "chess-post-game" && !chessMatchResult) setScreen("chess-online-lobby");
+  }, [screen, chessMatchResult]);
+
   const handleGameExit = async (result, _winner, destination = "home") => {
     if (result === "win" || result === "loss" || result === "draw") {
       if (screen !== "online-game") {
@@ -216,6 +221,35 @@ function AppRouter() {
     setOnline((o) => ({ ...o, betAmount }));
     setMatchResult(null);
     setScreen("online-game");
+  };
+
+  // Chess's own online match-end/rematch flow — separate state from
+  // Checkers' above since the two use entirely different socket
+  // namespaces (chess:* vs unprefixed) and Chess's rematch swaps each
+  // player's color, which Checkers' simpler handler doesn't need to
+  // account for.
+  const handleChessMatchEnd = (payload) => {
+    setChessMatchResult(payload);
+    setScreen("chess-post-game");
+  };
+
+  const handleChessPostGameQuit = () => {
+    setChessMatchResult(null);
+    setChessOnline(IDLE_ONLINE_STATE);
+    setScreen("chess-online-lobby");
+  };
+
+  const handleChessRematchStart = (room) => {
+    const me = room.players?.find((p) => p.playerId === player.id);
+    const them = room.players?.find((p) => p.playerId !== player.id);
+    setChessOnline((o) => ({
+      ...o,
+      betAmount: room.betAmount ?? o.betAmount,
+      playerColor: me?.color || o.playerColor,
+      opponent: them ? { id: them.playerId, name: them.name, avatar: them.avatar } : o.opponent,
+    }));
+    setChessMatchResult(null);
+    setScreen("chess-online-game");
   };
 
   const handleSettled = (payload) => {
@@ -492,7 +526,7 @@ function AppRouter() {
         return <ChessScreen mode="ai" difficulty={chessAiDifficulty} onExit={() => navigate("home")} />;
       case "chess-online-lobby":
         return (
-          <ChessOnlineLobby
+          <OnlineLobby
             player={player}
             state={chessOnline}
             onQuickMatch={handleChessQuickMatch}
@@ -510,7 +544,27 @@ function AppRouter() {
             roomCode={chessOnline.roomCode}
             playerColor={chessOnline.playerColor}
             opponentInfo={{ ...chessOnline.opponent, myPlayerId: player.id }}
+            betAmount={chessOnline.betAmount}
+            vsBot={!!chessOnline.vsBot}
             onExit={handleChessOnlineExit}
+            onMatchEnd={handleChessMatchEnd}
+          />
+        );
+      case "chess-post-game":
+        if (!chessMatchResult) return null;
+        return (
+          <ChessPostGameScreen
+            player={player}
+            opponent={chessOnline.opponent}
+            playerColor={chessOnline.playerColor}
+            vsBot={!!chessOnline.vsBot}
+            roomCode={chessOnline.roomCode}
+            socket={getSocket()}
+            matchResult={chessMatchResult}
+            totalEarnings={player.totalEarnings}
+            playerCoins={player.coins}
+            onQuit={handleChessPostGameQuit}
+            onRematchStart={handleChessRematchStart}
           />
         );
       case "ai-game":
