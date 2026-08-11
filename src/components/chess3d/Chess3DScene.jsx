@@ -47,7 +47,7 @@ function LoadingOverlay() {
 // separately, same as every other piece/marker in this scene.
 function BoardCoordinates({ orientation }) {
   const EDGE = 4.18;
-  const LABEL_Y = 0.09;
+  const LABEL_Y = 0.9;
   const files = "abcdefgh".split("");
   return (
     <group>
@@ -165,6 +165,7 @@ export default function Chess3DScene({
     [selected, lastMove, checkedKing, destinationsBySquare, board, markers]
   );
 
+  
   return (
     <div
       ref={containerRef}
@@ -177,16 +178,16 @@ export default function Chess3DScene({
         <Suspense fallback={<LoadingOverlay />}>
           <Canvas
             shadows={quality.shadows}
-            dpr={[1, quality.dprCap]}
+            dpr={[3, quality.dprCap]}
             gl={{ antialias: quality.antialias, powerPreference: "high-performance" }}
-            camera={{ position: [0, 7.6, 8.1], fov: 48, near: 0.1, far: 50 }}
+            camera={{ position: [0, 6.6, 9.9], fov:40 , near: 0.1, far: 100 }}
           >
-            <color attach="background" args={["#0a0a0c"]} />
-            <ambientLight intensity={0.55} />
-            <hemisphereLight args={["#fdf6ea", "#1a1410", 0.4]} />
+            {/* <color attach="background" args={["#2b1908"]} /> */}
+            <ambientLight intensity={0.1} />
+            <hemisphereLight args={["#fdf6ea", "#53cc1f", 0.4]} />
             <directionalLight
               position={[4, 8, 3]}
-              intensity={1.1}
+              intensity={1.2}
               castShadow={quality.shadows}
               shadow-mapSize={quality.shadowMapSize ? [quality.shadowMapSize, quality.shadowMapSize] : undefined}
               shadow-camera-left={-6}
@@ -205,11 +206,11 @@ export default function Chess3DScene({
               enablePan={false}
               enableDamping
               dampingFactor={0.12}
-              minDistance={5}
-              maxDistance={13}
-              minPolarAngle={THREE.MathUtils.degToRad(15)}
-              maxPolarAngle={THREE.MathUtils.degToRad(80)}
-              target={[0, 0, 0]}
+              minDistance={4.5}
+              maxDistance={9.5}
+              minPolarAngle={THREE.MathUtils.degToRad(20)}
+              maxPolarAngle={THREE.MathUtils.degToRad(58)}
+             target={[0, 0, 0]}
             />
           </Canvas>
         </Suspense>

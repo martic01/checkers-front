@@ -5,8 +5,8 @@ import { getPieceMaterial, getSlitMaterial } from "./materials.js";
 import { getWorldPosition } from "./coords.js";
 
 const MOVE_DURATION = 0.42; // seconds — within the 300-500ms brief
-const LIFT_HEIGHT = 0.18;
-const SELECT_LIFT = 0.12;
+const LIFT_HEIGHT = 0.23;
+const SELECT_LIFT = 0.2;
 const CAPTURE_DURATION = 0.45;
 
 function easeOutCubic(t) {
@@ -20,11 +20,11 @@ function easeOutCubic(t) {
 // drives the slide animation; without it the piece just appears in place
 // (used for the initial board setup and for the opponent's own pieces
 // that didn't move this turn).
-export default function Chess3DPiece({ type, color, row, col, orientation, fromSquare = null, isSelected = false, isCapturing = false, onSelect }) {
+export default function Chess3DPiece({ type, color, row, col, orientation, fromSquare = null, isSelected = false, isCapturing = false, onSelect, gltfPiece = null }) {
   const groupRef = useRef();
-  const { body, parts } = useMemo(() => getPieceGeometry(type), [type]);
-  const bodyMaterial = getPieceMaterial(color);
-  const pieceScale = PIECE_SCALE[type] || 1;
+  const procedural = useMemo(() => (gltfPiece ? null : getPieceGeometry(type)), [type, gltfPiece]);
+  const bodyMaterial =  getPieceMaterial(color);
+  const pieceScale =  PIECE_SCALE[type] ;
 
   const target = getWorldPosition(row, col, orientation);
   const start = fromSquare ? getWorldPosition(fromSquare.row, fromSquare.col, orientation) : target;
@@ -73,17 +73,23 @@ export default function Chess3DPiece({ type, color, row, col, orientation, fromS
         onSelect(row, col);
       }}
     >
-      <mesh geometry={body} material={bodyMaterial} castShadow receiveShadow />
-      {parts.map((part, i) => (
-        <mesh
-          key={i}
-          geometry={part.geometry}
-          material={part.materialKey === "slit" ? getSlitMaterial(color) : bodyMaterial}
-          position={part.position}
-          rotation={part.rotation}
-          castShadow
-        />
-      ))}
+      {gltfPiece ? (
+        <mesh geometry={gltfPiece.geometry} material={bodyMaterial} castShadow receiveShadow />
+      ) : (
+        <>
+          <mesh geometry={procedural.body} material={bodyMaterial} castShadow receiveShadow />
+          {procedural.parts.map((part, i) => (
+            <mesh
+              key={i}
+              geometry={part.geometry}
+              material={part.materialKey === "slit" ? getSlitMaterial(color) : bodyMaterial}
+              position={part.position}
+              rotation={part.rotation}
+              castShadow
+            />
+          ))}
+        </>
+      )}
       {isSelected && (
         <mesh position={[0, 0.02, 0]}>
           <torusGeometry args={[0.28, 0.015, 8, 24]} />

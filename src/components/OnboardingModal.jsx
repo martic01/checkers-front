@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { COUNTRIES, flagEmoji } from "../game/countries.js";
 import "./OnboardingModal.css";
 
-const TERMS_TEXT = `Welcome to MarCheckers.
+const TERMS_TEXT = `Welcome to MarChess & Checkers.
 
 1. Virtual Currency Only
-All coins, bets, and winnings in MarCheckers are virtual in-game currency. They have no real-world monetary value, cannot be exchanged for cash, and cannot be purchased with real money. Nothing in this app constitutes gambling.
+All coins, bets, and winnings in MarChess & Checkers are virtual in-game currency. They have no real-world monetary value, cannot be exchanged for cash, and cannot be purchased with real money. Nothing in this app constitutes gambling.
 
 2. Eligibility
 You must be at least 13 years old to create an account. By continuing, you confirm the date of birth you provide is accurate.
@@ -60,7 +60,7 @@ export default function OnboardingModal({ onComplete }) {
       <div className="onboarding-card">
         <div className="onboarding-header">
           <span className="onboarding-header__icon">🛡️</span>
-          <h2>Welcome to MarCheckers</h2>
+          <h2>Welcome to MarChess &amp; Checkers</h2>
           <p>Before you play, please confirm a few details.</p>
         </div>
 

@@ -35,7 +35,7 @@
 }
 
 .home-title {
-  font-size: clamp(2rem, 6vw, 3.4rem);
+  font-size: clamp(1.7rem, 6vw, 3.4rem);
   margin: 8px 0 6px;
   background: linear-gradient(135deg, var(--cream), var(--maple-deep));
   -webkit-background-clip: text;
@@ -43,6 +43,17 @@
   color: transparent;
   word-break: break-word;
   max-width: 100%;
+  line-height: 1.15;
+}
+
+.home-title__glyph {
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: var(--gold);
+  opacity: 0.75;
+  font-size: 0.75em;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .mode-cards {
@@ -493,7 +504,7 @@
   }
   
   .home-title {
-    font-size: 1.6rem;
+    font-size: 1.35rem;
   }
   
   .home-eyebrow {
@@ -574,7 +585,7 @@
   }
   
   .home-title {
-    font-size: 1.6rem;
+    font-size: 1.35rem;
     margin: 2px 0;
   }
   

@@ -28,7 +28,7 @@ export default function Auth({ onRegister, onLogin, onGoogle, onGuest, error }) 
   return (
     <div className="auth-screen">
       <div className="panel auth-panel">
-        <h1 className="screen-title">MarCheckers</h1>
+        <h1 className="screen-title">MarChess &amp; Checkers</h1>
         <p className="screen-subtitle">{mode === "register" ? "Create your account" : "Welcome back"}</p>
 
         <div className="auth-tabs">

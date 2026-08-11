@@ -231,7 +231,7 @@ export default function Settings({ settings, onChange, onBack, onContactUs, onRa
           <div className="settings-carousel-page">
             <Section title="Rate">
               <button className="settings-linklike" onClick={onRate}>
-                ⭐ Rate MarCheckers
+                ⭐ Rate MarChess &amp; Checkers
               </button>
             </Section>
             <Section title="Premium">

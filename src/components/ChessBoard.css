@@ -32,7 +32,7 @@
 .chess-coords--left, .chess-coords--right {
   display: grid;
   grid-template-rows: repeat(8, minmax(0, 1fr));
-  padding: 0 6px;
+  padding: 0 6px !important;
   width: 18px;
   flex-shrink: 0;
 }
@@ -152,6 +152,20 @@
   justify-content: center;
   gap: 10px;
   margin-top: 10px;
+}
+.chess-3d-credit {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--cream-dim, rgba(235, 211, 166, 0.5));
+  margin-top: 4px;
+}
+.chess-3d-credit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.chess-3d-credit a:hover {
+  color: var(--gold);
 }
 .chess-3d-toggle {
   display: inline-flex;

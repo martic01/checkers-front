@@ -110,7 +110,9 @@ export default function Home({ onNavigate, player, inboxCount = 0, onOpenInbox, 
         <span className="home-eyebrow" onClick={handleSecretTap}>
           International Draughts
         </span>
-        <h1 className="home-title">MarCheckers</h1>
+        <h1 className="home-title">
+          MarChess <span className="home-title__glyph" aria-hidden="true">♞</span> <span className="home-title__glyph" aria-hidden="true">⛀</span> Checkers
+        </h1>
       </div>
 
       <div className="game-tabs" role="tablist" aria-label="Game">

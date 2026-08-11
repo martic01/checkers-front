@@ -200,13 +200,16 @@ const FACTORIES = {
 // Relative scale so the six piece types read at believable relative
 // heights against each other (king tallest, pawn shortest), applied on
 // top of each profile's own natural height.
+// Bumped up ~20% across the board from the original set (p:0.72 ... k:1.05)
+// — at the camera distances this scene actually uses, the old values read
+// as noticeably undersized against the squares.
 export const PIECE_SCALE = {
-  p: 0.72,
-  n: 0.86,
-  b: 0.92,
-  r: 0.8,
-  q: 1.0,
-  k: 1.05,
+  p: 0.86,
+  n: 1.03,
+  b: 1.1,
+  r: 0.96,
+  q: 1.2,
+  k: 1.26,
 };
 
 let cache = null;

@@ -223,6 +223,20 @@ export default function ChessBoard({
         )}
       </div>
 
+      {show3D && (
+        <p className="chess-3d-credit">
+          "Chess Board" by{" "}
+          <a href="https://sketchfab.com/paulyanez" target="_blank" rel="noreferrer noopener">
+            Anthony Yanez
+          </a>{" "}
+          (
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer noopener">
+            CC-BY-4.0
+          </a>
+          )
+        </p>
+      )}
+
       {pendingPromotion && (
         <div className="chess-promotion-overlay">
           <div className="chess-promotion-modal">

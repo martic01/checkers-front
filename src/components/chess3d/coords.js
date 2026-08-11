@@ -5,7 +5,7 @@
 // white's perspective, black's perspective, local, AI, and online play.
 import { WHITE } from "../../game/chess/chessLogic.js";
 
-export const SQUARE_SIZE = 1;
+export const SQUARE_SIZE = 0.77;
 const BOARD_OFFSET = (8 - 1) / 2; // centers an 8-wide board on world origin
 
 export function getWorldPosition(row, col, orientation = WHITE) {

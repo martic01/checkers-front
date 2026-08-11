@@ -1,15 +1,39 @@
 .chess3d-container {
-  position: relative;
-  width: 100%;
-  max-width: 640px;
-  aspect-ratio: 1 / 1;
-  margin: 0 auto;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #0a0a0c;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85);
-  touch-action: none; /* orbit drag owns touch gestures on the canvas */
+  position: relative; /*[cite: 7]*/
+  width: 100% !important;
+  max-width: 900px !important; /* Increase maximum horizontal width */
+  height: 480px !important;    /* Force a shorter fixed height */
+  aspect-ratio: auto !important; /* Remove the 1/1 square aspect ratio requirement */
+  
+  margin: 0 auto; /*[cite: 7]*/
+  border-radius: 6px; /*[cite: 7]*/
+  overflow: hidden; /*[cite: 7]*/
+  background: #1e1e2400;
+  touch-action: none; /*[cite: 7]*/
 }
+
+@media (max-width: 600px) {
+  .chess3d-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    /* On mobile screens, switch to a taller or 1:1 square ratio so pieces are easy to touch */
+    height: 370px !important; 
+    border-radius: 4px; /*[cite: 7]*/
+  }
+}
+
+/* --- 370px Mobile Portrait View --- */
+@media (max-width: 500px) and (orientation: portrait) {
+  .chess3d-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    /* Square aspect ratio works best on narrow portrait screens so the board fills width */
+    height: 290px !important; 
+    border-radius: 4px; /*[cite: 7]*/
+  }
+}
+
+
 .chess3d-container canvas {
   display: block;
   width: 100% !important;

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Chess3DPiece from "./Chess3DPiece.jsx";
+import { useGLTFPieceSet } from "./gltfPieces.js";
 
 const CAPTURE_ANIM_MS = 480;
 
@@ -9,6 +10,7 @@ const CAPTURE_ANIM_MS = 480;
 // a captured piece (including en passant, where that's NOT the same as
 // the destination square). No heuristics, no piece-identity guessing.
 export default function Chess3DPieces({ board, lastMove, orientation, selected, onSelect }) {
+  const pieceSet = useGLTFPieceSet();
   const [ghost, setGhost] = useState(null); // { type, color, row, col, key } | null
   const ghostTimer = useRef(null);
 
@@ -53,6 +55,7 @@ export default function Chess3DPieces({ board, lastMove, orientation, selected, 
           fromSquare={fromSquare}
           isSelected={!!selected && selected.row === row && selected.col === col}
           onSelect={onSelect}
+          gltfPiece={pieceSet ? pieceSet[cell.color]?.[cell.type] : null}
         />
       );
     }
@@ -69,6 +72,7 @@ export default function Chess3DPieces({ board, lastMove, orientation, selected, 
         orientation={orientation}
         isCapturing
         onSelect={() => {}}
+        gltfPiece={pieceSet ? pieceSet[ghost.color]?.[ghost.type] : null}
       />
     );
   }

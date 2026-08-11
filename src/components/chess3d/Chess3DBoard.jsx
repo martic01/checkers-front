@@ -3,8 +3,8 @@ import * as THREE from "three";
 import { getBoardMaterials, refreshBoardMaterialsFromTheme } from "./materials.js";
 import { getWorldPosition, SQUARE_SIZE } from "./coords.js";
 
-const SQUARE_HEIGHT = 0.12;
-const FRAME_THICKNESS = 0.35;
+const SQUARE_HEIGHT = 0.2;
+const FRAME_THICKNESS = 0.4;
 const FRAME_HEIGHT = 0.22;
 
 // One shared box geometry for every square (position/material differ per

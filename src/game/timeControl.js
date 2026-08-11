@@ -1,11 +1,11 @@
 // Official-style time controls, shared by Chess and Checkers. Each tier is
 // base time (per player, in seconds) plus a per-move increment added AFTER
 // the move that used it — the standard Fischer-increment chess-clock
-// pattern, matching the source table's own numbers:
+// pattern.
 //
-//   Chess:    Blitz 3min+2s | Rapid 15min+10s | Classical 90min(+30min after
+//   Chess:    Blitz 8min+10s | Rapid 15min+10s | Classical 90min(+30min after
 //             move 40, approximated below as a flat bank)+30s from move 1
-//   Checkers: Blitz 5min+3s | Rapid 15min+5s  | Classical 80min+1min (Fischer)
+//   Checkers: Blitz 8min+10s | Rapid 15min+5s  | Classical 80min+1min (Fischer)
 //
 // Classical chess's real FIDE control has a move-40 time bonus, which this
 // simplified single-phase version approximates as one flat base bank
@@ -13,12 +13,12 @@
 // disclosed simplification; the increment-from-move-1 behavior is exact.
 export const TIME_CONTROLS = {
   chess: {
-    blitz: { key: "blitz", label: "Blitz", baseSeconds: 3 * 60, incrementSeconds: 2 },
+    blitz: { key: "blitz", label: "Blitz", baseSeconds: 8 * 60, incrementSeconds: 10 },
     rapid: { key: "rapid", label: "Rapid", baseSeconds: 15 * 60, incrementSeconds: 10 },
     classical: { key: "classical", label: "Classical", baseSeconds: 120 * 60, incrementSeconds: 30 },
   },
   checkers: {
-    blitz: { key: "blitz", label: "Blitz", baseSeconds: 5 * 60, incrementSeconds: 3 },
+    blitz: { key: "blitz", label: "Blitz", baseSeconds: 8 * 60, incrementSeconds: 10 },
     rapid: { key: "rapid", label: "Rapid", baseSeconds: 15 * 60, incrementSeconds: 5 },
     classical: { key: "classical", label: "Classical", baseSeconds: 80 * 60, incrementSeconds: 60 },
   },

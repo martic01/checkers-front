@@ -27,14 +27,16 @@ export function getPieceMaterial(color) {
   if (!pieceMaterials) {
     pieceMaterials = {
       w: new THREE.MeshPhongMaterial({
-        color: new THREE.Color("#F5E9D3"),
-        specular: new THREE.Color("#FFFDF7"),
-        shininess: 55,
+        color: new THREE.Color("#F5E9D3"), /* */
+        specular: new THREE.Color("#FFFDF7"), /*[cite: 4] */
+        shininess: 20, /*[cite: 4] */
       }),
       b: new THREE.MeshPhongMaterial({
-        color: new THREE.Color("#241812"),
-        specular: new THREE.Color("#7A6650"),
-        shininess: 65,
+        // Lightened from #241812 to #3a2e2b for far better contrast
+        color: new THREE.Color("#4d2822"),
+        // Brightened specular reflection so contours pop
+        specular: new THREE.Color("#e0ab7c"),
+        shininess: 20,
       }),
     };
   }
@@ -49,7 +51,7 @@ export function getSlitMaterial(color) {
   if (!slitMaterials) {
     slitMaterials = {
       w: new THREE.MeshPhongMaterial({ color: new THREE.Color("#8A7454"), shininess: 20 }),
-      b: new THREE.MeshPhongMaterial({ color: new THREE.Color("#000000"), shininess: 20 }),
+      b: new THREE.MeshPhongMaterial({ color: new THREE.Color("#e91b1b"), shininess: 20 }),
     };
   }
   return slitMaterials[color];
