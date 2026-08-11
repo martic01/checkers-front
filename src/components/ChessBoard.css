@@ -32,7 +32,7 @@
 .chess-coords--left, .chess-coords--right {
   display: grid;
   grid-template-rows: repeat(8, minmax(0, 1fr));
-  padding: 0 6px !important;
+  padding: 0 6px;
   width: 18px;
   flex-shrink: 0;
 }

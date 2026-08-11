@@ -35,7 +35,7 @@
 }
 
 .home-title {
-  font-size: clamp(1.7rem, 6vw, 3.4rem);
+  font-size: clamp(1.5rem, 4.5vw, 2.6rem);
   margin: 8px 0 6px;
   background: linear-gradient(135deg, var(--cream), var(--maple-deep));
   -webkit-background-clip: text;
@@ -504,7 +504,7 @@
   }
   
   .home-title {
-    font-size: 1.35rem;
+    font-size: 1.15rem;
   }
   
   .home-eyebrow {
@@ -585,7 +585,7 @@
   }
   
   .home-title {
-    font-size: 1.35rem;
+    font-size: 1.15rem;
     margin: 2px 0;
   }
   
