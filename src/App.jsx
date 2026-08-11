@@ -29,7 +29,6 @@ import MusicPlayer from "./components/MusicPlayer.jsx";
 import UIOverlay from "./components/UIOverlay.jsx";
 import NetworkStatus from "./components/NetworkStatus.jsx";
 import ReconnectPrompt from "./components/ReconnectPrompt.jsx";
-import RotateHint from "./components/RotateHint.jsx";
 import Friends from "./components/Friends.jsx";
 import ChallengePopup from "./components/ChallengePopup.jsx";
 import ChessLevels from "./components/ChessLevels.jsx";
@@ -448,7 +447,6 @@ function AppRouter() {
       {showInbox && (
         <Inbox messages={player.inbox} onClaim={claimInboxReward} onMarkRead={markInboxRead} onClose={() => setShowInbox(false)} />
       )}
-      {(screen === "ai-game" || screen === "local-game" || screen === "online-game") && <RotateHint />}
 
       {renderScreen()}
     </>
