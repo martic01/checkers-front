@@ -55,6 +55,14 @@ export const api = {
   adminMessage: (auth, payload) =>
     request("/api/admin/message", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
   adminPlayers: (auth) => request("/api/admin/players", { headers: adminHeaders(auth) }),
+  adminDeduct: (auth, payload) => request("/api/admin/deduct", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
+  adminBan: (auth, payload) => request("/api/admin/ban", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
+  adminResetRank: (auth, payload) =>
+    request("/api/admin/reset-rank", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
+  adminDeletePlayers: (auth, payload) =>
+    request("/api/admin/delete-players", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
+  adminForceFriend: (auth, payload) =>
+    request("/api/admin/force-friend", { method: "POST", headers: adminHeaders(auth), body: JSON.stringify(payload) }),
   authConfig: () => request("/api/auth/config"),
   clerkSync: (token) => request("/api/auth/clerk-sync", { method: "POST", headers: { Authorization: `Bearer ${token}` } }),
 };

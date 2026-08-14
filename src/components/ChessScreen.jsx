@@ -582,7 +582,11 @@ export default function ChessScreen({
                 <button type="button" className="chess-control-btn" onClick={handleRestart}>
                   Rematch
                 </button>
-                <button type="button" className="chess-control-btn chess-control-btn--ghost" onClick={() => onExit?.()}>
+                <button
+                  type="button"
+                  className="chess-control-btn chess-control-btn--ghost"
+                  onClick={() => onExit?.(endBannerOutcome === "lose" ? "loss" : endBannerOutcome)}
+                >
                   Return Home
                 </button>
               </div>

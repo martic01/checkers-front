@@ -9,11 +9,14 @@ import { getLegalMoves, applyMove, opponent, isInCheck, WHITE, BLACK } from "./c
 
 const PIECE_VALUE = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
 
-// Small, standard-flavored positional nudges — not claiming
-// tournament-grade piece-square tables, just enough to make the AI prefer
-// central control, king safety, and piece development over purely random
-// material-equal moves. Indexed [row][col] from white's perspective (row 0
-// = rank 8); mirrored vertically for black.
+// Standard "simplified evaluation function" piece-square tables (the
+// Tomasz Michniewski set, widely used as a lightweight-but-real starting
+// point for these) — full coverage for all six piece types, not just
+// pawns/knights/bishops/king. Indexed [row][col] from White's perspective
+// (row 0 = rank 8); mirrored vertically for Black. Rook and Queen were
+// previously skipped ("material value carries them") — they're now
+// included too, since a real evaluation should reward rooks on open/7th
+// rank files and queens staying out of early trouble.
 const PAWN_PST = [
   [0, 0, 0, 0, 0, 0, 0, 0],
   [50, 50, 50, 50, 50, 50, 50, 50],
@@ -44,6 +47,30 @@ const BISHOP_PST = [
   [-10, 5, 0, 0, 0, 0, 5, -10],
   [-20, -10, -10, -10, -10, -10, -10, -20],
 ];
+const ROOK_PST = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [5, 10, 10, 10, 10, 10, 10, 5],
+  [-5, 0, 0, 0, 0, 0, 0, -5],
+  [-5, 0, 0, 0, 0, 0, 0, -5],
+  [-5, 0, 0, 0, 0, 0, 0, -5],
+  [-5, 0, 0, 0, 0, 0, 0, -5],
+  [-5, 0, 0, 0, 0, 0, 0, -5],
+  [0, 0, 0, 5, 5, 0, 0, 0],
+];
+const QUEEN_PST = [
+  [-20, -10, -10, -5, -5, -10, -10, -20],
+  [-10, 0, 0, 0, 0, 0, 0, -10],
+  [-10, 0, 5, 5, 5, 5, 0, -10],
+  [-5, 0, 5, 5, 5, 5, 0, -5],
+  [0, 0, 5, 5, 5, 5, 0, -5],
+  [-10, 5, 5, 5, 5, 5, 0, -10],
+  [-10, 0, 5, 0, 0, 0, 0, -10],
+  [-20, -10, -10, -5, -5, -10, -10, -20],
+];
+// King safety matters in the middlegame (stay tucked behind pawns) but
+// inverts in the endgame (an active, centralized king is an asset once
+// there's no attack to hide from) — two tables, blended by game phase in
+// evaluate() below via a cheap non-pawn-material check.
 const KING_MIDGAME_PST = [
   [-30, -40, -40, -50, -50, -40, -40, -30],
   [-30, -40, -40, -50, -50, -40, -40, -30],
@@ -54,39 +81,96 @@ const KING_MIDGAME_PST = [
   [20, 20, 0, 0, 0, 0, 20, 20],
   [20, 30, 10, 0, 0, 10, 30, 20],
 ];
-const PST = { p: PAWN_PST, n: KNIGHT_PST, b: BISHOP_PST, k: KING_MIDGAME_PST };
+const KING_ENDGAME_PST = [
+  [-50, -40, -30, -20, -20, -30, -40, -50],
+  [-30, -20, -10, 0, 0, -10, -20, -30],
+  [-30, -10, 20, 30, 30, 20, -10, -30],
+  [-30, -10, 30, 40, 40, 30, -10, -30],
+  [-30, -10, 30, 40, 40, 30, -10, -30],
+  [-30, -10, 20, 30, 30, 20, -10, -30],
+  [-30, -30, 0, 0, 0, 0, -30, -30],
+  [-50, -30, -30, -30, -30, -30, -30, -50],
+];
+const PST = { p: PAWN_PST, n: KNIGHT_PST, b: BISHOP_PST, r: ROOK_PST, q: QUEEN_PST };
+
+// Combined non-pawn material (both sides, in centipawns) at or below which
+// the position counts as an endgame for king-table purposes — roughly
+// "queens are off, or most other pieces have been traded".
+const ENDGAME_MATERIAL_THRESHOLD = 3200;
 
 function pstValue(type, color, row, col) {
   const table = PST[type];
-  if (!table) return 0; // rook/queen: material value carries them, no PST needed for a lightweight eval
+  if (!table) return 0; // king handled separately in evaluate() — it needs the game-phase table, not a fixed one
   return color === WHITE ? table[row][col] : table[7 - row][col];
 }
 
-// Positive = good for `color`.
+// Positive = good for `color`. Single board pass: kings are scored last
+// once the game phase (mid vs endgame) is known from the non-pawn
+// material tally, rather than re-scanning the board a second time.
 export function evaluate(board, color) {
   let score = 0;
+  let nonPawnMaterial = 0;
+  let whiteKing = null;
+  let blackKing = null;
+
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const cell = board[r][c];
       if (!cell) continue;
+      if (cell.type === "k") {
+        if (cell.color === WHITE) whiteKing = { r, c };
+        else blackKing = { r, c };
+        continue;
+      }
       const value = PIECE_VALUE[cell.type] + pstValue(cell.type, cell.color, r, c);
       score += cell.color === color ? value : -value;
+      if (cell.type !== "p") nonPawnMaterial += PIECE_VALUE[cell.type];
     }
   }
+
+  const kingTable = nonPawnMaterial <= ENDGAME_MATERIAL_THRESHOLD ? KING_ENDGAME_PST : KING_MIDGAME_PST;
+  if (whiteKing) {
+    const value = kingTable[whiteKing.r][whiteKing.c];
+    score += color === WHITE ? value : -value;
+  }
+  if (blackKing) {
+    const value = kingTable[7 - blackKing.r][blackKing.c];
+    score += color === BLACK ? value : -value;
+  }
+
   return score;
 }
 
-function orderMoves(moves) {
-  // Cheap move ordering (captures first, promotions first) — meaningfully
-  // improves alpha-beta pruning efficiency for near-zero cost.
-  return [...moves].sort((a, b) => {
-    const aScore = (a.captured ? PIECE_VALUE[a.captured.type] : 0) + (a.promotion ? 800 : 0);
-    const bScore = (b.captured ? PIECE_VALUE[b.captured.type] : 0) + (b.promotion ? 800 : 0);
-    return bScore - aScore;
+// MVV-LVA (Most Valuable Victim, Least Valuable Attacker) for captures —
+// victim value dominates the sort (so "queen takes pawn" never outranks
+// "pawn takes queen"), attacker value breaks ties among captures of the
+// same victim. Promotions and checks are also pushed to the front — all
+// three are the checks a strong player looks at first, and trying them
+// first is what makes alpha-beta pruning actually earn its keep. Needs
+// `board`/`state` (not just the move list) to look up the attacking piece
+// and to test for check.
+function orderMoves(moves, board, state) {
+  const scored = moves.map((move) => {
+    let priority = 0;
+    if (move.captured) {
+      const attacker = board[move.from.row][move.from.col];
+      priority += PIECE_VALUE[move.captured.type] * 10 - PIECE_VALUE[attacker.type];
+    }
+    if (move.promotion) priority += 900;
+    const { board: nb } = applyMove(board, state, move);
+    if (isInCheck(nb, opponent(state.turn))) priority += 500;
+    return { move, priority };
   });
+  scored.sort((a, b) => b.priority - a.priority);
+  return scored.map((s) => s.move);
 }
 
-function negamax(board, state, color, depth, alpha, beta) {
+class SearchTimeout extends Error {}
+
+function negamax(board, state, color, depth, alpha, beta, deadline, nodeCount) {
+  nodeCount.n += 1;
+  if ((nodeCount.n & 1023) === 0 && Date.now() >= deadline) throw new SearchTimeout();
+
   const moves = getLegalMoves(board, state.turn, state);
   if (moves.length === 0) {
     // No legal moves: checkmate (very bad/good) or stalemate (neutral).
@@ -95,9 +179,9 @@ function negamax(board, state, color, depth, alpha, beta) {
   if (depth === 0) return evaluate(board, color);
 
   let best = -Infinity;
-  for (const move of orderMoves(moves)) {
+  for (const move of orderMoves(moves, board, state)) {
     const { board: nb, state: ns } = applyMove(board, state, move);
-    const score = -negamax(nb, ns, opponent(state.turn), depth - 1, -beta, -alpha);
+    const score = -negamax(nb, ns, opponent(state.turn), depth - 1, -beta, -alpha, deadline, nodeCount);
     if (score > best) best = score;
     if (best > alpha) alpha = best;
     if (alpha >= beta) break; // alpha-beta cutoff
@@ -106,12 +190,55 @@ function negamax(board, state, color, depth, alpha, beta) {
 }
 
 const DIFFICULTY = {
-  beginner: { depth: 1, blunderChance: 0.5, topN: 5 },
-  easy: { depth: 2, blunderChance: 0.3, topN: 4 },
-  intermediate: { depth: 3, blunderChance: 0.12, topN: 3 },
-  advanced: { depth: 3, blunderChance: 0.04, topN: 2 },
-  expert: { depth: 4, blunderChance: 0, topN: 1 },
+  beginner: { depth: 1, blunderChance: 0.5, topN: 5, timeBudgetMs: 300 },
+  easy: { depth: 2, blunderChance: 0.3, topN: 4, timeBudgetMs: 600 },
+  intermediate: { depth: 3, blunderChance: 0.12, topN: 3, timeBudgetMs: 1200 },
+  advanced: { depth: 4, blunderChance: 0.04, topN: 2, timeBudgetMs: 1800 },
+  expert: { depth: 6, blunderChance: 0, topN: 1, timeBudgetMs: 2800 },
 };
+
+// Searches iteratively deepening from depth 1 up to config.depth, always
+// keeping the last FULLY completed depth's result. A hard wall-clock
+// budget means a slow position can never make the search run away — worst
+// case, it falls back to whatever depth it managed to finish, rather than
+// hanging indefinitely (this matters even more now that "expert" reaches
+// depth 6: without a bound, a deep search on an open, tactical position
+// could otherwise take much longer than any UI — or, for the server-side
+// bot, any concurrent player — should ever have to wait).
+function searchBestMove(board, state, color, config) {
+  const moves = getLegalMoves(board, color, state);
+  const deadline = Date.now() + config.timeBudgetMs;
+  const nodeCount = { n: 0 };
+
+  let lastCompleted = null;
+  for (let depth = 1; depth <= config.depth; depth++) {
+    try {
+      const scored = orderMoves(moves, board, state).map((move) => {
+        const { board: nb, state: ns } = applyMove(board, state, move);
+        const score = -negamax(nb, ns, opponent(color), depth - 1, -Infinity, Infinity, deadline, nodeCount);
+        return { move, score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      lastCompleted = scored;
+      if (Date.now() >= deadline) break;
+    } catch (err) {
+      if (err instanceof SearchTimeout) break; // keep lastCompleted from the previous finished depth
+      throw err;
+    }
+  }
+  // Depth 1 should realistically always finish inside its own budget, but
+  // if it somehow didn't even start, fall back to a flat one-ply score
+  // rather than ever returning nothing.
+  if (!lastCompleted) {
+    lastCompleted = moves
+      .map((move) => {
+        const { board: nb } = applyMove(board, state, move);
+        return { move, score: -evaluate(nb, opponent(color)) };
+      })
+      .sort((a, b) => b.score - a.score);
+  }
+  return lastCompleted;
+}
 
 // Picks a move for `color` to play. Returns null if there are no legal
 // moves (caller should already know the game is over in that case).
@@ -121,13 +248,7 @@ export function getChessAiMove(board, state, color, difficulty = "intermediate")
   if (moves.length === 1) return moves[0];
 
   const config = DIFFICULTY[difficulty] || DIFFICULTY.intermediate;
-
-  const scored = orderMoves(moves).map((move) => {
-    const { board: nb, state: ns } = applyMove(board, state, move);
-    const score = -negamax(nb, ns, opponent(color), config.depth - 1, -Infinity, Infinity);
-    return { move, score };
-  });
-  scored.sort((a, b) => b.score - a.score);
+  const scored = searchBestMove(board, state, color, config);
 
   // Lower difficulties don't always play their own best move — they pick
   // from a shortlist of their top candidates, weighted toward the best one

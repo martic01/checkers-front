@@ -321,6 +321,18 @@ export const usePlayerStore = create((set, get) => ({
     const { player, offline } = get();
     if (offline) {
       set((s) => {
+        if (payload.game === "chess") {
+          const unlockedChessLevels = Array.isArray(s.player.unlockedChessLevels) ? [...s.player.unlockedChessLevels] : ["beginner"];
+          if (payload.result === "win") {
+            const order = ["beginner", "easy", "intermediate", "advanced", "expert"];
+            const idx = order.indexOf(payload.level);
+            if (idx !== -1) {
+              const next = order[idx + 1];
+              if (next && !unlockedChessLevels.includes(next)) unlockedChessLevels.push(next);
+            }
+          }
+          return { player: { ...s.player, unlockedChessLevels } };
+        }
         const stats = { ...s.player.stats };
         stats.gamesPlayed += 1;
         if (payload.result === "win") {

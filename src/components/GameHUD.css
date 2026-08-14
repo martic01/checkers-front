@@ -5,15 +5,13 @@
   align-items: center;
   gap: 14px;
   min-height: 0;
-
 }
 
 /* ---------- Top bar: player chips (left) + controls (right) ---------- */
 
 
 .game-topbar {
-  width: 100%;
-  max-width: 900px;
+  width: 80vw;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -118,7 +116,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg); /* start the drain at 12 o'clock */
+  transform: translate(-50%, -50%) rotate(-90deg);
+  /* start the drain at 12 o'clock */
   pointer-events: none;
 }
 
@@ -153,6 +152,7 @@
     stroke: #e0453f;
     opacity: 1;
   }
+
   50% {
     stroke: #ff6b63;
     opacity: 0.65;
@@ -187,6 +187,7 @@
 }
 
 @media (max-width: 640px) {
+
   .player-chip__tag {
     max-width: 46px;
     font-size: 0.44rem;

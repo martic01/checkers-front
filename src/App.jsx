@@ -29,6 +29,7 @@ import MusicPlayer from "./components/MusicPlayer.jsx";
 import UIOverlay from "./components/UIOverlay.jsx";
 import NetworkStatus from "./components/NetworkStatus.jsx";
 import ReconnectPrompt from "./components/ReconnectPrompt.jsx";
+import RotateHint from "./components/RotateHint.jsx";
 import Friends from "./components/Friends.jsx";
 import ChallengePopup from "./components/ChallengePopup.jsx";
 import ChessLevels from "./components/ChessLevels.jsx";
@@ -201,6 +202,16 @@ function AppRouter() {
     }
     setOnline(IDLE_ONLINE_STATE);
     setScreen(destination === "lobby" ? "online-lobby" : "home");
+  };
+
+  // Chess's own local/AI exit — mirrors handleGameExit above, but reports
+  // against unlockedChessLevels (string difficulty keys) rather than
+  // Checkers' numeric unlockedLevels, via the `game: "chess"` tag.
+  const handleChessGameExit = async (result) => {
+    if ((result === "win" || result === "loss" || result === "draw") && screen !== "chess-online-game") {
+      await reportResult({ result, mode: screen.replace("chess-", "").replace("-game", ""), level: chessAiDifficulty, game: "chess" });
+    }
+    navigate("home");
   };
 
   // Online match ended (win/loss/draw/forfeit) — hand off to the post-game
@@ -447,6 +458,7 @@ function AppRouter() {
       {showInbox && (
         <Inbox messages={player.inbox} onClaim={claimInboxReward} onMarkRead={markInboxRead} onClose={() => setShowInbox(false)} />
       )}
+      {(screen === "ai-game" || screen === "local-game" || screen === "online-game") && <RotateHint />}
 
       {renderScreen()}
     </>
@@ -511,6 +523,7 @@ function AppRouter() {
       case "chess-levels":
         return (
           <ChessLevels
+            unlockedLevels={player.unlockedChessLevels}
             onSelect={(diff) => {
               setChessAiDifficulty(diff);
               setScreen("chess-ai-game");
@@ -519,9 +532,9 @@ function AppRouter() {
           />
         );
       case "chess-local-game":
-        return <ChessScreen mode="local" onExit={() => navigate("home")} />;
+        return <ChessScreen mode="local" onExit={handleChessGameExit} />;
       case "chess-ai-game":
-        return <ChessScreen mode="ai" difficulty={chessAiDifficulty} onExit={() => navigate("home")} />;
+        return <ChessScreen mode="ai" difficulty={chessAiDifficulty} onExit={handleChessGameExit} />;
       case "chess-online-lobby":
         return (
           <OnlineLobby

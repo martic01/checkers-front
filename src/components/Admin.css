@@ -75,6 +75,33 @@
   margin-bottom: 16px;
 }
 
+.admin-analytics-toggle {
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--cream);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.admin-analytics-toggle:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.admin-analytics-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 0.78rem;
+  color: var(--cream-dim);
+  line-height: 1.5;
+}
+.admin-analytics-panel a {
+  color: var(--gold);
+}
+
 .admin-header__title {
   display: flex;
   align-items: center;
@@ -543,4 +570,48 @@
 
 .admin-card:nth-child(2) {
   animation-delay: 0.1s;
+}
+/* ---------- Bulk actions / danger zone card ---------- */
+.admin-card--danger {
+  grid-column: 1 / -1;
+  border-color: rgba(224, 69, 63, 0.35);
+}
+
+.admin-actions--wrap {
+  flex-wrap: wrap;
+}
+
+.admin-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--cream-dim);
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.admin-player-row__checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.admin-player-row__banned-badge,
+.admin-player-row__admin-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+.admin-player-row__banned-badge {
+  background: rgba(224, 69, 63, 0.2);
+  color: #ff8a83;
+}
+.admin-player-row__admin-badge {
+  background: rgba(232, 194, 92, 0.2);
+  color: var(--gold);
 }
